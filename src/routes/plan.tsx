@@ -4,7 +4,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { AppShell } from "@/components/app/AppShell";
 import { AnimatedNumber, DemoBadge, ExplainButton, GapBar, InfoTip, Metric, PageHeader, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
-import { computePlan, formatNumber, ron, SCENARIOS, type Intensity } from "@/lib/plan";
+import { computePlan, formatNumber, genitive, ron, SCENARIOS, type Intensity } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -38,13 +38,13 @@ function Dashboard() {
 
   return (
     <AppShell>
-      <PageHeader eyebrow="Planul familiei tale" title={`Planul ${p.name ? p.name + (p.name.endsWith("a") ? "i" : "") : "părintelui"}`.replace("ai", "ei")}
+      <PageHeader eyebrow="Planul familiei tale" title={`Planul ${genitive(p.name)}`}
         subtitle={`O privire asupra posibilelor nevoi financiare în următorii ${s.horizon} ani. Aceasta este o estimare, nu o predicție.`} right={<DemoBadge />} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label="Părinte" icon={<UserRound className="size-3.5" />}>{p.name}, {p.age}</Metric>
         <Metric label="Orizont analizat" icon={<CalendarDays className="size-3.5" />}>{s.horizon} ani</Metric>
-        <Metric label="Posibilă diferență lunară" icon={<HandCoins className="size-3.5" />} hint={<ExplainButton title="Diferența lunară" lines={[{ label: "Cost estimat îngrijire", value: ron(c.careMonthlyCost) }, { label: `Contribuția ${p.name}`, value: ron(c.parentCovered), op: "−" }, { label: "Diferență de acoperit", value: ron(c.familyFundingGap), op: "=" }]} />}>
+        <Metric label="Posibilă diferență lunară" icon={<HandCoins className="size-3.5" />} hint={<ExplainButton title="Diferența lunară" lines={[{ label: "Cost estimat îngrijire", value: ron(c.careMonthlyCost) }, { label: `Contribuția ${genitive(p.name)}`, value: ron(c.parentCovered), op: "−" }, { label: "Diferență de acoperit", value: ron(c.familyFundingGap), op: "=" }]} />}>
           <span className="text-care"><AnimatedNumber value={c.familyFundingGap} /></span>
         </Metric>
         <Metric label="Fond planificat" icon={<PiggyBank className="size-3.5" />} hint={<ExplainButton title="Fondul pentru îngrijire" lines={[{ label: "Economisești lunar", value: ron(s.monthlySaving) }, { label: "Luni până la scenariu", value: String(c.monthsUntilScenario), op: "×" }, { label: "Fond estimat", value: ron(c.futureCareReserve), op: "=" }]} note="Nu presupunem randamente din investiții." />}>
@@ -131,7 +131,7 @@ function Dashboard() {
             <p className="mt-6 rounded-2xl bg-success-soft p-5 text-sm font-medium">În acest scenariu, resursele estimate ale părintelui acoperă costul.</p>
           )}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <ExplainButton title="Diferența de acoperit" lines={[{ label: "Cost estimat îngrijire", value: ron(c.careMonthlyCost) }, { label: `Contribuția disponibilă a ${p.name}`, value: ron(c.parentCovered), op: "−" }, { label: "Diferența estimată pentru familie", value: ron(c.familyFundingGap), op: "=" }]}
+            <ExplainButton title="Diferența de acoperit" lines={[{ label: "Cost estimat îngrijire", value: ron(c.careMonthlyCost) }, { label: `Contribuția disponibilă a ${genitive(p.name)}`, value: ron(c.parentCovered), op: "−" }, { label: "Diferența estimată pentru familie", value: ron(c.familyFundingGap), op: "=" }]}
               note={`Contribuția părintelui = venit (${ron(c.parentMonthlyIncome)}) − cheltuieli esențiale (${ron(p.expenses)}) + cheltuieli preluate de serviciul de îngrijire (${ron(sel.expensesReplaced)}).`} />
             <Button asChild variant="care"><Link to="/familie">Construiește un plan pentru această diferență <ArrowRight /></Link></Button>
           </div>

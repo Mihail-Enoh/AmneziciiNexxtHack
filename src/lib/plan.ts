@@ -151,3 +151,10 @@ export const STATUS_META = {
   almost: { label: "Aproape acoperit", tone: "warning" },
   attention: { label: "Necesită atenție", tone: "danger" },
 } as const;
+
+/** Romanian genitive for first names: Elena → Elenei, Maria → Mariei, Ion → lui Ion. */
+export function genitive(name: string) {
+  const n = name.trim();
+  if (!n) return "părintelui";
+  return /a$/i.test(n) ? n.slice(0, -1) + "ei" : `lui ${n}`;
+}
