@@ -149,7 +149,7 @@ function Family() {
               <li key={m.id} className="rounded-2xl border p-4">
                 <div className="flex items-center justify-between"><p className="font-semibold">{m.name}</p><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold">{t(m.status)}</span></div>
                 <p className="text-xs text-muted-foreground">{t(m.role)} · {t(m.financial === "da" ? `${ron(m.contribution)}/lună` : m.financial === "nu-spun" ? "Preferă să nu spună" : "Ajută în alte moduri")}</p>
-                {m.helps.length > 0 && <p className="mt-1 text-xs">{t("Timp: ")}{t(m.helps.join(", "))}</p>}
+                {m.helps.length > 0 && <p className="mt-1 text-xs">{t("Timp: ")}{m.helps.map(help => t(help)).join(", ")}</p>}
               </li>
             ))}
           </ul>

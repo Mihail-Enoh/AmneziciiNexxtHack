@@ -56,7 +56,7 @@ function Summary() {
     { name: p.name, value: c.parentCovered, color: "var(--primary)" },
     { name: s.user.name, value: Math.min(s.userContribution, c.familyFundingGap), color: "var(--care)" },
     ...s.members.filter((m) => m.financial === "da").map((m, i) => ({ name: m.name, value: m.contribution, color: i % 2 ? "var(--chart-5)" : "var(--chart-4)" })),
-    { name: "Neacoperit", value: c.remainingGap, color: "var(--muted)" },
+    { name: t("Neacoperit"), value: c.remainingGap, color: "var(--muted)" },
   ].filter((x) => x.value > 0);
   const remainingMsg = c.remainingGap > 0 ? `Mai sunt ${ron(c.remainingGap)}/lună de acoperit din contribuții lunare` : "Contribuțiile acoperă diferența";
 
@@ -90,12 +90,12 @@ function Summary() {
           <div className="card-surface p-6">
             <h2 className="text-xl font-semibold">{t("Cine acoperă costul")}</h2>
             <div className="h-52"><ResponsiveContainer><PieChart><Pie data={pie} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>{pie.map((x) => <Cell key={x.name} fill={x.color} />)}</Pie><Tooltip formatter={(v: number) => ron(v)} /></PieChart></ResponsiveContainer></div>
-            <ul className="mt-2 grid grid-cols-2 gap-2 text-xs">{pie.map((x) => <li key={x.name} className="flex items-center gap-2"><span className="size-2.5 rounded-sm border" style={{ background: x.color }} />{x.name}: {ron(x.value)}</li>)}</ul>
+            <ul className="mt-2 grid grid-cols-2 gap-2 text-xs">{pie.map((x) => <li key={x.name} className="flex items-center gap-2"><span className="size-2.5 rounded-sm border" style={{ background: x.color }} />{t(x.name)}: {ron(x.value)}</li>)}</ul>
           </div>
           {s.members.some((m) => m.helps.length) && (
             <div className="card-surface p-6">
               <h2 className="text-xl font-semibold">{t("Ajutor cu timp")}</h2>
-              <ul className="mt-3 space-y-2 text-sm">{s.members.filter((m) => m.helps.length).map((m) => <li key={m.id}><strong>{m.name}:</strong> {t(m.helps.join(", "))}</li>)}</ul>
+              <ul className="mt-3 space-y-2 text-sm">{s.members.filter((m) => m.helps.length).map((m) => <li key={m.id}><strong>{m.name}:</strong> {m.helps.map(help => t(help)).join(", ")}</li>)}</ul>
             </div>
           )}
         </div>
