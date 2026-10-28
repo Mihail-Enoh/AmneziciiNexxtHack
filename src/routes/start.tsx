@@ -1,3 +1,5 @@
+import { useT } from "@/lib/i18n";
+import { IntakeBanner } from "@/components/app/IntakeBanner";
 import { CareTimingInput } from "@/components/app/CareTimingInput";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
