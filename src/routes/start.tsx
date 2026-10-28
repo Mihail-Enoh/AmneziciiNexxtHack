@@ -19,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { computePlan, ron, type FamilyMember, type Independence, type PlanState } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
+import { IntakeBanner } from "@/components/app/IntakeBanner";
 
 export const Route = createFileRoute("/start")({
   head: () => ({
