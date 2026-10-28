@@ -94,7 +94,7 @@ function Dashboard() {
                   className={cn("card-surface h-full w-full p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-lift", active && "ring-2 ring-care")}>
                   <p className="text-xs font-bold uppercase tracking-wider text-care">{t("Scenariul ")}{i + 1} · {p.age + sc.yearsFromNow}{t(" ani")}</p>
                   <p className="mt-2 font-display text-xl font-semibold">„{t(sc.label)}”</p>
-                  <ul className="mt-2 flex flex-wrap gap-1">{sc.supports.slice(0, 3).map((t) => <li key={t} className="rounded-full bg-muted px-2 py-0.5 text-[11px]">{t(t)}</li>)}</ul>
+                  <ul className="mt-2 flex flex-wrap gap-1">{sc.supports.slice(0, 3).map((support) => <li key={support} className="rounded-full bg-muted px-2 py-0.5 text-[11px]">{t(support)}</li>)}</ul>
                   <dl className="mt-4 space-y-1 text-sm">
                     <div className="flex justify-between"><dt className="text-muted-foreground">{t("Cost estimat")}</dt><dd className="tabular font-semibold">{ron(x.careMonthlyCost)}</dd></div>
                     <div className="flex justify-between"><dt className="text-muted-foreground">{t("De la ")}{p.name}</dt><dd className="tabular font-semibold">{ron(x.parentCovered)}</dd></div>

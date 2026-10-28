@@ -49,7 +49,7 @@ function HowItWorks() {
         </div>
         <div className="card-surface p-6">
           <h2 className="text-2xl font-semibold">{t("Formule")}</h2>
-          <dl className="mt-4 space-y-3 text-sm">{FORMULAS.map(([k, v]) => <div key={k}><dt className="font-semibold">{t(k)}</dt><dd className="text-muted-foreground">{v}</dd></div>)}</dl>
+          <dl className="mt-4 space-y-3 text-sm">{FORMULAS.map(([k, v]) => <div key={k}><dt className="font-semibold">{t(k)}</dt><dd className="text-muted-foreground">{t(v)}</dd></div>)}</dl>
         </div>
       </div>
       <div className="mt-8 flex flex-wrap items-center justify-between gap-4"><PrivacyNote /><Button asChild><Link to="/plan">{t("Înapoi la plan")}</Link></Button></div>

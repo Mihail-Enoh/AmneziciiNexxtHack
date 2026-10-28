@@ -121,7 +121,7 @@ function Family() {
             <ResponsiveContainer>
               <AreaChart data={growth} margin={{ left: 0, right: 10 }}>
                 <CartesianGrid vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="an" tick={{ fontSize: 11 }} label={t({ value: "ani", position: "insideBottomRight", offset: -2, fontSize: 11 })} />
+                <XAxis dataKey="an" tick={{ fontSize: 11 }} label={{ value: t("ani"), position: "insideBottomRight", offset: -2, fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                 <Tooltip formatter={(v: number) => ron(v)} contentStyle={{ borderRadius: 12 }} />
                 <Area type="monotone" dataKey="Fond" stroke="var(--primary)" fill="var(--primary-soft)" strokeWidth={3} />

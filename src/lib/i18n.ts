@@ -3,6 +3,7 @@ import { english } from "./translations";
 
 export type Language = "ro" | "en";
 let language: Language = "ro";
+let renderLanguage: Language = "ro";
 const listeners = new Set<() => void>();
 export const LANGUAGE_KEY = "prototype123-language";
 export function readLanguage(value: string | null): Language { return value === "en" ? "en" : "ro"; }
@@ -18,13 +19,15 @@ export function setLanguage(next: Language) {
   listeners.forEach(fn => fn());
 }
 export function useLanguage() {
-  return useSyncExternalStore(fn => { listeners.add(fn); return () => listeners.delete(fn); }, () => language, () => "ro" as Language);
+  const current = useSyncExternalStore(fn => { listeners.add(fn); return () => listeners.delete(fn); }, () => language, () => "ro" as Language);
+  renderLanguage = current;
+  return current;
 }
 export function translate(text: string, locale: Language): string {
   if (locale === "ro") return text;
   const trimmed = text.trim();
   const direct = english[text] ?? english[trimmed];
-  if (direct) return text.startsWith(" ") && !direct.startsWith(" ") ? ` ${direct}` : direct;
+  if (direct) return (text.startsWith(" ") && !direct.startsWith(" ") ? " " : "") + direct + (text.endsWith(" ") && !direct.endsWith(" ") ? " " : "");
   for (const [source, target] of Object.entries(english)) {
     if (!source.includes("{0}")) continue;
     const pieces = source.split(/\{\d+\}/);
@@ -34,8 +37,8 @@ export function translate(text: string, locale: Language): string {
   }
   return text;
 }
-export function t(text: string): string { return translate(text, language); }
+export function t(text: string | number | undefined): string { return translate(String(text ?? ""), renderLanguage); }
 export function displayName(name: string) {
-  if (language === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
+  if (renderLanguage === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
   return name;
 }
