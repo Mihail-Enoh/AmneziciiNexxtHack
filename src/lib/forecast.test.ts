@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { forecast, forecastPatch, monthlySavingFor, onsetCurve, presentValue, realRate, riskPoints } from "./forecast";
-import { assessHealth, type QuizAnswers } from "./health";
+import { FORECAST_ASSUMPTIONS, forecast, forecastPatch, monthlySavingFor, onsetCurve, presentValue, realRate, riskPoints } from "./forecast";
+import { assessHealth, QUIZ, type QuizAnswers } from "./health";
 import { computePlan, demoState, SCENARIOS, type PlanState } from "./plan";
 
 const NOW = new Date("2026-10-28T12:00:00Z");
@@ -48,9 +48,9 @@ describe("risk points", () => {
     expect(riskPoints(null, quit)).toBe(2);
   });
   it("other domains count their worst answer; lab/story signals can only raise them", () => {
-    const a = assessHealth({ age: 74, answers: { falls: ["once"], walking: ["alone"] }, labs: [], ai: { summary: "x", questionsForDoctor: [], reasons: [{ domain: "mobility", level: 2, text: "nu mai merge singură", source: "poveste" }] } });
-    expect(riskPoints(a.domains, { falls: ["once"], walking: ["alone"] })).toBe(4); // mobility 2 × weight 2
-    expect(riskPoints(a.domains, { falls: ["no"], walking: ["alone"] })).toBe(4); // story signal stays
+    const a = assessHealth({ age: 74, answers: { walking: ["difficulty"] }, labs: [], ai: { summary: "x", questionsForDoctor: [], reasons: [{ domain: "mobility", level: 2, text: "nu mai merge singură", source: "poveste" }] } });
+    expect(riskPoints(a.domains, { walking: ["difficulty"] })).toBe(4); // mobility 2 (story) × weight 2
+    expect(riskPoints(a.domains, { walking: ["alone"] })).toBe(4); // story signal stays
   });
   it("works with domains only (older saved results)", () => {
     expect(riskPoints([{ domain: "daily", level: 1, reasons: [] }], null)).toBe(2);
@@ -73,10 +73,10 @@ describe("forecast", () => {
     expect(f.atMedian.monthlyGapAtStart).toBe(p.familyFundingGap);
   });
   it("habit suggestions: one per bad habit + all together, with years and % saved", () => {
-    const answers: QuizAnswers = { smoking: ["daily"], exercise: ["never"], fruit: ["daily"], falls: ["once"] };
+    const answers: QuizAnswers = { smoking: ["daily"], exercise: ["never"], alcohol: ["rarely"], walking: ["difficulty"] };
     const a = assessHealth({ age: 74, answers, labs: [], ai: null });
     const f = forecast(elena74, { domains: a.domains, answers, now: NOW });
-    expect(f.habits.map((h) => h.id)).toEqual(["smoking", "exercise", "all"]); // fruit already fine
+    expect(f.habits.map((h) => h.id)).toEqual(["smoking", "exercise", "all"]); // alcohol already fine
     for (const h of f.habits) {
       expect(h.delayYears).toBeGreaterThan(0);
       expect(h.costSaved).toBeGreaterThan(0);
@@ -87,20 +87,23 @@ describe("forecast", () => {
     const all = f.habits.find((h) => h.id === "all")!;
     expect(all.delayYears).toBeGreaterThanOrEqual(Math.max(...f.habits.filter((h) => h.id !== "all").map((h) => h.delayYears)));
   });
+  it("every habit in FORECAST_ASSUMPTIONS exists in the quiz", () => {
+    for (const h of FORECAST_ASSUMPTIONS.habits) expect(QUIZ.some((q) => q.id === h.id)).toBe(true);
+  });
   it("habits with a smaller weight gain fewer years", () => {
-    const answers: QuizAnswers = { smoking: ["daily"], fruit: ["rarely"] };
+    const answers: QuizAnswers = { smoking: ["daily"], alcohol: ["daily"] };
     const f = forecast(elena74, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
     const by = Object.fromEntries(f.habits.map((h) => [h.id, h]));
-    expect(by["smoking"]!.delayYears).toBeGreaterThan(by["fruit"]!.delayYears);
+    expect(by["smoking"]!.delayYears).toBeGreaterThan(by["alcohol"]!.delayYears);
     expect(f.habits[0]!.id).toBe("smoking"); // biggest effect first
   });
   it("no suggestions when habits are already good", () => {
-    const answers: QuizAnswers = { smoking: ["no"], alcohol: ["rarely"], exercise: ["daily"], fruit: ["daily"], social: ["often"] };
+    const answers: QuizAnswers = { smoking: ["no"], alcohol: ["rarely"], exercise: ["daily"], social: ["often"] };
     const f = forecast(elena74, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
     expect(f.habits).toEqual([]);
   });
   it("health risk brings the date earlier than a no-risk check", () => {
-    const answers: QuizAnswers = { smoking: ["daily"], falls: ["more"] };
+    const answers: QuizAnswers = { smoking: ["daily"], walking: ["helped"] };
     const risky = forecast(elena74, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
     const fine = forecast(elena74, { answers: {}, now: NOW });
     expect(risky.onset.p50).toBeLessThan(fine.onset.p50);

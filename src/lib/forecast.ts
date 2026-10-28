@@ -40,13 +40,13 @@ export const FORECAST_ASSUMPTIONS = {
     savingsRate: 0.07,
     savingsNote: "Dobânda Tezaur din oct. 2026 (3 ani, 7%/an, neimpozabilă). Dobânzile viitoare pot fi diferite.",
   },
-  /** Habits the user can change, with the wording used in suggestions.
+  /** Habits the user can change, with the wording used in suggestions. Ids must exist in QUIZ (health.ts);
+   *  a habit missing from the quiz is simply ignored.
    *  weight = how much one quiz point of this habit counts (lifestyle habits only; "social" is its own domain). */
   habits: [
     { id: "smoking", title: "Renunțarea la fumat", action: "renunță la fumat", weight: 1 },
     { id: "exercise", title: "Mișcare regulată", action: "face mișcare de câteva ori pe săptămână", weight: 1 },
     { id: "alcohol", title: "Mai puțin alcool", action: "bea alcool cel mult ocazional", weight: 0.75 },
-    { id: "fruit", title: "Fructe și legume zilnic", action: "mănâncă fructe și legume în fiecare zi", weight: 0.5 },
     { id: "social", title: "Mai multă viață socială", action: "iese mai des din casă și se vede cu alți oameni", weight: 1 },
   ],
   habitsNote: "Demo: ponderi orientative pentru fiecare obicei, de verificat cu un specialist.",

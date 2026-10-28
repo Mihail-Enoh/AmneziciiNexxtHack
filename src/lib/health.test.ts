@@ -27,18 +27,18 @@ const healthyAnswers: QuizAnswers = Object.fromEntries(QUIZ.map((q) => [q.id, [q
 const frailAnswers: QuizAnswers = Object.fromEntries(QUIZ.map((q) => [q.id, q.multi ? q.options.filter((o) => o.points > 0).map((o) => o.id) : [q.options[q.options.length - 1]!.id]]));
 
 describe("quiz", () => {
-  it("every placeholder question has a 0-point answer and unique ids", () => {
+  it("every question has a 0-point answer and unique ids", () => {
     expect(new Set(QUIZ.map((q) => q.id)).size).toBe(QUIZ.length);
     for (const q of QUIZ) expect(q.options.some((o) => o.points === 0)).toBe(true);
   });
   it("scores single and multi choice, ignores unknown ids", () => {
-    const r = scoreQuiz({ smoking: ["daily"], conditions: ["diabetes", "heart", "kidney"], memory: ["nonsense"] });
+    const r = scoreQuiz({ smoking: ["daily"], conditions: ["diabetes", "heart"], memory: ["nonsense"] });
     expect(r.find((x) => x.text.startsWith("Fumează"))?.level).toBe(2);
-    expect(r.find((x) => x.domain === "chronic")?.level).toBe(2); // 3 conditions, capped at 2
+    expect(r.find((x) => x.domain === "chronic")?.level).toBe(2);
     expect(r.some((x) => x.domain === "cognition")).toBe(false);
   });
   it("renders answers as readable text for the prompt", () => {
-    expect(quizAsText({ fruit: ["rarely"] })).toBe("- Mănâncă fructe și legume? Rar");
+    expect(quizAsText({ medsCount: ["many"] })).toBe("- Câte medicamente ia zilnic? Peste 5");
   });
 });
 
@@ -114,8 +114,8 @@ describe("rules (deterministic prediction)", () => {
     expect(a.riskPoints).toBeLessThanOrEqual(a.maxPoints);
   });
   it("more risk never makes care come later", () => {
-    const mild = assessHealth({ age: 70, answers: { falls: ["once"] }, labs: [], ai: null });
-    const worse = assessHealth({ age: 70, answers: { falls: ["more"], memory: ["some"] }, labs: [], ai: null });
+    const mild = assessHealth({ age: 70, answers: { walking: ["difficulty"] }, labs: [], ai: null });
+    const worse = assessHealth({ age: 70, answers: { walking: ["helped"], memory: ["some"] }, labs: [], ai: null });
     worse.timeline.forEach((t, i) => expect(t.years).toBeLessThanOrEqual(mild.timeline[i]!.years));
   });
   it("story signals from the AI raise a domain and appear as reasons", () => {
@@ -145,7 +145,7 @@ describe("prompts", () => {
     expect(HEALTH_INTERPRET_PROMPT).toMatch(/NU estimezi câți ani mai trăiește/);
   });
   it("builds the user message with all four parts", () => {
-    const m = interpretMessage({ age: 74, story: "Mama stă singură.", quizText: "- Fumează? Nu", labsText: "- TSH: 2.1" });
-    for (const s of ["74 ani", "Mama stă singură.", "Fumează? Nu", "TSH: 2.1"]) expect(m).toContain(s);
+    const m = interpretMessage({ age: 74, story: "Mama stă singură.", quizText: "- Cum se deplasează? Singură", labsText: "- TSH: 2.1" });
+    for (const s of ["74 ani", "Mama stă singură.", "Cum se deplasează? Singură", "TSH: 2.1"]) expect(m).toContain(s);
   });
 });

@@ -24,29 +24,119 @@ export const LEVEL_LABEL: Record<Level, string> = { 0: "Fără semnale", 1: "Mer
 /** How much each domain moves the timeline. Mobility, daily activities and memory drive care needs most. */
 export const DOMAIN_WEIGHT: Record<Domain, number> = { mobility: 2, daily: 2, cognition: 2, chronic: 1, lifestyle: 1, social: 1 };
 
-// ---------------------------------------------------------------- quiz (PLACEHOLDER questions — P1 will replace/extend)
+// ---------------------------------------------------------------- quiz — short care-planning questionnaire
 export interface QuizOption { id: string; label: string; points: Level }
 export interface QuizQuestion { id: string; domain: Domain; text: string; options: QuizOption[]; multi?: boolean }
 
 const o = (id: string, label: string, points: Level): QuizOption => ({ id, label, points });
 
 export const QUIZ: QuizQuestion[] = [
-  { id: "smoking", domain: "lifestyle", text: "Fumează?", options: [o("no", "Nu", 0), o("sometimes", "Ocazional", 1), o("daily", "Zilnic", 2)] },
-  { id: "alcohol", domain: "lifestyle", text: "Cât de des bea alcool?", options: [o("rarely", "Deloc sau rar", 0), o("weekly", "De câteva ori pe săptămână", 1), o("daily", "Zilnic", 2)] },
-  { id: "exercise", domain: "lifestyle", text: "Cât de des face mișcare (plimbări, grădină, sport)?", options: [o("daily", "Zilnic", 0), o("weekly", "De câteva ori pe săptămână", 0), o("rarely", "Rar", 1), o("never", "Deloc", 2)] },
-  { id: "fruit", domain: "lifestyle", text: "Mănâncă fructe și legume?", options: [o("daily", "Zilnic", 0), o("weekly", "De câteva ori pe săptămână", 1), o("rarely", "Rar", 2)] },
-  { id: "walking", domain: "mobility", text: "Cum se deplasează?", options: [o("alone", "Singur(ă), fără probleme", 0), o("difficulty", "Cu greutate sau cu baston", 1), o("helped", "Doar cu ajutor", 2)] },
-  { id: "falls", domain: "mobility", text: "A căzut în ultimul an?", options: [o("no", "Nu", 0), o("once", "O dată", 1), o("more", "De mai multe ori", 2)] },
-  { id: "selfcare", domain: "daily", text: "Se descurcă singur(ă) cu spălatul, îmbrăcatul și masa?", options: [o("yes", "Da", 0), o("some", "Cu puțin ajutor", 1), o("no", "Nu", 2)] },
-  { id: "chores", domain: "daily", text: "Își face singur(ă) cumpărăturile și treburile casei?", options: [o("yes", "Da", 0), o("some", "Cu ajutor", 1), o("no", "Nu", 2)] },
-  { id: "medsAlone", domain: "daily", text: "Își ia singur(ă) medicamentele corect?", options: [o("yes", "Da", 0), o("forgets", "Uneori uită", 1), o("no", "Nu poate singur(ă)", 2)] },
-  { id: "memory", domain: "cognition", text: "Cum îi stă memoria?", options: [o("fine", "Fără probleme", 0), o("some", "Uită uneori lucruri recente", 1), o("often", "Uită des sau se dezorientează", 2)] },
-  { id: "medsCount", domain: "chronic", text: "Câte medicamente ia zilnic?", options: [o("few", "0–2", 0), o("some", "3–5", 1), o("many", "Peste 5", 2)] },
   {
-    id: "conditions", domain: "chronic", multi: true, text: "Are vreuna dintre aceste afecțiuni diagnosticate? (poți alege mai multe)",
-    options: [o("diabetes", "Diabet", 1), o("heart", "Boli de inimă", 1), o("bp", "Hipertensiune", 1), o("kidney", "Boli de rinichi", 1), o("lung", "Boli de plămâni", 1), o("joints", "Artroză sau osteoporoză", 1), o("none", "Niciuna", 0)],
+    id: "smoking",
+    domain: "lifestyle",
+    text: "Fumează?",
+    options: [
+      o("no", "Nu", 0),
+      o("sometimes", "Ocazional", 1),
+      o("daily", "Zilnic", 2),
+    ],
   },
-  { id: "social", domain: "social", text: "Cât de des iese din casă sau se vede cu alți oameni?", options: [o("often", "Des", 0), o("rarely", "Rar", 1), o("almostNever", "Aproape deloc", 2)] },
+  {
+    id: "alcohol",
+    domain: "lifestyle",
+    text: "Cât de des bea alcool?",
+    options: [
+      o("rarely", "Deloc sau rar", 0),
+      o("weekly", "De câteva ori pe săptămână", 1),
+      o("daily", "Zilnic", 2),
+    ],
+  },
+  {
+    id: "exercise",
+    domain: "lifestyle",
+    text: "Cât de des face mișcare (plimbări, grădină, sport)?",
+    options: [
+      o("daily", "Zilnic", 0),
+      o("weekly", "De câteva ori pe săptămână", 0),
+      o("rarely", "Rar", 1),
+      o("never", "Deloc", 2),
+    ],
+  },
+  {
+    id: "walking",
+    domain: "mobility",
+    text: "Cum se deplasează?",
+    options: [
+      o("alone", "Singur(ă), fără probleme", 0),
+      o("difficulty", "Cu greutate sau cu baston", 1),
+      o("helped", "Doar cu ajutor", 2),
+    ],
+  },
+  {
+    id: "selfcare",
+    domain: "daily",
+    text: "Se descurcă singur(ă) cu spălatul, îmbrăcatul și masa?",
+    options: [
+      o("yes", "Da", 0),
+      o("some", "Cu puțin ajutor", 1),
+      o("no", "Nu", 2),
+    ],
+  },
+  {
+    id: "medsAlone",
+    domain: "daily",
+    text: "Își ia singur(ă) medicamentele corect?",
+    options: [
+      o("yes", "Da", 0),
+      o("forgets", "Uneori uită", 1),
+      o("no", "Nu poate singur(ă)", 2),
+    ],
+  },
+  {
+    id: "memory",
+    domain: "cognition",
+    text: "Cum îi stă memoria?",
+    options: [
+      o("fine", "Fără probleme", 0),
+      o("some", "Uită uneori lucruri recente", 1),
+      o("often", "Uită des sau se dezorientează", 2),
+    ],
+  },
+  {
+    id: "medsCount",
+    domain: "chronic",
+    text: "Câte medicamente ia zilnic?",
+    options: [
+      o("few", "0–2", 0),
+      o("some", "3–5", 1),
+      o("many", "Peste 5", 2),
+    ],
+  },
+  {
+    id: "conditions",
+    domain: "chronic",
+    multi: true,
+    text: "Are vreuna dintre aceste afecțiuni diagnosticate? (poți alege mai multe)",
+    options: [
+      o("diabetes", "Diabet", 1),
+      o("heart", "Boli de inimă", 1),
+      o("bp", "Hipertensiune", 1),
+      o("kidney", "Boli de rinichi", 1),
+      o("lung", "Boli de plămâni", 1),
+      o("joints", "Artroză sau osteoporoză", 1),
+      o("none", "Niciuna", 0),
+    ],
+  },
+  {
+    id: "social",
+    domain: "social",
+    text: "Cât de des iese din casă sau se vede cu alți oameni?",
+    options: [
+      o("often", "Des", 0),
+      o("rarely", "Rar", 1),
+      o("almostNever", "Aproape deloc", 2),
+    ],
+  },
 ];
 
 /** Answers: question id → selected option ids (one for single-choice). */
