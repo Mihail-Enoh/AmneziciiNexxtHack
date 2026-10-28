@@ -1,4 +1,4 @@
-# Grijă pentru Mâine
+# Prototype
 
 # Build a polished web application for a Romanian financial-futures hackathon
 
