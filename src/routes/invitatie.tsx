@@ -1,8 +1,9 @@
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, HeartHandshake } from "lucide-react";
 import { z } from "zod";
-import { Logo } from "@/components/app/AppShell";
+import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { AnimatedNumber, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,6 +37,8 @@ const MODES: { id: FamilyMember["financial"]; label: string }[] = [
 ];
 
 function Invite() {
+  const t = useT();
+  const locale = useLanguage();
   const q = Route.useSearch();
   const s = usePlan();
   const from = q.de || "Maria";
@@ -55,46 +58,46 @@ function Invite() {
 
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex h-16 max-w-2xl items-center px-4"><Logo /></header>
+      <PublicHeader />
       <main className="mx-auto max-w-2xl px-4 pb-16 pt-6">
         <div className="card-surface animate-rise p-6 md:p-10">
           {done ? (
             <div className="text-center">
               <span className="mx-auto grid size-14 place-items-center rounded-full bg-success-soft text-success"><Check className="size-7" /></span>
-              <h1 className="mt-4 text-3xl font-semibold">Mulțumim!</h1>
-              <p className="mt-2 text-muted-foreground">{from} va vedea răspunsul tău în planul familiei. Îl poți schimba oricând.</p>
-              <Button asChild className="mt-6"><Link to="/familie">Vezi planul familiei</Link></Button>
+              <h1 className="mt-4 text-3xl font-semibold">{t("Mulțumim!")}</h1>
+              <p className="mt-2 text-muted-foreground">{from}{t(" va vedea răspunsul tău în planul familiei. Îl poți schimba oricând.")}</p>
+              <Button asChild className="mt-6"><Link to="/familie">{t("Vezi planul familiei")}</Link></Button>
             </div>
           ) : (
             <>
               <HeartHandshake className="size-8 text-care" />
-              <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{from} construiește un plan pentru viitorul {genitive(parent)}</h1>
-              <p className="mt-3 text-muted-foreground">Dacă în viitor ar fi nevoie, ce contribuție lunară ar fi realistă pentru tine? Nu este o promisiune.</p>
+              <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{from}{t(" construiește un plan pentru viitorul ")}{displayName(parent, locale)}</h1>
+              <p className="mt-3 text-muted-foreground">{t("Dacă în viitor ar fi nevoie, ce contribuție lunară ar fi realistă pentru tine? Nu este o promisiune.")}</p>
               <fieldset className="mt-6">
-                <legend className="sr-only">Cum ai putea ajuta</legend>
+                <legend className="sr-only">{t("Cum ai putea ajuta")}</legend>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {MODES.map((m) => (
-                    <button key={m.id} type="button" aria-pressed={mode === m.id} onClick={() => setMode(m.id)} className={cn("rounded-xl border-2 p-3 text-sm font-semibold", mode === m.id ? "border-primary bg-primary-soft" : "hover:border-primary/40")}>{m.label}</button>
+                    <Button variant="ghost" key={m.id} type="button" aria-pressed={mode === m.id} onClick={() => setMode(m.id)} className={cn("rounded-xl border-2 p-3 text-sm font-semibold", mode === m.id ? "border-primary bg-primary-soft" : "hover:border-primary/40")}>{t(m.label)}</Button>
                   ))}
                 </div>
               </fieldset>
               {mode === "da" && (
                 <div className="mt-6 rounded-2xl bg-primary-soft p-5">
-                  <p className="font-display text-4xl font-semibold text-primary"><AnimatedNumber value={amount} /><span className="text-base font-normal text-muted-foreground">/lună</span></p>
-                  <Slider className="mt-4" min={0} max={2000} step={50} value={[amount]} onValueChange={([v = 0]) => setAmount(v)} aria-label="Contribuție lunară" />
+                  <p className="font-display text-4xl font-semibold text-primary"><AnimatedNumber value={amount} /><span className="text-base font-normal text-muted-foreground">{t("/lună")}</span></p>
+                  <Slider className="mt-4" min={0} max={2000} step={50} value={[amount]} onValueChange={([v = 0]) => setAmount(v)} aria-label={t("Contribuție lunară")} />
                 </div>
               )}
               <fieldset className="mt-6">
-                <legend className="mb-3 font-semibold">Pot ajuta cu timp</legend>
+                <legend className="mb-3 font-semibold">{t("Pot ajuta cu timp")}</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {HELPS.map((h) => (
                     <label key={h} className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm">
-                      <Checkbox checked={helps.includes(h)} onCheckedChange={(c) => setHelps(c ? [...helps, h] : helps.filter((x) => x !== h))} />{h}
+                      <Checkbox checked={helps.includes(h)} onCheckedChange={(c) => setHelps(c ? [...helps, h] : helps.filter((x) => x !== h))} />{t(h)}
                     </label>
                   ))}
                 </div>
               </fieldset>
-              <Button size="lg" className="mt-8 w-full" onClick={submit}>Trimite răspunsul</Button>
+              <Button size="lg" className="mt-8 w-full" onClick={submit}>{t("Trimite răspunsul")}</Button>
               <PrivacyNote className="mt-4 justify-center" />
             </>
           )}

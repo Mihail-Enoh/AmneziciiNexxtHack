@@ -1,53 +1,49 @@
-import { Link } from "@tanstack/react-router";
-import { HeartHandshake, LayoutDashboard, SlidersHorizontal, Users, ClipboardCheck } from "lucide-react";
-import type { ReactNode } from "react";
-import { usePlan } from "@/lib/store";
+import { Link, useLocation } from "@tanstack/react-router";
+import { HeartHandshake, LayoutDashboard, SlidersHorizontal, Users, ClipboardCheck, BookOpen, LogIn, LogOut, Menu, ArrowUpRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { LanguageSwitch, SettingsMenu } from "./Preferences";
+import { t, useT, useLanguage } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 
 const NAV = [
   { to: "/plan", label: "Planul meu", short: "Plan", icon: LayoutDashboard },
   { to: "/scenarii", label: "Scenarii", short: "Scenarii", icon: SlidersHorizontal },
   { to: "/familie", label: "Familie", short: "Familie", icon: Users },
   { to: "/rezumat", label: "Planul final", short: "Final", icon: ClipboardCheck },
+  { to: "/cum-functioneaza", label: "Cum funcționează", short: "Cum funcționează", icon: BookOpen },
 ] as const;
 
 export function Logo() {
-  return (
-    <Link to="/" className="flex items-center gap-2 font-display text-xl font-semibold">
-      <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground"><HeartHandshake className="size-4.5" /></span>
-      Prototype123
-    </Link>
-  );
+  return <Link to="/" className="flex min-w-0 items-center gap-2.5 font-sans text-lg font-extrabold"><span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground"><HeartHandshake className="size-5" /></span><span className="truncate">Prototype123</span></Link>;
+}
+
+export function AccountButton({ expanded = false }: { expanded?: boolean }) {
+  const ro = useLanguage() === "ro";
+  const { user, name, signOut, loading } = useAuth();
+  if (loading) return <span className="h-9 w-9 shrink-0 rounded-lg bg-muted" aria-hidden />;
+  if (!user) return <Button asChild variant="outline" size={expanded ? "default" : "icon"} className={expanded ? "w-full justify-start rounded-lg px-3" : "rounded-lg"} title={ro ? "Autentificare" : "Sign in"}><Link to="/auth" aria-label={ro ? "Autentificare" : "Sign in"}><LogIn />{expanded && (ro ? "Autentificare" : "Sign in")}</Link></Button>;
+  return <div className="flex min-w-0 items-center gap-2"><Button asChild variant="ghost" className="min-w-0 flex-1 justify-start rounded-lg px-2"><Link to="/auth"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-care-soft text-care">{(name || user.email || "U").charAt(0).toUpperCase()}</span>{expanded && <span className="truncate">{name || (ro ? "Contul meu" : "My account")}</span>}</Link></Button>{expanded && <Button variant="ghost" size="icon" onClick={() => void signOut()} title={ro ? "Deconectare" : "Sign out"} aria-label={ro ? "Deconectare" : "Sign out"}><LogOut /></Button>}</div>;
+}
+
+export function PublicHeader() {
+  useLanguage();
+  return <header className="border-b bg-card"><div className="mx-auto grid h-18 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4"><Logo /><div className="flex shrink-0 items-center gap-2"><LanguageSwitch /><SettingsMenu /><span className="hidden sm:block"><AccountButton /></span></div></div></header>;
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const plan = usePlan();
-  return (
-    <div className="min-h-screen pb-24 md:pb-0">
-      <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Logo />
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Navigare principală">
-            {NAV.map((n) => (
-              <Link key={n.to} to={n.to} className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground" activeProps={{ className: "bg-primary-soft text-primary" }}>
-                {n.label}
-              </Link>
-            ))}
-            <Link to="/cum-functioneaza" className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground" activeProps={{ className: "bg-primary-soft text-primary" }}>Cum funcționează</Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <span className="hidden rounded-full border px-2 py-1 text-xs font-semibold sm:inline" title="Versiunea în engleză urmează">RO</span>
-            <span className="grid size-9 place-items-center rounded-full bg-care-soft text-sm font-bold text-care" aria-label={`Profil: ${plan.user.name}`}>{plan.user.name.charAt(0)}</span>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-card md:hidden" aria-label="Navigare mobilă">
-        {NAV.map((n) => (
-          <Link key={n.to} to={n.to} className="flex flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground" activeProps={{ className: "text-primary" }}>
-            <n.icon className="size-5" aria-hidden />{n.short}
-          </Link>
-        ))}
-      </nav>
-    </div>
-  );
+  const t = useT();
+  const ro = useLanguage() === "ro";
+  const [menu, setMenu] = useState(false);
+  const location = useLocation();
+  const page = NAV.find(n => n.to === location.pathname);
+  const navigation = <nav className="space-y-1.5" aria-label={ro ? "Navigare principală" : "Main navigation"}>{NAV.map(n => <Button key={n.to} variant="ghost" asChild className="h-12 w-full justify-start rounded-lg px-3 text-sm font-semibold text-muted-foreground"><Link to={n.to} onClick={() => setMenu(false)} activeProps={{ className: "bg-primary-soft text-primary" }}><n.icon className="size-5" /><span className="min-w-0">{t(n.label)}</span></Link></Button>)}</nav>;
+  return <div className="min-h-screen pb-20 lg:pb-0 lg:pl-64">
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r bg-card px-5 py-7 lg:flex"><Logo /><div className="mb-4 mt-10 text-[11px] font-bold uppercase text-muted-foreground">{ro ? "SPAȚIUL FAMILIEI" : "FAMILY WORKSPACE"}</div>{navigation}<div className="mt-auto space-y-3 border-t pt-5"><SettingsMenu expanded /><AccountButton expanded /><div className="flex items-center justify-between px-3 pt-2"><span className="text-xs font-medium text-muted-foreground">{ro ? "Limba" : "Language"}</span><LanguageSwitch /></div></div></aside>
+    <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur"><div className="mx-auto grid h-18 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-7"><div className="flex min-w-0 items-center gap-3"><Button variant="ghost" size="icon" className="shrink-0 rounded-lg lg:hidden" aria-label={ro ? "Deschide meniul" : "Open menu"} onClick={() => setMenu(true)}><Menu /></Button><span className="truncate text-sm font-semibold text-muted-foreground">{page ? t(page.label) : "Prototype123"}</span></div><div className="flex shrink-0 items-center gap-2"><LanguageSwitch /><span className="lg:hidden"><SettingsMenu /></span><span className="hidden sm:block"><Button asChild variant="ghost" size="sm"><Link to="/start">{ro ? "Actualizează datele" : "Update details"}<ArrowUpRight /></Link></Button></span></div></div></header>
+    <main className="app-content mx-auto max-w-6xl px-4 py-7 sm:px-7 sm:py-10">{children}</main>
+    <nav className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-card lg:hidden" aria-label={ro ? "Navigare mobilă" : "Mobile navigation"}>{NAV.slice(0, 4).map(n => <Link key={n.to} to={n.to} className="flex min-w-0 flex-col items-center gap-1 py-3 text-[11px] font-semibold text-muted-foreground" activeProps={{ className: "text-primary bg-primary-soft/50" }}><n.icon className="size-5 shrink-0" />{t(n.short)}</Link>)}</nav>
+    <Dialog open={menu} onOpenChange={setMenu}><DialogContent className="menu-drawer"><DialogHeader><DialogTitle><Logo /></DialogTitle><DialogDescription>{ro ? "Spațiul familiei" : "Family workspace"}</DialogDescription></DialogHeader><div className="mt-6">{navigation}</div><div className="mt-auto space-y-3 border-t pt-5"><SettingsMenu expanded /><AccountButton expanded /></div></DialogContent></Dialog>
+  </div>;
 }

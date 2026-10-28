@@ -10,4 +10,7 @@
 <!-- LOVABLE:END -->
 
 - All care-cost assumptions and plan formulas live in `src/lib/plan.ts` (covered by `plan.test.ts`); pages only read `computePlan` so numbers stay consistent and swappable for real datasets later.
-- Plan state is kept in a small localStorage-backed store (`src/lib/store.ts`), loaded after hydration; no backend so the demo cannot break.
+- Financial demo state remains in the existing localStorage store, loaded after hydration; Cloud is used only for email authentication and owner-scoped profiles, so login never changes plan values.
+
+- Presentation translations use a render-bound language hook and a separate dictionary; never translate persisted scenario IDs, family modes or numeric assumptions.
+- Shared navigation and reading preferences live in app shell components; mobile uses a drawer and bottom shortcuts without changing page workflows.

@@ -1,7 +1,8 @@
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, UserRound } from "lucide-react";
-import { Logo } from "@/components/app/AppShell";
+import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { AnimatedNumber, InfoTip, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,8 +56,8 @@ function SelectField({ label, value, options, onChange }: { label: string; value
     <div className="space-y-2">
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-12 rounded-xl text-base" aria-label={label}><SelectValue /></SelectTrigger>
-        <SelectContent>{options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+        <SelectTrigger className="h-12 rounded-xl text-base" aria-label={t(label)}><SelectValue /></SelectTrigger>
+        <SelectContent>{options.map((o) => <SelectItem key={o} value={o}>{t(o)}</SelectItem>)}</SelectContent>
       </Select>
     </div>
   );
@@ -65,6 +66,7 @@ function SelectField({ label, value, options, onChange }: { label: string; value
 const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…", "Calculăm diferențele de acoperit…"];
 
 function Onboarding() {
+  const t = useT();
   const saved = usePlan();
   const navigate = useNavigate();
   const [d, setD] = useState<PlanState>(saved);
@@ -96,7 +98,7 @@ function Onboarding() {
           <ul className="mt-8 space-y-3 text-left">
             {LOADING.map((l, i) => (
               <li key={l} className={cn("flex items-center gap-3 text-lg transition-opacity", i > loading && "opacity-30")}>
-                {i < loading ? <Check className="size-5 text-success" /> : <span className="size-5" />}{l}
+                {i < loading ? <Check className="size-5 text-success" /> : <span className="size-5" />}{t(l)}
               </li>
             ))}
           </ul>
@@ -107,10 +109,10 @@ function Onboarding() {
 
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4"><Logo /></header>
+      <PublicHeader />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">
         <div className="mb-8">
-          <p className="text-sm font-semibold text-muted-foreground">Pasul {step} din 4</p>
+          <p className="text-sm font-semibold text-muted-foreground">{t("Pasul ")}{step}{t(" din 4")}</p>
           <div className="mt-2 grid grid-cols-4 gap-2" aria-hidden>
             {[1, 2, 3, 4].map((i) => <div key={i} className={cn("h-1.5 rounded-full transition-colors", i <= step ? "bg-primary" : "bg-muted")} />)}
           </div>
@@ -119,55 +121,55 @@ function Onboarding() {
         <div key={step} className="card-surface animate-rise p-6 md:p-10">
           {step === 1 && (
             <div className="space-y-6">
-              <h1 className="text-3xl font-semibold md:text-4xl">Spune-ne puțin despre părintele tău</h1>
+              <h1 className="text-3xl font-semibold md:text-4xl">{t("Spune-ne puțin despre părintele tău")}</h1>
               <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2"><Label htmlFor="pname">Prenume</Label><Input id="pname" value={p.name} onChange={(e) => setP({ name: e.target.value })} className="h-12 rounded-xl text-base" /></div>
-                <NumberField id="page" label="Vârstă" value={p.age} suffix="ani" onChange={(n) => setP({ age: n })} />
-                <SelectField label="Localitate" value={p.city} options={CITIES} onChange={(v) => setP({ city: v })} />
-                <SelectField label="Situația locuirii" value={p.living} options={LIVING} onChange={(v) => setP({ living: v })} />
-                <SelectField label="Locuința" value={p.housing} options={HOUSING} onChange={(v) => setP({ housing: v })} />
+                <div className="space-y-2"><Label htmlFor="pname">{t("Prenume")}</Label><Input id="pname" value={p.name} onChange={(e) => setP({ name: e.target.value })} className="h-12 rounded-xl text-base" /></div>
+                <NumberField id="page" label={t("Vârstă")} value={p.age} suffix={t("ani")} onChange={(n) => setP({ age: n })} />
+                <SelectField label={t("Localitate")} value={p.city} options={CITIES} onChange={(v) => setP({ city: v })} />
+                <SelectField label={t("Situația locuirii")} value={p.living} options={LIVING} onChange={(v) => setP({ living: v })} />
+                <SelectField label={t("Locuința")} value={p.housing} options={HOUSING} onChange={(v) => setP({ housing: v })} />
               </div>
               <fieldset>
-                <legend className="mb-3 text-sm font-medium">Cât de independent(ă) este astăzi?</legend>
+                <legend className="mb-3 text-sm font-medium">{t("Cât de independent(ă) este astăzi?")}</legend>
                 <div className="grid gap-3 md:grid-cols-3">
                   {INDEP.map((o) => (
-                    <button key={o.id} type="button" aria-pressed={p.independence === o.id} onClick={() => setP({ independence: o.id })}
+                    <Button variant="ghost" key={o.id} type="button" aria-pressed={p.independence === o.id} onClick={() => setP({ independence: o.id })}
                       className={cn("rounded-2xl border-2 p-4 text-left transition-all", p.independence === o.id ? "border-primary bg-primary-soft" : "border-border hover:border-primary/40")}>
-                      <span className="flex items-center justify-between font-semibold">{o.title}{p.independence === o.id && <Check className="size-4 text-primary" />}</span>
-                      <span className="mt-1 block text-sm text-muted-foreground">{o.text}</span>
-                    </button>
+                      <span className="flex items-center justify-between font-semibold">{t(o.title)}{p.independence === o.id && <Check className="size-4 text-primary" />}</span>
+                      <span className="mt-1 block text-sm text-muted-foreground">{t(o.text)}</span>
+                    </Button>
                   ))}
                 </div>
               </fieldset>
-              <p className="text-xs text-muted-foreground">Nu îți cerem informații medicale sau diagnostice.</p>
+              <p className="text-xs text-muted-foreground">{t("Nu îți cerem informații medicale sau diagnostice.")}</p>
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-6">
-              <h1 className="text-3xl font-semibold md:text-4xl">Ce resurse financiare are {p.name || "părintele tău"} astăzi?</h1>
-              <p className="rounded-xl bg-primary-soft p-3 text-sm">Nu trebuie să introduci valori exacte. O estimare este suficientă pentru primul plan.</p>
+              <h1 className="text-3xl font-semibold md:text-4xl">{t("Ce resurse financiare are ")}{p.name || "părintele tău"}{t(" astăzi?")}</h1>
+              <p className="rounded-xl bg-primary-soft p-3 text-sm">{t("Nu trebuie să introduci valori exacte. O estimare este suficientă pentru primul plan.")}</p>
               <div className="grid gap-5 md:grid-cols-2">
-                <NumberField id="pension" label="Pensie lunară" value={p.pension} onChange={(n) => setP({ pension: n })} />
-                <NumberField id="other" label="Alte venituri lunare" value={p.otherIncome} onChange={(n) => setP({ otherIncome: n })} />
-                <NumberField id="savings" label="Economii accesibile" value={p.savings} onChange={(n) => setP({ savings: n })} tip="Bani pe care i-ar putea folosi relativ ușor: depozite, cont curent." />
-                <NumberField id="expenses" label="Cheltuieli esențiale lunare" value={p.expenses} onChange={(n) => setP({ expenses: n })} tip="Utilități, mâncare, medicamente uzuale, transport." />
+                <NumberField id="pension" label={t("Pensie lunară")} value={p.pension} onChange={(n) => setP({ pension: n })} />
+                <NumberField id="other" label={t("Alte venituri lunare")} value={p.otherIncome} onChange={(n) => setP({ otherIncome: n })} />
+                <NumberField id="savings" label={t("Economii accesibile")} value={p.savings} onChange={(n) => setP({ savings: n })} tip={t("Bani pe care i-ar putea folosi relativ ușor: depozite, cont curent.")} />
+                <NumberField id="expenses" label={t("Cheltuieli esențiale lunare")} value={p.expenses} onChange={(n) => setP({ expenses: n })} tip={t("Utilități, mâncare, medicamente uzuale, transport.")} />
               </div>
               <fieldset>
-                <legend className="mb-3 text-sm font-medium">Alte resurse (opțional)</legend>
+                <legend className="mb-3 text-sm font-medium">{t("Alte resurse (opțional)")}</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {ASSETS.map((a) => (
                     <label key={a} className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm">
-                      <Checkbox checked={p.assets.includes(a)} onCheckedChange={(c) => setP({ assets: c ? [...p.assets, a] : p.assets.filter((x) => x !== a) })} />{a}
+                      <Checkbox checked={p.assets.includes(a)} onCheckedChange={(c) => setP({ assets: c ? [...p.assets, a] : p.assets.filter((x) => x !== a) })} />{t(a)}
                     </label>
                   ))}
                 </div>
               </fieldset>
               <div className="rounded-2xl border border-success/30 bg-success-soft p-5" aria-live="polite">
                 {p.pension + p.otherIncome === 0 ? (
-                  <p className="text-sm">Adaugă venitul părintelui pentru a calcula scenariul.</p>
+                  <p className="text-sm">{t("Adaugă venitul părintelui pentru a calcula scenariul.")}</p>
                 ) : (
-                  <p className="text-sm"><strong className="font-display text-2xl"><AnimatedNumber value={surplus} />/lună</strong><br />{p.name || "Părintele tău"} are aproximativ {ron(surplus)}/lună disponibili peste cheltuielile curente.</p>
+                  <p className="text-sm"><strong className="font-display text-2xl"><AnimatedNumber value={surplus} />{t("/lună")}</strong><br />{p.name || "Părintele tău"}{t(" are aproximativ ")}{ron(surplus)}{t("/lună disponibili peste cheltuielile curente.")}</p>
                 )}
               </div>
             </div>
@@ -175,55 +177,55 @@ function Onboarding() {
 
           {step === 3 && (
             <div className="space-y-6">
-              <h1 className="text-3xl font-semibold md:text-4xl">Cine ar putea contribui dacă {p.name} ar avea nevoie de ajutor?</h1>
+              <h1 className="text-3xl font-semibold md:text-4xl">{t("Cine ar putea contribui dacă ")}{p.name}{t(" ar avea nevoie de ajutor?")}</h1>
               <div className="grid gap-5 md:grid-cols-3">
-                <div className="space-y-2"><Label htmlFor="uname">Prenumele tău</Label><Input id="uname" value={d.user.name} onChange={(e) => setD({ ...d, user: { ...d.user, name: e.target.value } })} className="h-12 rounded-xl text-base" /></div>
-                <NumberField id="uinc" label="Venitul tău net lunar" value={d.user.income} onChange={(n) => setD({ ...d, user: { ...d.user, income: n } })} />
-                <NumberField id="usav" label="Economisești lunar" value={d.user.savings} onChange={(n) => setD({ ...d, user: { ...d.user, savings: n } })} />
+                <div className="space-y-2"><Label htmlFor="uname">{t("Prenumele tău")}</Label><Input id="uname" value={d.user.name} onChange={(e) => setD({ ...d, user: { ...d.user, name: e.target.value } })} className="h-12 rounded-xl text-base" /></div>
+                <NumberField id="uinc" label={t("Venitul tău net lunar")} value={d.user.income} onChange={(n) => setD({ ...d, user: { ...d.user, income: n } })} />
+                <NumberField id="usav" label={t("Economisești lunar")} value={d.user.savings} onChange={(n) => setD({ ...d, user: { ...d.user, savings: n } })} />
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-4 rounded-2xl border bg-care-soft/50 p-4">
                   <span className="grid size-10 place-items-center rounded-full bg-care text-care-foreground"><UserRound className="size-5" /></span>
-                  <div><p className="font-semibold">Tu{d.user.name && ` · ${d.user.name}`}</p><p className="text-sm text-muted-foreground">Venit: {ron(d.user.income)}/lună</p></div>
+                  <div><p className="font-semibold">{t("Tu")}{d.user.name && ` · ${d.user.name}`}</p><p className="text-sm text-muted-foreground">{t("Venit: ")}{ron(d.user.income)}{t("/lună")}</p></div>
                 </div>
                 {d.members.map((m) => (
                   <div key={m.id} className="grid items-end gap-3 rounded-2xl border p-4 sm:grid-cols-[1fr_1fr_auto]">
-                    <div className="space-y-2"><Label htmlFor={`n-${m.id}`}>Nume</Label><Input id={`n-${m.id}`} value={m.name} placeholder="ex. Andrei" onChange={(e) => setMember(m.id, { name: e.target.value })} className="h-11 rounded-xl" /></div>
-                    <SelectField label="Rol" value={m.role} options={ROLES} onChange={(v) => setMember(m.id, { role: v })} />
-                    <Button variant="ghost" size="icon" aria-label={`Elimină ${m.name || "membrul"}`} onClick={() => setD({ ...d, members: d.members.filter((x) => x.id !== m.id) })}><Trash2 /></Button>
-                    <p className="text-xs text-muted-foreground sm:col-span-3">Capacitate de contribuție: necunoscută deocamdată — o poți estima sau îl poți invita mai târziu.</p>
+                    <div className="space-y-2"><Label htmlFor={`n-${m.id}`}>{t("Nume")}</Label><Input id={`n-${m.id}`} value={m.name} placeholder={t("ex. Andrei")} onChange={(e) => setMember(m.id, { name: e.target.value })} className="h-11 rounded-xl" /></div>
+                    <SelectField label={t("Rol")} value={m.role} options={ROLES} onChange={(v) => setMember(m.id, { role: v })} />
+                    <Button variant="ghost" size="icon" aria-label={t(`Elimină ${m.name || "membrul"}`)} onClick={() => setD({ ...d, members: d.members.filter((x) => x.id !== m.id) })}><Trash2 /></Button>
+                    <p className="text-xs text-muted-foreground sm:col-span-3">{t("Capacitate de contribuție: necunoscută deocamdată — o poți estima sau îl poți invita mai târziu.")}</p>
                   </div>
                 ))}
-                {d.members.length === 0 && <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">Poți construi planul singur sau poți adăuga ulterior alți membri ai familiei.</p>}
-                <Button variant="outline" onClick={addMember}><Plus /> Adaugă un membru al familiei</Button>
+                {d.members.length === 0 && <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">{t("Poți construi planul singur sau poți adăuga ulterior alți membri ai familiei.")}</p>}
+                <Button variant="outline" onClick={addMember}><Plus />{t(" Adaugă un membru al familiei")}</Button>
               </div>
               <div className="rounded-2xl bg-primary-soft p-5">
-                <Label htmlFor="ucontrib" className="text-base font-semibold">Cât ai putea contribui confortabil dacă ar fi nevoie?</Label>
-                <p className="mt-2 font-display text-3xl font-semibold text-primary"><AnimatedNumber value={d.userContribution} />/lună</p>
-                <Slider id="ucontrib" className="mt-4" min={0} max={2000} step={50} value={[d.userContribution]} onValueChange={([v = 0]) => setD({ ...d, userContribution: v })} aria-label="Contribuția ta lunară" />
-                <p className="mt-3 text-sm text-muted-foreground">Aceasta nu este o promisiune. Ne ajută doar să simulăm capacitatea familiei.</p>
+                <Label htmlFor="ucontrib" className="text-base font-semibold">{t("Cât ai putea contribui confortabil dacă ar fi nevoie?")}</Label>
+                <p className="mt-2 font-display text-3xl font-semibold text-primary"><AnimatedNumber value={d.userContribution} />{t("/lună")}</p>
+                <Slider id="ucontrib" className="mt-4" min={0} max={2000} step={50} value={[d.userContribution]} onValueChange={([v = 0]) => setD({ ...d, userContribution: v })} aria-label={t("Contribuția ta lunară")} />
+                <p className="mt-3 text-sm text-muted-foreground">{t("Aceasta nu este o promisiune. Ne ajută doar să simulăm capacitatea familiei.")}</p>
               </div>
             </div>
           )}
 
           {step === 4 && (
             <div className="space-y-6">
-              <h1 className="text-3xl font-semibold md:text-4xl">Hai să privim câțiva ani înainte</h1>
-              <p className="text-muted-foreground">Ce orizont de timp vrei să explorăm?</p>
+              <h1 className="text-3xl font-semibold md:text-4xl">{t("Hai să privim câțiva ani înainte")}</h1>
+              <p className="text-muted-foreground">{t("Ce orizont de timp vrei să explorăm?")}</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {([5, 10, 15] as const).map((h) => (
-                  <button key={h} type="button" aria-pressed={d.horizon === h} onClick={() => setD({ ...d, horizon: h })}
+                  <Button variant="ghost" key={h} type="button" aria-pressed={d.horizon === h} onClick={() => setD({ ...d, horizon: h })}
                     className={cn("rounded-2xl border-2 p-6 text-center transition-all", d.horizon === h ? "border-primary bg-primary-soft" : "hover:border-primary/40")}>
-                    <span className="font-display text-4xl font-semibold">{h}</span><span className="block text-sm text-muted-foreground">ani · {p.name} va avea {p.age + h}</span>
-                  </button>
+                    <span className="font-display text-4xl font-semibold">{t(h)}</span><span className="block text-sm text-muted-foreground">{t("ani · ")}{p.name}{t(" va avea ")}{p.age + h}</span>
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="mt-10 flex items-center justify-between">
-            <Button variant="ghost" onClick={() => (step === 1 ? navigate({ to: "/" }) : setStep(step - 1))}><ArrowLeft /> Înapoi</Button>
-            {step < 4 ? <Button size="lg" onClick={() => setStep(step + 1)}>Continuă <ArrowRight /></Button> : <Button size="lg" onClick={finish}>Vezi viitorul financiar al familiei <ArrowRight /></Button>}
+          <div className="questionnaire-actions mt-10 flex items-center justify-between">
+            <Button variant="ghost" onClick={() => (step === 1 ? navigate({ to: "/" }) : setStep(step - 1))}><ArrowLeft />{t(" Înapoi")}</Button>
+            {step < 4 ? <Button size="lg" onClick={() => setStep(step + 1)}>{t("Continuă ")}<ArrowRight /></Button> : <Button size="lg" onClick={finish}>{t("Vezi viitorul financiar al familiei ")}<ArrowRight /></Button>}
           </div>
         </div>
         <PrivacyNote className="mt-6 justify-center" />
