@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { PlanningAssumptions } from "@/components/app/PlanningAssumptions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app/AppShell";

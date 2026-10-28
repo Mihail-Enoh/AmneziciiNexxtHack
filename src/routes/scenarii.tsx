@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { CareDateInput, PlanningAssumptions } from "@/components/app/PlanningAssumptions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Hourglass, Sprout } from "lucide-react";

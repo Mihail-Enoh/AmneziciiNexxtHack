@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { CareTimingInput } from "@/components/app/CareTimingInput";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
