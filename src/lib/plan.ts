@@ -142,7 +142,7 @@ export function requiredMonthlySaving(target: number, monthsUntil: number, delay
   return months > 0 ? Math.ceil(target / months) : null;
 }
 
-const nf = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 0, useGrouping: "always" } as Intl.NumberFormatOptions);
+const nf = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 0, useGrouping: "always" } as unknown as Intl.NumberFormatOptions);
 export const formatNumber = (n: number) => nf.format(Math.round(n));
 export const ron = (n: number) => `${formatNumber(Math.max(0, n))} RON`;
 

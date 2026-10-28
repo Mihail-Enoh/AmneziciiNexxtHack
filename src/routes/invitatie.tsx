@@ -81,7 +81,7 @@ function Invite() {
               {mode === "da" && (
                 <div className="mt-6 rounded-2xl bg-primary-soft p-5">
                   <p className="font-display text-4xl font-semibold text-primary"><AnimatedNumber value={amount} /><span className="text-base font-normal text-muted-foreground">/lună</span></p>
-                  <Slider className="mt-4" min={0} max={2000} step={50} value={[amount]} onValueChange={([v]) => setAmount(v)} aria-label="Contribuție lunară" />
+                  <Slider className="mt-4" min={0} max={2000} step={50} value={[amount]} onValueChange={([v = 0]) => setAmount(v)} aria-label="Contribuție lunară" />
                 </div>
               )}
               <fieldset className="mt-6">

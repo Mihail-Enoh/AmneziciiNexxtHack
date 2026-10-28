@@ -37,7 +37,7 @@ function ContributionSlider({ name, sub, value, onChange, color = "primary" }: {
         <div><Label htmlFor={id} className="text-base font-semibold">{name || "Membru"}</Label><p className="text-xs text-muted-foreground">{sub}</p></div>
       </div>
       <p className="mt-4 font-display text-3xl font-semibold"><AnimatedNumber value={value} /><span className="text-sm font-normal text-muted-foreground">/lună</span></p>
-      <Slider id={id} className="mt-3" min={0} max={2000} step={50} value={[value]} onValueChange={([v]) => onChange(v)} aria-label={`Contribuția lunară ${name}`} />
+      <Slider id={id} className="mt-3" min={0} max={2000} step={50} value={[value]} onValueChange={([v = 0]) => onChange(v)} aria-label={`Contribuția lunară ${name}`} />
     </div>
   );
 }
@@ -98,7 +98,7 @@ function Family() {
           <h2 className="mt-3 text-3xl font-semibold">Pregătește-te din timp</h2>
           <Label htmlFor="saving" className="mt-4 block text-base">Cât ai putea economisi lunar de astăzi?</Label>
           <p className="mt-2 font-display text-4xl font-semibold text-primary"><AnimatedNumber value={s.monthlySaving} /><span className="text-base font-normal text-muted-foreground">/lună</span></p>
-          <Slider id="saving" className="mt-4" min={0} max={1500} step={25} value={[s.monthlySaving]} onValueChange={([v]) => setPlan({ monthlySaving: v })} aria-label="Economisire lunară" />
+          <Slider id="saving" className="mt-4" min={0} max={1500} step={25} value={[s.monthlySaving]} onValueChange={([v = 0]) => setPlan({ monthlySaving: v })} aria-label="Economisire lunară" />
           <div className="mt-8 rounded-2xl bg-primary-soft p-5">
             <p className="text-sm font-semibold">Fond estimat peste {years} ani</p>
             <p className="font-display text-5xl font-semibold"><AnimatedNumber value={c.futureCareReserve} /></p>

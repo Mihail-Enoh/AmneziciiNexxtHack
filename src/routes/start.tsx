@@ -200,7 +200,7 @@ function Onboarding() {
               <div className="rounded-2xl bg-primary-soft p-5">
                 <Label htmlFor="ucontrib" className="text-base font-semibold">Cât ai putea contribui confortabil dacă ar fi nevoie?</Label>
                 <p className="mt-2 font-display text-3xl font-semibold text-primary"><AnimatedNumber value={d.userContribution} />/lună</p>
-                <Slider id="ucontrib" className="mt-4" min={0} max={2000} step={50} value={[d.userContribution]} onValueChange={([v]) => setD({ ...d, userContribution: v })} aria-label="Contribuția ta lunară" />
+                <Slider id="ucontrib" className="mt-4" min={0} max={2000} step={50} value={[d.userContribution]} onValueChange={([v = 0]) => setD({ ...d, userContribution: v })} aria-label="Contribuția ta lunară" />
                 <p className="mt-3 text-sm text-muted-foreground">Aceasta nu este o promisiune. Ne ajută doar să simulăm capacitatea familiei.</p>
               </div>
             </div>

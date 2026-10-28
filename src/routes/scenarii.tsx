@@ -73,7 +73,7 @@ function Scenarios() {
 
           <div>
             <div className="flex items-center justify-between"><Label htmlFor="cost" className="font-semibold">Cost lunar estimat</Label><span className="tabular font-semibold">{ron(c.careMonthlyCost)}</span></div>
-            <Slider id="cost" className="mt-3" min={0} max={10000} step={100} value={[c.careMonthlyCost]} onValueChange={([v]) => setPlan({ costs: { ...s.costs, [s.scenario]: v } })} aria-label="Cost lunar estimat" />
+            <Slider id="cost" className="mt-3" min={0} max={10000} step={100} value={[c.careMonthlyCost]} onValueChange={([v = 0]) => setPlan({ costs: { ...s.costs, [s.scenario]: v } })} aria-label="Cost lunar estimat" />
             <button className="mt-2 text-xs font-semibold text-primary hover:underline" onClick={() => setPlan({ costs: { ...s.costs, [s.scenario]: PLAN_ASSUMPTIONS.costs[s.scenario] } })}>Revino la estimarea implicită ({ron(PLAN_ASSUMPTIONS.costs[s.scenario])})</button>
           </div>
 
