@@ -56,6 +56,8 @@ export interface CareScenarioDef {
   /** Part of the parent's current essential expenses that the care setup replaces (e.g. food, utilities in residential care). */
   expensesReplaced: number;
   supports: string[];
+  /** Optional typical start (years from now); read by AI intake when present. */
+  yearsFromNow?: number;
 }
 
 export const PLAN_ASSUMPTIONS = {
