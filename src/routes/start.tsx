@@ -325,7 +325,7 @@ function Onboarding() {
                 </div>
               </fieldset>
               <p className="text-xs text-muted-foreground">
-                Nu îți cerem informații medicale sau diagnostice.
+                Nu îți cerem informații medicale.
               </p>
             </div>
           )}

@@ -68,7 +68,7 @@ function Dashboard() {
       <PageHeader
         eyebrow="Planul familiei tale"
         title={`Planul ${genitive(p.name)}`}
-        subtitle={`Începere: ${c.fundingStartLabel}. Durată analizată: ${c.careDurationMonths} luni. Aceasta este o estimare, nu o predicție.`}
+        subtitle={`Începere: ${c.fundingStartLabel}. Durată analizată: ${c.careDurationMonths} luni. Este unul dintre scenariile de îngrijire posibile, nu o certitudine.`}
         right={<DemoBadge />}
       />
 

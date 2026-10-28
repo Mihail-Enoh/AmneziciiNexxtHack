@@ -21,13 +21,13 @@ describe('Health document and review rules', () => {
   expect(MAX_PDF_PAGES).toBe(3);
  });
  it('requires consent for picker and demonstrative document and revokes access when unchecked', () => {
-  render(<DocumentUpload onLabs={() => {}} onBusy={() => {}} />);
+  const view = render(<DocumentUpload onLabs={() => {}} onBusy={() => {}} consent={false} />);
   const picker = screen.getByLabelText('Alege documente');
   const demo = screen.getByRole('button', { name: 'Folosește un buletin demonstrativ' });
   expect(picker).toBeDisabled(); expect(demo).toBeDisabled();
-  fireEvent.click(screen.getByRole('checkbox'));
+  view.rerender(<DocumentUpload onLabs={() => {}} onBusy={() => {}} consent />);
   expect(picker).toBeEnabled(); expect(demo).toBeEnabled();
-  fireEvent.click(screen.getByRole('checkbox'));
+  view.rerender(<DocumentUpload onLabs={() => {}} onBusy={() => {}} consent={false} />);
   expect(picker).toBeDisabled(); expect(demo).toBeDisabled();
  });
  it('reflags edited lab values against the reference interval', () => {
@@ -37,6 +37,8 @@ describe('Health document and review rules', () => {
    return <LabReview labs={labs} onChange={rows => { result = rows; setLabs(rows); }} />;
   }
   render(<Review />);
+  expect(screen.getByText('Am citit 1 valoare din document')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Verifică valorile citite' }));
   fireEvent.change(screen.getByLabelText('Valoare analiză 1'), { target: { value: '130' } });
   expect(result[0]?.value).toBe(130); expect(result[0]?.flag).toBe('high');
   fireEvent.change(screen.getByLabelText('Valoare analiză 1'), { target: { value: '60' } });

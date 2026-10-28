@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Settings, Sun, Type, Waves } from "lucide-react";
+import { Settings, Trash2, Sun, Type, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,6 +11,13 @@ export function PreferenceEffects() {
     }
   }, []);
   return null;
+}
+
+export function clearAllData() {
+  if (!window.confirm("Ștergi planul, răspunsurile și setările salvate în acest browser?")) return;
+  try { localStorage.clear(); } catch { /* storage unavailable */ }
+  try { sessionStorage.clear(); } catch { /* storage unavailable */ }
+  window.location.reload();
 }
 
 export function SettingsMenu({ expanded = false }: { expanded?: boolean }) {
@@ -25,6 +32,7 @@ export function SettingsMenu({ expanded = false }: { expanded?: boolean }) {
     <DialogTrigger asChild><Button variant="ghost" size={expanded ? "default" : "icon"} className={expanded ? "w-full justify-start rounded-lg px-3" : "rounded-lg"} aria-label={"Setări"} title={"Setări"}><Settings />{expanded && "Setări"}</Button></DialogTrigger>
     <DialogContent><DialogHeader><DialogTitle>{"Pe gustul tău"}</DialogTitle><DialogDescription>{"Setări"} · Prototype123</DialogDescription></DialogHeader>
       {[{ key: "contrast", icon: Sun, label: "Contrast mai puternic" }, { key: "large-text", icon: Type, label: "Text mai mare" }, { key: "reduce-motion", icon: Waves, label: "Mai puține animații" }].map(item => <label key={item.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b py-4 last:border-0"><span className="flex min-w-0 items-center gap-3 font-medium"><item.icon className="size-5 shrink-0 text-primary" />{item.label}</span><Switch checked={values[item.key] ?? false} onCheckedChange={v => change(item.key, v)} aria-label={item.label} /></label>)}
+      <Button variant="outline" className="mt-2 w-full text-destructive" onClick={clearAllData}><Trash2 />Șterge toate datele</Button>
     </DialogContent>
   </Dialog>;
 }

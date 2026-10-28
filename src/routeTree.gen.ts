@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CumFolosimDateleRouteImport } from './routes/cum-folosim-datele'
 import { Route as CumFunctioneazaRouteImport } from './routes/cum-functioneaza'
 import { Route as FamilieRouteImport } from './routes/familie'
 import { Route as InvitatieRouteImport } from './routes/invitatie'
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CumFolosimDateleRoute = CumFolosimDateleRouteImport.update({
+  id: '/cum-folosim-datele',
+  path: '/cum-folosim-datele',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CumFunctioneazaRoute = CumFunctioneazaRouteImport.update({
@@ -80,6 +86,7 @@ const StartRoute = StartRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cum-folosim-datele': typeof CumFolosimDateleRoute
   '/cum-functioneaza': typeof CumFunctioneazaRoute
   '/familie': typeof FamilieRoute
   '/invitatie': typeof InvitatieRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cum-folosim-datele': typeof CumFolosimDateleRoute
   '/cum-functioneaza': typeof CumFunctioneazaRoute
   '/familie': typeof FamilieRoute
   '/invitatie': typeof InvitatieRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cum-folosim-datele': typeof CumFolosimDateleRoute
   '/cum-functioneaza': typeof CumFunctioneazaRoute
   '/familie': typeof FamilieRoute
   '/invitatie': typeof InvitatieRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/cum-folosim-datele'
     | '/cum-functioneaza'
     | '/familie'
     | '/invitatie'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/cum-folosim-datele'
     | '/cum-functioneaza'
     | '/familie'
     | '/invitatie'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/cum-folosim-datele'
     | '/cum-functioneaza'
     | '/familie'
     | '/invitatie'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CumFolosimDateleRoute: typeof CumFolosimDateleRoute
   CumFunctioneazaRoute: typeof CumFunctioneazaRoute
   FamilieRoute: typeof FamilieRoute
   InvitatieRoute: typeof InvitatieRoute
@@ -187,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cum-folosim-datele': {
+      id: '/cum-folosim-datele'
+      path: '/cum-folosim-datele'
+      fullPath: '/cum-folosim-datele'
+      preLoaderRoute: typeof CumFolosimDateleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cum-functioneaza': {
@@ -258,6 +278,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CumFolosimDateleRoute: CumFolosimDateleRoute,
   CumFunctioneazaRoute: CumFunctioneazaRoute,
   FamilieRoute: FamilieRoute,
   InvitatieRoute: InvitatieRoute,
