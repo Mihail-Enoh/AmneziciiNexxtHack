@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Prototype123 — Știi cât te-ar costa dacă părinții tăi ar avea nevoie de tine?" },
       { name: "description", content: "Înțelege impactul financiar al îngrijirii unui părinte și construiește un plan împreună cu familia, înainte să devină o urgență." },
-      { property: "og:title", content: "Prototype123 — Plan today. Be there tomorrow." },
+      { property: "og:title", content: "Prototype123 — Planifică azi. Fii alături mâine." },
       { property: "og:description", content: "Scenarii financiare pentru familiile din România care au părinți în vârstă." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -140,7 +140,7 @@ function Landing() {
 
       <footer className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-10 text-xs text-muted-foreground md:flex-row md:justify-between">
         <PrivacyNote />
-        <p>{t("Plan today. Be there tomorrow. · Nu reprezintă consultanță financiară, medicală sau juridică.")}</p>
+        <p>{t("Planifică azi. Fii alături mâine. · Nu reprezintă consultanță financiară, medicală sau juridică.")}</p>
       </footer>
     </div>
   );

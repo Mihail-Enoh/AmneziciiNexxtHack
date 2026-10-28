@@ -40,7 +40,7 @@ function AuthPage() {
         if (result.error) throw result.error;
         await navigate({ to: "/plan" });
       }
-    } catch { setError"Nu am putut continua. Verifică datele și încearcă din nou; confirmă emailul înainte de autentificare."; }
+    } catch { setError("Nu am putut continua. Verifică datele și încearcă din nou; confirmă emailul înainte de autentificare."); }
     finally { setBusy(false); }
   };
   const switchMode = (next: typeof mode) => { setMode(next); setSent(false); setError(""); };
