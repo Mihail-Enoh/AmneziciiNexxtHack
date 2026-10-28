@@ -33,10 +33,11 @@ function Dashboard() {
   const visible = SCENARIOS.filter((sc) => sc.yearsFromNow <= Math.max(s.horizon, 10) || sc.id === "residential");
   const chartData = visible.map((sc) => {
     const x = computePlan(s, sc.id);
-    return { name: `${sc.short} · ${p.age + sc.yearsFromNow} ani`, Părinte: x.parentCovered, Familie: x.familyFundingGap };
+    return { name: `${t(sc.short)} · ${p.age + sc.yearsFromNow} ${t("ani")}`, Părinte: x.parentCovered, Familie: x.familyFundingGap };
   });
   const select = (id: Intensity, years: number) => setPlan({ scenario: id, yearsUntil: years });
-  const sel = SCENARIOS.find((x) => x.id === s.scenario)!;
+  const sel = SCENARIOS.find((x) => x.id === s.scenario) ?? SCENARIOS[0];
+  if (!sel) return null;
 
   return (
     <AppShell>
@@ -90,7 +91,7 @@ function Dashboard() {
             const active = s.scenario === sc.id;
             return (
               <li key={sc.id}>
-                <button type="button" aria-pressed={active} onClick={() => select(sc.id, sc.yearsFromNow)}
+                <Button variant="ghost" type="button" aria-pressed={active} onClick={() => select(sc.id, sc.yearsFromNow)}
                   className={cn("card-surface h-full w-full p-5 text-left transition-all hover:-translate-y-0.5 hover:shadow-lift", active && "ring-2 ring-care")}>
                   <p className="text-xs font-bold uppercase tracking-wider text-care">{t("Scenariul ")}{i + 1} · {p.age + sc.yearsFromNow}{t(" ani")}</p>
                   <p className="mt-2 font-display text-xl font-semibold">„{t(sc.label)}”</p>
@@ -101,7 +102,7 @@ function Dashboard() {
                   </dl>
                   <div className="mt-3"><GapBar compact cost={x.careMonthlyCost} parent={x.parentCovered} /></div>
                   <p className="mt-3 text-sm">{t("Diferență: ")}<strong className="tabular text-care">{ron(x.familyFundingGap)}{t("/lună")}</strong></p>
-                </button>
+                </Button>
               </li>
             );
           })}
@@ -148,8 +149,8 @@ function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                 <Tooltip formatter={(v: number) => ron(v)} contentStyle={{ borderRadius: 12 }} />
-                <Bar dataKey="Părinte" stackId="a" fill="var(--primary)" />
-                <Bar dataKey="Familie" stackId="a" fill="var(--care)" radius={[6, 6, 0, 0]} />
+                <Bar name={t("Părinte")} dataKey="Părinte" stackId="a" fill="var(--primary)" />
+                <Bar name={t("Familie")} dataKey="Familie" stackId="a" fill="var(--care)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -124,7 +124,7 @@ function Family() {
                 <XAxis dataKey="an" tick={{ fontSize: 11 }} label={{ value: t("ani"), position: "insideBottomRight", offset: -2, fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                 <Tooltip formatter={(v: number) => ron(v)} contentStyle={{ borderRadius: 12 }} />
-                <Area type="monotone" dataKey="Fond" stroke="var(--primary)" fill="var(--primary-soft)" strokeWidth={3} />
+                <Area type="monotone" name={t("Fond")} dataKey="Fond" stroke="var(--primary)" fill="var(--primary-soft)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -146,7 +146,7 @@ function Family() {
             {s.members.map((m) => (
               <li key={m.id} className="rounded-2xl border p-4">
                 <div className="flex items-center justify-between"><p className="font-semibold">{m.name}</p><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold">{t(m.status)}</span></div>
-                <p className="text-xs text-muted-foreground">{t(m.role)} · {m.financial === "da" ? `${ron(m.contribution)}/lună` : m.financial === "nu-spun" ? "Preferă să nu spună" : "Ajută în alte moduri"}</p>
+                <p className="text-xs text-muted-foreground">{t(m.role)} · {t(m.financial === "da" ? `${ron(m.contribution)}/lună` : m.financial === "nu-spun" ? "Preferă să nu spună" : "Ajută în alte moduri")}</p>
                 {m.helps.length > 0 && <p className="mt-1 text-xs">{t("Timp: ")}{t(m.helps.join(", "))}</p>}
               </li>
             ))}

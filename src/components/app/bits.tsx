@@ -40,7 +40,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
         <Calculator className="size-3.5 shrink-0" aria-hidden />{t(" Cum am calculat? ")}</DialogTrigger>
       <DialogContent className="rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="font-display text-2xl">{title}</DialogTitle>
+          <DialogTitle className="font-display text-2xl">{t(title)}</DialogTitle>
           <DialogDescription>{t("Fiecare număr provine din valorile introduse de tine și din ipotezele demonstrative.")}</DialogDescription>
         </DialogHeader>
         <dl className="mt-2 divide-y rounded-2xl border bg-muted/40">
@@ -51,7 +51,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
             </div>
           ))}
         </dl>
-        {note && <p className="text-xs text-muted-foreground">{note}</p>}
+        {note && <p className="text-xs text-muted-foreground">{t(note)}</p>}
       </DialogContent>
     </Dialog>
   );
@@ -130,9 +130,9 @@ export function PageHeader({ eyebrow, title, subtitle, right }: { eyebrow?: stri
   return (
     <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0 animate-rise">
-        {eyebrow && <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-care">{eyebrow}</p>}
-        <h1 className="text-3xl font-semibold md:text-4xl">{title}</h1>
-        {subtitle && <p className="mt-3 max-w-2xl text-muted-foreground">{subtitle}</p>}
+        {eyebrow && <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-care">{t(eyebrow)}</p>}
+        <h1 className="text-3xl font-semibold md:text-4xl">{t(title)}</h1>
+        {subtitle && <p className="mt-3 max-w-2xl text-muted-foreground">{t(subtitle)}</p>}
       </div>
       {right}
     </div>
@@ -143,7 +143,7 @@ export function Metric({ label, children, hint, icon }: { label: string; childre
   useLanguage();
   return (
     <div className="card-surface p-5">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{icon}{label}</div>
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{icon}{t(label)}</div>
       <div className="mt-2 font-display text-3xl font-semibold">{children}</div>
       {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>

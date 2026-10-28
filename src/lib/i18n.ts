@@ -28,7 +28,7 @@ export function translate(text: string, locale: Language): string {
   const trimmed = text.trim();
   const direct = english[text] ?? english[trimmed];
   if (direct) return (text.startsWith(" ") && !direct.startsWith(" ") ? " " : "") + direct + (text.endsWith(" ") && !direct.endsWith(" ") ? " " : "");
-  for (const [source, target] of Object.entries(english)) {
+  for (const [source, target] of Object.entries(english).sort(([a], [b]) => b.length - a.length)) {
     if (!source.includes("{0}")) continue;
     const pieces = source.split(/\{\d+\}/);
     const expression = "^" + pieces.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("(.*?)") + "$";

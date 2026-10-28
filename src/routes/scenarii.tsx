@@ -37,7 +37,7 @@ function Scenarios() {
   const later = requiredMonthlySaving(target, c.monthsUntilScenario, 60);
   const years = Math.round(s.yearsUntil);
   const chart = Array.from({ length: years + 1 }, (_, y) => ({
-    an: `Anul ${y}`,
+    an: t(`Anul ${y}`),
     "Începi azi": s.monthlySaving * 12 * y,
     "Începi peste 5 ani": later ? Math.max(0, later * 12 * (y - 5)) : 0,
   }));
@@ -52,9 +52,9 @@ function Scenarios() {
             <legend className="mb-3 text-sm font-semibold">{t("Îngrijirea începe peste")}</legend>
             <div className="grid grid-cols-4 gap-2">
               {[3, 5, 10, 15].map((y) => (
-                <button key={y} type="button" aria-pressed={s.yearsUntil === y} onClick={() => setPlan({ yearsUntil: y })}
+                <Button variant="ghost" key={y} type="button" aria-pressed={s.yearsUntil === y} onClick={() => setPlan({ yearsUntil: y })}
                   className={cn("rounded-xl border-2 py-3 text-sm font-semibold transition-all", s.yearsUntil === y ? "border-primary bg-primary-soft text-primary" : "hover:border-primary/40")}>
-                  {t(y)}{t(" ani ")}</button>
+                  {t(y)}{t(" ani ")}</Button>
               ))}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">{p.name}{t(" ar avea aproximativ ")}{p.age + s.yearsUntil}{t(" ani.")}</p>
@@ -64,10 +64,10 @@ function Scenarios() {
             <legend className="mb-3 text-sm font-semibold">{t("Intensitatea îngrijirii")}</legend>
             <div className="grid grid-cols-2 gap-2">
               {SCENARIOS.map((sc) => (
-                <button key={sc.id} type="button" aria-pressed={s.scenario === sc.id} onClick={() => setPlan({ scenario: sc.id })}
+                <Button variant="ghost" key={sc.id} type="button" aria-pressed={s.scenario === sc.id} onClick={() => setPlan({ scenario: sc.id })}
                   className={cn("rounded-xl border-2 p-3 text-left text-sm font-semibold transition-all", s.scenario === sc.id ? "border-care bg-care-soft" : "hover:border-care/40")}>
                   {t(sc.label)}
-                </button>
+                </Button>
               ))}
             </div>
           </fieldset>
@@ -75,7 +75,7 @@ function Scenarios() {
           <div>
             <div className="flex items-center justify-between"><Label htmlFor="cost" className="font-semibold">{t("Cost lunar estimat")}</Label><span className="tabular font-semibold">{ron(c.careMonthlyCost)}</span></div>
             <Slider id="cost" className="mt-3" min={0} max={10000} step={100} value={[c.careMonthlyCost]} onValueChange={([v = 0]) => setPlan({ costs: { ...s.costs, [s.scenario]: v } })} aria-label={t("Cost lunar estimat")} />
-            <button className="mt-2 text-xs font-semibold text-primary hover:underline" onClick={() => setPlan({ costs: { ...s.costs, [s.scenario]: PLAN_ASSUMPTIONS.costs[s.scenario] } })}>{t("Revino la estimarea implicită (")}{ron(PLAN_ASSUMPTIONS.costs[s.scenario])})</button>
+            <Button variant="ghost" className="mt-2 text-xs font-semibold text-primary hover:underline" onClick={() => setPlan({ costs: { ...s.costs, [s.scenario]: PLAN_ASSUMPTIONS.costs[s.scenario] } })}>{t("Revino la estimarea implicită (")}{ron(PLAN_ASSUMPTIONS.costs[s.scenario])})</Button>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -109,7 +109,7 @@ function Scenarios() {
             <div className="card-surface p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("Pe persoană (împărțit egal)")}</p>
               <p className="mt-1 font-display text-3xl font-semibold"><AnimatedNumber value={c.perPersonShare} /></p>
-              <p className="text-xs text-muted-foreground">{t("între tine și ")}{s.members.filter((m) => m.financial === "da").length} {s.members.length === 1 ? "membru" : "membri"}{t(" ai familiei")}</p>
+              <p className="text-xs text-muted-foreground">{t("între tine și ")}{s.members.filter((m) => m.financial === "da").length} {t(s.members.length === 1 ? "membru" : "membri")}{t(" ai familiei")}</p>
             </div>
             <div className="card-surface p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("Economisești de azi")}</p>
@@ -156,8 +156,8 @@ function Scenarios() {
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                 <Tooltip formatter={(v: number) => ron(v)} contentStyle={{ borderRadius: 12 }} />
                 <Legend />
-                <Line type="monotone" dataKey="Începi azi" stroke="var(--primary)" strokeWidth={3} dot={false} />
-                <Line type="monotone" dataKey="Începi peste 5 ani" stroke="var(--care)" strokeWidth={3} strokeDasharray="6 4" dot={false} />
+                <Line type="monotone" name={t("Începi azi")} dataKey="Începi azi" stroke="var(--primary)" strokeWidth={3} dot={false} />
+                <Line type="monotone" name={t("Începi peste 5 ani")} dataKey="Începi peste 5 ani" stroke="var(--care)" strokeWidth={3} strokeDasharray="6 4" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

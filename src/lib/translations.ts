@@ -384,5 +384,13 @@ export const english: Record<string, string> = {
   "Necesită atenție": "Needs attention",
   "Neacoperit": "Uncovered",
   "Rezumat": "Summary",
-  "Rol": "Role"
+  "Rol": "Role",
+  "Planul meu": "My plan",
+  "Planul final": "Final plan",
+  "Plan": "Plan",
+  "Final": "Final",
+  "Scenarii": "Scenarios",
+  "Diferența în acest scenariu": "Gap in this scenario",
+  "Fond": "Fund",
+  "Venit disponibil {0}": "Available income of {0}"
 };

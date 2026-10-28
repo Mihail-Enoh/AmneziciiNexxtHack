@@ -76,7 +76,7 @@ function Invite() {
                 <legend className="sr-only">{t("Cum ai putea ajuta")}</legend>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {MODES.map((m) => (
-                    <button key={m.id} type="button" aria-pressed={mode === m.id} onClick={() => setMode(m.id)} className={cn("rounded-xl border-2 p-3 text-sm font-semibold", mode === m.id ? "border-primary bg-primary-soft" : "hover:border-primary/40")}>{t(m.label)}</button>
+                    <Button variant="ghost" key={m.id} type="button" aria-pressed={mode === m.id} onClick={() => setMode(m.id)} className={cn("rounded-xl border-2 p-3 text-sm font-semibold", mode === m.id ? "border-primary bg-primary-soft" : "hover:border-primary/40")}>{t(m.label)}</Button>
                   ))}
                 </div>
               </fieldset>

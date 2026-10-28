@@ -79,8 +79,8 @@ function Summary() {
           </dl>
           <div className="mt-2 rounded-2xl bg-primary-soft p-5 text-sm">
             <p className="font-semibold">{t("Fond pentru îngrijire: ")}{ron(c.futureCareReserve)}</p>
-            <p className="mt-1 text-muted-foreground">{c.remainingGap > 0 ? `Poate acoperi cei ${ron(c.remainingGap)}/lună rămași timp de aproximativ ${c.monthsOfRemainingCovered} luni.` : `Rezervă suplimentară pentru ~${c.monthsOfGapCovered} luni din diferența totală.`}</p>
-            <p className="mt-2 font-medium">{remainingMsg}.</p>
+            <p className="mt-1 text-muted-foreground">{t(c.remainingGap > 0 ? `Poate acoperi cei ${ron(c.remainingGap)}/lună rămași timp de aproximativ ${c.monthsOfRemainingCovered} luni.` : `Rezervă suplimentară pentru ~${c.monthsOfGapCovered} luni din diferența totală.`)}</p>
+            <p className="mt-2 font-medium">{t(remainingMsg)}.</p>
           </div>
           <div className="mt-4"><ExplainButton title={t("Statusul planului")} lines={[{ label: t("Rămâne neacoperit lunar"), value: ron(c.remainingGap) }, { label: t("Fond pentru îngrijire"), value: ron(c.futureCareReserve) }, { label: t("Luni acoperite de fond"), value: `${c.monthsOfRemainingCovered || "—"}`, op: "=" }]} note={t("Pregătit: nicio diferență rămasă sau fondul acoperă cel puțin 36 de luni. Aproape acoperit: 12–35 luni. Necesită atenție: sub 12 luni.")} /></div>
         </div>
@@ -105,7 +105,7 @@ function Summary() {
           <h2 className="text-2xl font-semibold">{t("Explică-mi planul")}</h2>
           <Button variant="outline" onClick={() => setExplained(true)}><MessageSquareText />{t(" Explică în cuvinte simple")}</Button>
         </div>
-        {explained && <p className="mt-4 animate-rise rounded-2xl bg-care-soft p-5 leading-relaxed">„{explainPlan(s, c)}”</p>}
+        {explained && <p className="mt-4 animate-rise rounded-2xl bg-care-soft p-5 leading-relaxed">„{t(explainPlan(s, c))}”</p>}
       </section>
 
       <section className="mt-8 card-surface p-6 md:p-8">

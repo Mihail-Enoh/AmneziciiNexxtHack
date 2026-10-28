@@ -133,11 +133,11 @@ function Onboarding() {
                 <legend className="mb-3 text-sm font-medium">{t("Cât de independent(ă) este astăzi?")}</legend>
                 <div className="grid gap-3 md:grid-cols-3">
                   {INDEP.map((o) => (
-                    <button key={o.id} type="button" aria-pressed={p.independence === o.id} onClick={() => setP({ independence: o.id })}
+                    <Button variant="ghost" key={o.id} type="button" aria-pressed={p.independence === o.id} onClick={() => setP({ independence: o.id })}
                       className={cn("rounded-2xl border-2 p-4 text-left transition-all", p.independence === o.id ? "border-primary bg-primary-soft" : "border-border hover:border-primary/40")}>
                       <span className="flex items-center justify-between font-semibold">{t(o.title)}{p.independence === o.id && <Check className="size-4 text-primary" />}</span>
                       <span className="mt-1 block text-sm text-muted-foreground">{t(o.text)}</span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </fieldset>
@@ -214,10 +214,10 @@ function Onboarding() {
               <p className="text-muted-foreground">{t("Ce orizont de timp vrei să explorăm?")}</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {([5, 10, 15] as const).map((h) => (
-                  <button key={h} type="button" aria-pressed={d.horizon === h} onClick={() => setD({ ...d, horizon: h })}
+                  <Button variant="ghost" key={h} type="button" aria-pressed={d.horizon === h} onClick={() => setD({ ...d, horizon: h })}
                     className={cn("rounded-2xl border-2 p-6 text-center transition-all", d.horizon === h ? "border-primary bg-primary-soft" : "hover:border-primary/40")}>
                     <span className="font-display text-4xl font-semibold">{t(h)}</span><span className="block text-sm text-muted-foreground">{t("ani · ")}{p.name}{t(" va avea ")}{p.age + h}</span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
