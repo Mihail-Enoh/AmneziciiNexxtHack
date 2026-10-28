@@ -114,7 +114,7 @@ function Landing() {
             <p className="text-xs font-semibold text-muted-foreground">{t("Diferență de acoperit · Ajutor zilnic")}</p>
             <p className="mt-1 font-display text-3xl font-semibold text-care">1.700 RON<span className="text-sm font-normal text-muted-foreground">{t(" /lună")}</span></p>
             <div className="mt-3 flex h-2 overflow-hidden rounded-full"><div className="w-[43%] bg-primary" /><div className="flex-1 bg-care" /></div>
-            <p className="mt-2 text-xs text-muted-foreground">{t("Estimare, nu predicție.")}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{t("Unul dintre scenariile de îngrijire posibile.")}</p>
           </div>
         </div>
       </section>
@@ -132,7 +132,7 @@ function Landing() {
             ))}
           </div>
           <div className="mt-10 flex flex-col gap-3 rounded-2xl bg-primary-soft p-5 md:flex-row md:items-center md:justify-between">
-            <p className="flex items-start gap-3 text-sm font-medium"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />{t("Nu oferim diagnostic medical și nu prezicem viitorul. Construim scenarii financiare pe care le poți modifica.")}</p>
+            <p className="flex items-start gap-3 text-sm font-medium"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />{t("Nu oferim evaluări medicale și nu prezicem viitorul. Construim scenarii de îngrijire pe care le poți modifica.")}</p>
             <Button variant="outline" onClick={tryDemo}>{t("Încearcă un exemplu")}</Button>
           </div>
         </div>
@@ -140,6 +140,7 @@ function Landing() {
 
       <footer className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-10 text-xs text-muted-foreground md:flex-row md:justify-between">
         <PrivacyNote />
+        <Link to="/cum-folosim-datele" className="font-semibold underline underline-offset-4">Cum folosim datele</Link>
         <p>{t("Planifică azi. Fii alături mâine. · Nu reprezintă consultanță financiară, medicală sau juridică.")}</p>
       </footer>
     </div>

@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
-import { FileText, Upload, Loader2, RotateCcw, Trash2 } from 'lucide-react';
+import { EyeOff, FileText, Upload, Loader2, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { readHealthDocument } from '@/lib/health.functions';
 import { MAX_FILES } from '@/lib/health-files';
@@ -10,9 +9,8 @@ import type { LabResult } from '@/lib/health';
 import { ACCEPT, documentError, documentImages, readError, selectDocuments } from './documents';
 
 type Entry = { id: number; name: string; status: string; progress: number; error: boolean; file: File };
-export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[]) => void; onBusy: (busy: boolean) => void }) {
+export function DocumentUpload({ onLabs, onBusy, consent }: { onLabs: (labs: LabResult[]) => void; onBusy: (busy: boolean) => void; consent: boolean }) {
   const read = useServerFn(readHealthDocument);
-  const [consent, setConsent] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -47,7 +45,7 @@ export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[])
     finally { lock.current = false; setBusy(false); onBusy(false); }
   };
   const add = async (files: File[]) => {
-    if (lock.current || !consent) { if (!consent) setNotice('Bifează acordul înainte de a încărca documente.'); return; }
+    if (lock.current || !consent) { if (!consent) setNotice('Confirmă acordul la pasul anterior înainte de a încărca documente.'); return; }
     const accepted = selectDocuments(files, entries.length);
     setNotice(accepted.length < files.length ? `Poți încărca maximum ${MAX_FILES} fișiere.` : '');
     const rows: Entry[] = [];
@@ -72,7 +70,8 @@ export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[])
     finally { lock.current = false; setBusy(false); onBusy(false); }
   };
   return <div className="space-y-5">
-    <label className="flex items-start gap-3 rounded-lg border bg-primary-soft/40 p-4 text-sm leading-relaxed"><Checkbox checked={consent} disabled={busy} onCheckedChange={v => setConsent(v === true)} className="mt-0.5" />Am acordul părintelui sau folosesc documente demonstrative.</label>
+    {!consent && <p role="alert" className="rounded-lg border bg-warning-soft p-4 text-sm">Încărcarea este dezactivată până confirmi acordul la pasul anterior.</p>}
+    <p className="flex items-start gap-3 rounded-lg border bg-primary-soft/40 p-4 text-sm font-medium leading-relaxed"><EyeOff className="mt-0.5 size-5 shrink-0 text-primary" />Acoperă numele, CNP-ul și adresa înainte de a fotografia documentul. Pentru demonstrație, folosește buletinul fictiv.</p>
     <div onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={e => { e.preventDefault(); setDrag(false); void add(Array.from(e.dataTransfer.files)); }} className={`rounded-lg border-2 border-dashed p-7 text-center ${drag ? 'border-primary bg-primary-soft' : 'border-input bg-card'}`}>
       <Upload className="mx-auto mb-3 size-8 text-primary" /><h3 className="text-xl font-semibold">Adaugă documentele, dacă le ai</h3><p className="mt-2 text-sm text-muted-foreground">PNG, JPG, WEBP sau PDF · maximum {MAX_FILES} fișiere, 20 MB fiecare.<br />Pentru PDF citim primele 3 pagini.</p>
       <input ref={picker} type="file" accept={ACCEPT} multiple className="sr-only" aria-label="Alege documente" disabled={!consent || busy || entries.length >= MAX_FILES} onChange={e => { void add(Array.from(e.target.files ?? [])); e.target.value = ''; }} />
