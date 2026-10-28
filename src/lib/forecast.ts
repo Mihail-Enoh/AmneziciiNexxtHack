@@ -107,6 +107,8 @@ export interface OnsetCurve {
   /** Most likely year (median) and the central interval, in years from now. */
   p50: number; low: number; high: number;
   withinHorizon: number;
+  /** Median in years, not rounded (for exact differences). */
+  median: number;
 }
 
 /** `habitLog` = habitLogHazard(...): multiplies the yearly chance by e^habitLog. */
@@ -123,7 +125,7 @@ export function onsetCurve(age: number, points: number, intensity: Intensity, ho
     cumulative: cumulativeAt(i + 1),
   }));
   const r1 = (n: number) => Math.round(n * 10) / 10;
-  return { years, p50: r1(quantile(0.5)), low: r1(quantile(band[0])), high: r1(quantile(band[1])), withinHorizon: cumulativeAt(H) };
+  return { years, p50: r1(quantile(0.5)), low: r1(quantile(band[0])), high: r1(quantile(band[1])), withinHorizon: cumulativeAt(H), median: quantile(0.5) };
 }
 
 // ------------------------------------------------------------------ the forecast
@@ -145,11 +147,6 @@ export interface HabitSuggestion {
   /** Drop in the expected family cost over the horizon. */
   costSaved: number;
   costSavedPct: number;
-  /** How much less to set aside each month (more time to save the same amount). */
-  savingLessPerMonth: number;
-  /** Monthly amount to set aside before and after the change. */
-  perMonthBefore: number;
-  perMonthAfter: number;
   /** Months later that the family starts paying, and what those months would have cost (months × monthly gap). */
   delayMonths: number;
   deferredCost: number;
@@ -222,37 +219,53 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
   // Habit suggestions: change one habit to its best answer, keep everything else.
   const who = s.parent.name.trim() || "persoana";
   const lei = (n: number) => `${Math.round(n).toLocaleString("ro-RO")} lei`;
-  const yrs = (n: number) => `${n.toLocaleString("ro-RO")} ${n === 1 ? "an" : "ani"}`;
   const habits: HabitSuggestion[] = [];
-  const evaluate = (id: string, title: string, action: string, ids: string[]) => {
-    const better = core(s, intensity, points, habitLogHazard(opts.answers, ids), horizon, now);
-    const delayYears = Math.round((better.onset.p50 - base.onset.p50) * 10) / 10;
-    if (delayYears <= 0) return;
-    const costSaved = Math.max(0, Math.round(base.expectedFamilyCost - better.expectedFamilyCost));
-    const costSavedPct = base.expectedFamilyCost > 0 ? Math.round((costSaved / base.expectedFamilyCost) * 100) : 0;
-    const before = base.saving.perMonth ?? 0;
-    const after = better.saving.perMonth ?? 0;
-    const savingLessPerMonth = Math.max(0, before - after);
-    const delayMonths = Math.max(1, Math.round((better.onset.p50 - base.onset.p50) * 12));
-    const monthlyGap = base.atMedian.monthlyGapAtStart;
-    const deferredCost = Math.round(delayMonths * monthlyGap);
-    habits.push({
-      id, title, delayYears, costSaved, costSavedPct, savingLessPerMonth, perMonthBefore: before, perMonthAfter: after,
-      delayMonths, deferredCost, monthlyGap,
-      detail: `În modelul nostru, dacă ${who} ${action} de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${yrs(delayYears)}. ` +
-        (monthlyGap > 0
-          ? `Familia ar începe să plătească diferența de ${lei(monthlyGap)}/lună cu ${delayMonths} ${delayMonths === 1 ? "lună" : "luni"} mai târziu: aproximativ ${lei(deferredCost)} amânați.`
-          : `Familia ar avea mai mult timp să se pregătească.`),
-    });
-  };
   if (opts.answers) {
-    const bad = FORECAST_ASSUMPTIONS.habits.filter((h) => {
-      const q = QUIZ.find((x) => x.id === h.id);
-      return !!q && (opts.answers?.[h.id] ?? []).some((id) => (h.hr[id] ?? 1) > 1);
-    });
-    for (const h of bad) evaluate(h.id, h.title, h.action, [h.id]);
-    if (bad.length >= 2) evaluate("all", "Toate schimbările de mai sus", "face toate aceste schimbări", bad.map((h) => h.id));
-    habits.sort((x, y) => (x.id === "all" ? 1 : y.id === "all" ? -1 : y.delayYears - x.delayYears));
+    // Habits that add risk now, with how much of the risk changing them removes (ln of the hazard ratio × reversible).
+    const bad = FORECAST_ASSUMPTIONS.habits
+      .filter((h) => QUIZ.some((q) => q.id === h.id))
+      .map((h) => ({ h, weight: habitLogHazard(opts.answers, []) - habitLogHazard(opts.answers, [h.id]) }))
+      .filter((x) => x.weight > 1e-9);
+    if (bad.length) {
+      // 1) The model's answer for changing ALL of them together (effects compound, so this is not a plain sum).
+      const all = core(s, intensity, points, habitLogHazard(opts.answers, bad.map((x) => x.h.id)), horizon, now);
+      const totalMonths = Math.max(0, Math.round((all.onset.median - base.onset.median) * 12));
+      const totalCost = Math.max(0, base.expectedFamilyCost - all.expectedFamilyCost);
+      // 2) Split that total between habits in proportion to their weight, so the cards always add up exactly.
+      const sumW = bad.reduce((a, x) => a + x.weight, 0);
+      const raw = bad.map((x) => (totalMonths * x.weight) / sumW);
+      const months = raw.map(Math.floor);
+      const order = raw.map((r, i) => [r - Math.floor(r), i] as const).sort((a, b) => b[0] - a[0]);
+      const left = totalMonths - months.reduce((a, m) => a + m, 0); // computed once: the loop changes `months`
+      for (let k = 0; k < left; k++) months[order[k]![1]]! += 1;
+      const monthlyGap = base.atMedian.monthlyGapAtStart;
+      const luni = (m: number) => `${m} ${m === 1 ? "lună" : "luni"}`;
+      const paid = (m: number) => monthlyGap > 0
+        ? `Familia ar începe să plătească diferența de ${lei(monthlyGap)}/lună cu ${luni(m)} mai târziu: aproximativ ${lei(m * monthlyGap)} amânați.`
+        : "Familia ar avea mai mult timp să se pregătească.";
+      const card = (id: string, title: string, m: number, weightShare: number, detail: string): HabitSuggestion => {
+        const costSaved = Math.round(totalCost * weightShare);
+        return {
+          id, title, detail, delayMonths: m, delayYears: Math.round((m / 12) * 10) / 10, monthlyGap, deferredCost: Math.round(m * monthlyGap),
+          costSaved, costSavedPct: base.expectedFamilyCost > 0 ? Math.round((costSaved / base.expectedFamilyCost) * 100) : 0,
+        };
+      };
+      if (bad.length === 1) {
+        const { h } = bad[0]!;
+        if (totalMonths > 0) habits.push(card(h.id, h.title, totalMonths, 1,
+          `În modelul nostru, dacă ${who} ${h.action} de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${luni(totalMonths)}. ${paid(totalMonths)}`));
+      } else {
+        bad.forEach((x, i) => {
+          const m = months[i]!;
+          if (m > 0) habits.push(card(x.h.id, x.h.title, m, x.weight / sumW,
+            `Dacă ${who} schimbă toate aceste obiceiuri, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${luni(totalMonths)}. ` +
+            `Din acestea, ${luni(m)} vin din ${x.h.because}. ${monthlyGap > 0 ? `Partea ei din plățile amânate: ${luni(m)} × ${lei(monthlyGap)} = ${lei(m * monthlyGap)}.` : ""}`.trim()));
+        });
+        habits.sort((a, b) => b.delayMonths - a.delayMonths);
+        if (totalMonths > 0) habits.push(card("all", "Toate schimbările de mai sus", totalMonths, 1,
+          `În modelul nostru, dacă ${who} face toate aceste schimbări de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${luni(totalMonths)}. ${paid(totalMonths)}`));
+      }
+    }
   }
 
   const e = FORECAST_ASSUMPTIONS.economy;

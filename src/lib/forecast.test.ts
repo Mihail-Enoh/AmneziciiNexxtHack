@@ -45,9 +45,9 @@ describe("risk points", () => {
     expect(riskPoints(null, { smoking: ["daily"], exercise: ["never"] })).toBe(0);
     const both = habitLogHazard({ smoking: ["daily"], exercise: ["never"] });
     const quit = habitLogHazard({ smoking: ["daily"], exercise: ["never"] }, ["smoking"]);
-    expect(both).toBeCloseTo(Math.log(2.0) + Math.log(1.9), 6);
+    expect(both).toBeCloseTo(Math.log(1.6) + Math.log(2.0), 6);
     expect(quit).toBeLessThan(both);
-    expect(quit).toBeGreaterThan(Math.log(1.9)); // quitting late does not undo all the risk
+    expect(quit).toBeGreaterThan(Math.log(2.0)); // quitting late does not undo all the risk
     expect(habitLogHazard({ smoking: ["no"] })).toBe(0);
   });
   it("other domains count their worst answer; lab/story signals can only raise them", () => {
@@ -99,38 +99,40 @@ describe("forecast", () => {
     expect(f.habits[0]!.detail).toMatch(/dacă persoana /);
     expect(f.habits[0]!.detail).not.toMatch(/părinte/);
   });
-  it("habit suggestions: one per bad habit + all together, with years and less to set aside monthly", () => {
-    const answers: QuizAnswers = { smoking: ["daily"], exercise: ["never"], alcohol: ["rarely"], walking: ["difficulty"] };
+  it("habit suggestions: one per bad habit + all together, and the parts add up exactly", () => {
+    const answers: QuizAnswers = { smoking: ["daily"], exercise: ["never"], alcohol: ["daily"], social: ["rarely"], walking: ["difficulty"] };
     const a = assessHealth({ age: 74, answers, labs: [], ai: null });
     const f = forecast(elena74, { domains: a.domains, answers, now: NOW });
-    expect(f.habits.map((h) => h.id)).toEqual(["smoking", "exercise", "all"]); // alcohol already fine
-    for (const h of f.habits) {
-      expect(h.delayYears).toBeGreaterThan(0);
-      expect(h.costSaved).toBeGreaterThan(0);
-      expect(h.deferredCost).toBe(h.delayMonths * h.monthlyGap); // never "money lost", grows with the delay
-      expect(h.delayMonths).toBe(Math.round(h.delayYears * 12) || 1);
-      expect(h.detail).toMatch(/mai târziu: aproximativ .* lei amânați/);
-      expect(h.detail).toMatch(/^În modelul nostru, dacă Elena /);
-    }
     const all = f.habits.find((h) => h.id === "all")!;
-    expect(all.delayYears).toBeGreaterThanOrEqual(Math.max(...f.habits.filter((h) => h.id !== "all").map((h) => h.delayYears)));
+    const parts = f.habits.filter((h) => h.id !== "all");
+    expect(f.habits.at(-1)!.id).toBe("all");
+    expect(parts.reduce((x, h) => x + h.delayMonths, 0)).toBe(all.delayMonths);
+    expect(parts.reduce((x, h) => x + h.deferredCost, 0)).toBe(all.deferredCost);
+    for (const h of f.habits) {
+      expect(h.delayMonths).toBeGreaterThan(0);
+      expect(h.deferredCost).toBe(h.delayMonths * h.monthlyGap);
+    }
+    expect(all.detail).toMatch(/^În modelul nostru, dacă Elena face toate/);
+    expect(parts[0]!.detail).toMatch(/Din acestea, \d+ luni vin din/);
   });
   it("every habit in FORECAST_ASSUMPTIONS exists in the quiz", () => {
     for (const h of FORECAST_ASSUMPTIONS.habits) expect(QUIZ.some((q) => q.id === h.id)).toBe(true);
   });
-  it("a meaningful effect: quitting daily smoking gains years, not months", () => {
+  it("a single habit: its card is the whole effect; younger people gain more", () => {
     const answers: QuizAnswers = { smoking: ["daily"] };
     const f = forecast(elena74, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
-    expect(f.habits[0]!.delayYears).toBeGreaterThanOrEqual(1); // at 74, help is already close
+    expect(f.habits.map((h) => h.id)).toEqual(["smoking"]);
+    expect(f.habits[0]!.detail).toMatch(/^În modelul nostru, dacă Elena renunță la fumat/);
     const younger = forecast({ ...elena74, parent: { ...elena74.parent, age: 60 } }, { domains: assessHealth({ age: 60, answers, labs: [], ai: null }).domains, answers, now: NOW });
-    expect(younger.habits[0]!.delayYears).toBeGreaterThanOrEqual(2.5);
+    expect(younger.habits[0]!.delayMonths).toBeGreaterThan(f.habits[0]!.delayMonths);
   });
-  it("habits with a smaller hazard ratio gain fewer years", () => {
+  it("smoking weighs clearly more than daily alcohol; weekly alcohol adds no risk (Lang 2007)", () => {
     const answers: QuizAnswers = { smoking: ["daily"], alcohol: ["daily"] };
     const f = forecast(elena74, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
     const by = Object.fromEntries(f.habits.map((h) => [h.id, h]));
-    expect(by["smoking"]!.delayYears).toBeGreaterThan(by["alcohol"]!.delayYears);
-    expect(f.habits[0]!.id).toBe("smoking"); // biggest effect first
+    expect(by["smoking"]!.delayMonths).toBeGreaterThanOrEqual(3 * by["alcohol"]!.delayMonths);
+    const weekly = forecast(elena74, { answers: { alcohol: ["weekly"] }, now: NOW });
+    expect(weekly.habits).toEqual([]);
   });
   it("no suggestions when habits are already good", () => {
     const answers: QuizAnswers = { smoking: ["no"], alcohol: ["rarely"], exercise: ["daily"], social: ["often"] };

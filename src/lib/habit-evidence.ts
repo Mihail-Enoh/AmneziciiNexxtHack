@@ -7,19 +7,28 @@
 // reversible = share of that extra risk that goes away if the habit changes NOW (0..1).
 //      Quitting late does not undo everything: former smokers stay above never-smokers.
 //
-// Years gained ≈ ln(hr) × reversible / 0.1   (0.1 = how fast the risk grows with age, per year)
-//      hr 1.8, reversible 0.5 → ≈ 2,9 years      hr 2.0, reversible 0.7 → ≈ 4,9 years
+// Weight of a habit = ln(hr) × reversible. Daily smoking: ln(1.6)×0.5 = 0.235; daily alcohol: ln(1.15)×0.5 = 0.07
+//      → quitting smoking counts ≈ 3.4 times more than cutting daily alcohol.
+// For a younger person with few risks, years gained ≈ weight / 0.1; close to the onset the gain is smaller.
 //
-// Where the current values come from (orientative, for a demo — check them before relying on them):
-//  - Zaninotto, Head, Steptoe (2020), Scientific Reports 10:6955 — ELSA (England) + HRS (US):
-//    2+ risk factors vs none ≈ 10–11 fewer years without disability from age 50; smoking had the biggest effect.
-//    https://doi.org/10.1038/s41598-020-63843-6
-//  - Mehta, Myrskylä (2017), Health Affairs 36(8) — never smoking + non-obese + moderate drinking
-//    delays disability onset by several years. https://doi.org/10.1377/hlthaff.2016.1569
-//  - Stenholm et al. (2016), Int J Epidemiol 45(4) — smoking, physical inactivity, obesity and alcohol
-//    vs healthy life expectancy (Whitehall II, GAZEL, FPS…). https://doi.org/10.1093/ije/dyw126
-//  - Pahor et al. (2014), JAMA 311(23) — LIFE trial: starting regular exercise at 70–89 lowered
-//    major mobility disability (HR 0.82). https://doi.org/10.1001/jama.2014.5616
+// HOW TO CHANGE A VALUE: edit `hr` (how much riskier the habit is) or `reversible` below, save, done.
+// The cards then show, for each habit, its share of the total delay; the shares always add up to the total.
+//
+// Where the current values come from (read the abstracts; numbers for people 65+ where possible):
+//  - Exercise — strongest evidence. Tak et al. (2013), Ageing Research Reviews 12(1):329–338, meta-analysis
+//    of 9 cohorts: medium/high activity vs low → risk of new ADL disability ×0.51 (CI 0.38–0.68),
+//    i.e. inactivity ≈ ×2.0. https://doi.org/10.1016/j.arr.2012.10.001
+//    Starting late still helps: LIFE trial (Pahor 2014, JAMA 311:2387), ages 70–89, HR 0.82.
+//  - Smoking. Klijs, Mackenbach, Kunst (2011), BMC Public Health 11:378: current smokers OR 1.58 for
+//    disability (1.48 with a stricter cut-off). https://doi.org/10.1186/1471-2458-11-378
+//    Zaninotto et al. (2020), Sci Rep 10:6955: smoking = biggest loss of disability-free years (ELSA, HRS).
+//    Quitting late removes only part of the risk → reversible 0.5.
+//  - Alcohol — weak evidence for disability at moderate amounts. Lang et al. (2007), J Am Geriatr Soc
+//    55(1):49–57 (HRS + ELSA, 65+): drinking more than 1–2 drinks/day → ADL OR 1.0 (no extra risk);
+//    light/moderate drinkers even had LOWER disability than abstainers (NHEFS, OR 0.75).
+//    Heavy drinking is harmful, but the quiz does not ask how much → small values.
+//  - Social isolation. Shankar et al. (2017), Health Psychology 36(2):179–187 (ELSA, 3,070 people):
+//    loneliness predicts more ADL difficulties; isolation predicts slower walking. No pooled ratio → modest values.
 
 export interface HabitEvidence {
   /** Quiz question id. */
@@ -31,26 +40,28 @@ export interface HabitEvidence {
   reversible: number;
   /** Short label for the "Cum calculăm" list. */
   label: string;
+  /** Finishes "… vin din …": what the share of the delay comes from. */
+  because: string;
 }
 
 export const HABIT_EVIDENCE: HabitEvidence[] = [
   {
-    id: "smoking", title: "Renunțarea la fumat", action: "renunță la fumat", label: "fumat",
-    hr: { sometimes: 1.4, daily: 2.0 }, reversible: 0.6,
-  },
-  {
     id: "exercise", title: "Mișcare regulată", action: "face mișcare de câteva ori pe săptămână", label: "lipsa mișcării",
-    hr: { rarely: 1.5, never: 1.9 }, reversible: 0.6,
+    because: "mișcarea regulată", hr: { rarely: 1.5, never: 2.0 }, reversible: 0.5,
   },
   {
-    id: "alcohol", title: "Mai puțin alcool", action: "bea alcool cel mult ocazional", label: "alcool",
-    hr: { weekly: 1.3, daily: 1.7 }, reversible: 0.7,
+    id: "smoking", title: "Renunțarea la fumat", action: "renunță la fumat", label: "fumat",
+    because: "renunțarea la fumat", hr: { sometimes: 1.3, daily: 1.6 }, reversible: 0.5,
   },
   {
     id: "social", title: "Mai multă viață socială", action: "iese mai des din casă și se vede cu alți oameni", label: "izolare",
-    hr: { rarely: 1.3, almostNever: 1.6 }, reversible: 0.5,
+    because: "o viață socială mai activă", hr: { rarely: 1.2, almostNever: 1.4 }, reversible: 0.5,
+  },
+  {
+    id: "alcohol", title: "Mai puțin alcool", action: "bea alcool cel mult ocazional", label: "alcool zilnic",
+    because: "mai puțin alcool", hr: { weekly: 1.0, daily: 1.15 }, reversible: 0.5,
   },
 ];
 
 export const HABIT_EVIDENCE_NOTE =
-  "Riscuri relative din studii pe populații mari (ELSA, HRS, Whitehall II, studiul LIFE), aplicate orientativ. Nu sunt o predicție pentru o persoană anume.";
+  "Riscuri relative din studii pe vârstnici: mișcare (meta-analiza Tak 2013), fumat (Klijs 2011, ELSA/HRS), alcool (Lang 2007), izolare (Shankar 2017). Aplicate orientativ; nu sunt o predicție pentru o persoană anume.";

@@ -85,10 +85,11 @@ export function ForecastSection({ plan, health }: { plan: PlanState; health?: Fo
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{f.habits.map(h => <article key={h.id} className="rounded-lg border bg-card p-4">
         <h4 className="font-semibold">{h.title}</h4>
         {h.deferredCost > 0 && <><p className="mt-2 font-display text-3xl font-semibold text-primary tabular">{lei(h.deferredCost)}</p><p className="text-xs text-muted-foreground">plăți amânate: {h.delayMonths} {h.delayMonths === 1 ? 'lună' : 'luni'} × {lei(h.monthlyGap)}</p></>}
-        <p className="mt-2 inline-block rounded-md bg-success-soft px-2 py-1 text-sm font-semibold text-success">+{years(h.delayYears)} până la nevoia de ajutor</p>
+        <p className="mt-2 inline-block rounded-md bg-success-soft px-2 py-1 text-sm font-semibold text-success">+{h.delayMonths} {h.delayMonths === 1 ? 'lună' : 'luni'}{h.delayMonths >= 12 ? ` (${years(h.delayYears)})` : ''} până la nevoia de ajutor</p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{h.detail}</p>
       </article>)}</div>
-      <p className="mt-3 text-sm text-muted-foreground">Discutați cu medicul de familie ce schimbări sunt potrivite.</p>
+      {f.habits.length > 2 && <p className="mt-3 text-sm text-muted-foreground">Fiecare card arată partea acelui obicei din amânarea totală; adunate, dau exact ultimul card.</p>}
+      <p className="mt-1 text-sm text-muted-foreground">Discutați cu medicul de familie ce schimbări sunt potrivite.</p>
     </> : hasSession
       ? <p className="mt-2 text-sm text-muted-foreground">Obiceiurile actuale nu adaugă risc în calculul nostru.</p>
       : <p className="mt-2 text-sm text-muted-foreground">Completează chestionarul de sănătate ca să vezi ce obiceiuri pot amâna nevoia de îngrijire. <Link to="/sanatate" className="font-semibold text-primary underline underline-offset-4">Mergi la chestionar</Link></p>}
