@@ -3,7 +3,6 @@ import { english } from "./translations";
 
 export type Language = "ro" | "en";
 let language: Language = "ro";
-let renderLanguage: Language = "ro";
 const listeners = new Set<() => void>();
 export const LANGUAGE_KEY = "prototype123-language";
 export function readLanguage(value: string | null): Language { return value === "en" ? "en" : "ro"; }
@@ -20,7 +19,6 @@ export function setLanguage(next: Language) {
 }
 export function useLanguage() {
   const current = useSyncExternalStore(fn => { listeners.add(fn); return () => listeners.delete(fn); }, () => language, () => "ro" as Language);
-  renderLanguage = current;
   return current;
 }
 export function translate(text: string, locale: Language): string {
@@ -37,8 +35,12 @@ export function translate(text: string, locale: Language): string {
   }
   return text;
 }
-export function t(text: string | number | undefined): string { return translate(String(text ?? ""), renderLanguage); }
+export function useT() {
+  const locale = useLanguage();
+  return (text: string | number | undefined): string => translate(String(text ?? ""), locale);
+}
+export function t(text: string | number | undefined): string { return translate(String(text ?? ""), language); }
 export function displayName(name: string) {
-  if (renderLanguage === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
+  if (language === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
   return name;
 }

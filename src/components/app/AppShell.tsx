@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LanguageSwitch, SettingsMenu } from "./Preferences";
-import { t, useLanguage } from "@/lib/i18n";
+import { t, useT, useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 
 const NAV = [
@@ -33,6 +33,7 @@ export function PublicHeader() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const t = useT();
   const ro = useLanguage() === "ro";
   const [menu, setMenu] = useState(false);
   const location = useLocation();

@@ -1,4 +1,4 @@
-import { t, useLanguage, initializeLanguage } from "@/lib/i18n";
+import { t, useT, useLanguage, initializeLanguage } from "@/lib/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -19,7 +19,7 @@ import { PreferenceEffects } from "@/components/app/Preferences";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
-  useLanguage();
+  const t = useT();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -35,7 +35,7 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  useLanguage();
+  const t = useT();
   console.error(error);
   const router = useRouter();
   useEffect(() => {

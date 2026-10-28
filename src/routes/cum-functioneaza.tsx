@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader, PrivacyNote } from "@/components/app/bits";
@@ -30,7 +30,7 @@ const FORMULAS = [
 ];
 
 function HowItWorks() {
-  useLanguage();
+  const t = useT();
   return (
     <AppShell>
       <PageHeader eyebrow={t("Transparență")} title={t("Cum facem estimările?")} />

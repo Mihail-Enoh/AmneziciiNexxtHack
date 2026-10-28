@@ -173,3 +173,9 @@ input { font-size: 16px; }
   .questionnaire-actions { position: sticky; bottom: 0; margin-inline: -1.25rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); background: var(--card); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.5rem; z-index: 20; }
   .questionnaire-actions button { height: auto; min-height: 48px; padding-inline: 0.75rem; font-size: 0.875rem; }
 }
+
+.app-content ol button.card-surface { width: 100%; height: 100%; display: block; white-space: normal; }
+@media (max-width: 639px) {
+ .app-content .recharts-wrapper { overflow: hidden; }
+ .questionnaire-actions { margin-inline: 0; }
+}

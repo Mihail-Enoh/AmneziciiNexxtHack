@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Compass, LineChart, ShieldCheck, Sparkles, Users } from "lucide-react";
 import heroImg from "@/assets/hero-family.jpg";
@@ -28,7 +28,7 @@ const STEPS = [
 ];
 
 function Landing() {
-  useLanguage();
+  const t = useT();
   const navigate = useNavigate();
   const tryDemo = () => {
     loadDemo();

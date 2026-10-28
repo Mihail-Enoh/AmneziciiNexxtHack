@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Calculator, Info, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 /** Smoothly tweens between numeric values. */
 export function AnimatedNumber({ value, suffix = " RON", className }: { value: number; suffix?: string; className?: string }) {
-  useLanguage();
+  const t = useT();
   const [display, setDisplay] = useState(value);
   const from = useRef(value);
   useEffect(() => {
@@ -33,7 +33,7 @@ export function AnimatedNumber({ value, suffix = " RON", className }: { value: n
 export interface CalcLine { label: string; value: string; op?: "−" | "+" | "=" | "×" | "÷" }
 
 export function ExplainButton({ title, lines, note }: { title: string; lines: CalcLine[]; note?: string }) {
-  useLanguage();
+  const t = useT();
   return (
     <Dialog>
       <DialogTrigger className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline-offset-4 hover:underline">
@@ -58,7 +58,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
 }
 
 export function InfoTip({ children, label = "Informații" }: { children: ReactNode; label?: string }) {
-  useLanguage();
+  const t = useT();
   return (
     <TooltipProvider delayDuration={100}>
       <Tooltip>
@@ -72,7 +72,7 @@ export function InfoTip({ children, label = "Informații" }: { children: ReactNo
 }
 
 export function DemoBadge() {
-  useLanguage();
+  const t = useT();
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-1 text-xs font-semibold text-foreground">{t(" Estimare demonstrativă ")}<InfoTip>{t("Costurile reale variază în funcție de oraș, tipul serviciilor, disponibilitate și situația familiei.")}</InfoTip>
     </span>
@@ -80,7 +80,7 @@ export function DemoBadge() {
 }
 
 export function PrivacyNote({ className }: { className?: string }) {
-  useLanguage();
+  const t = useT();
   return (
     <p className={cn("flex items-start gap-2 text-xs leading-relaxed text-muted-foreground", className)}>
       <Lock className="size-3.5 shrink-0" aria-hidden />{t(" Datele tale financiare rămân private. Acest prototip salvează informațiile doar local în browser. ")}</p>
@@ -88,7 +88,7 @@ export function PrivacyNote({ className }: { className?: string }) {
 }
 
 export function StatusPill({ status }: { status: keyof typeof STATUS_META }) {
-  useLanguage();
+  const t = useT();
   const m = STATUS_META[status];
   const tone = { success: "bg-success-soft text-success border-success/30", warning: "bg-warning-soft text-warning border-warning/30", danger: "bg-danger-soft text-danger border-danger/30" }[m.tone];
   const dot = { success: "bg-success", warning: "bg-warning", danger: "bg-danger" }[m.tone];
@@ -102,7 +102,7 @@ export function StatusPill({ status }: { status: keyof typeof STATUS_META }) {
 
 /** Stacked horizontal bar: parent contribution | family contributions | remaining gap */
 export function GapBar({ cost, parent, family = 0, compact }: { cost: number; parent: number; family?: number; compact?: boolean }) {
-  useLanguage();
+  const t = useT();
   const p = cost > 0 ? Math.min(100, (parent / cost) * 100) : 100;
   const f = cost > 0 ? Math.min(100 - p, (family / cost) * 100) : 0;
   const g = Math.max(0, 100 - p - f);
@@ -126,7 +126,7 @@ export function GapBar({ cost, parent, family = 0, compact }: { cost: number; pa
 }
 
 export function PageHeader({ eyebrow, title, subtitle, right }: { eyebrow?: string; title: string; subtitle?: string; right?: ReactNode }) {
-  useLanguage();
+  const t = useT();
   return (
     <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0 animate-rise">
@@ -140,7 +140,7 @@ export function PageHeader({ eyebrow, title, subtitle, right }: { eyebrow?: stri
 }
 
 export function Metric({ label, children, hint, icon }: { label: string; children: ReactNode; hint?: ReactNode; icon?: ReactNode }) {
-  useLanguage();
+  const t = useT();
   return (
     <div className="card-surface p-5">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{icon}{t(label)}</div>

@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarDays, HandCoins, Home, PiggyBank, UserRound } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/plan")({
 const INDEP_LABEL = { independent: "Independent(ă)", occasional: "Ajutor ocazional", regular: "Ajutor regulat" };
 
 function Dashboard() {
-  useLanguage();
+  const t = useT();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;

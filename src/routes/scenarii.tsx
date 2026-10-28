@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Hourglass, Sprout } from "lucide-react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/scenarii")({
 });
 
 function Scenarios() {
-  useLanguage();
+  const t = useT();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;

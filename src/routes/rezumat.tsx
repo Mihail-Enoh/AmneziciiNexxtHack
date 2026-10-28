@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { MessageSquareText, RotateCcw } from "lucide-react";
@@ -27,17 +27,17 @@ export const Route = createFileRoute("/rezumat")({
 function explainPlan(s: PlanState, c: ReturnType<typeof computePlan>) {
   const p = s.parent;
   const payers = s.members.filter((m) => m.financial === "da");
-  const names = [s.user.name, ...payers.map((m) => m.name)].join(" și ");
-  let t = `În scenariul selectat („${scenarioById(s.scenario).label.toLowerCase()}”, în aproximativ ${s.yearsUntil} ani), ${p.name} ar avea nevoie de aproximativ ${ron(c.careMonthlyCost)} pe lună pentru sprijin. Din veniturile și resursele ei ar putea acoperi aproximativ ${ron(c.parentCovered)}. `;
-  if (c.familyFundingGap === 0) return t + "Resursele estimate acoperă costul, așa că familia nu ar avea o diferență lunară de acoperit.";
-  t += `${names} intenționează să contribuie împreună cu ${ron(c.familyContributions)}, `;
-  t += c.remainingGap > 0 ? `ceea ce lasă o diferență de aproximativ ${ron(c.remainingGap)} pe lună. ` : "ceea ce acoperă întreaga diferență. ";
-  if (s.monthlySaving > 0) t += `Dacă ${s.user.name} economisește ${ron(s.monthlySaving)} lunar timp de ${s.yearsUntil} ani, familia ar construi un fond de aproximativ ${ron(c.futureCareReserve)}${c.remainingGap > 0 ? `, suficient pentru circa ${c.monthsOfRemainingCovered} luni din diferența rămasă` : ""}.`;
-  return t;
+  const names = [s.user.name, ...payers.map((m) => m.name)].join(t(" și "));
+  let text = t(`În scenariul selectat („${scenarioById(s.scenario).label.toLowerCase()}”, în aproximativ ${s.yearsUntil} ani), ${p.name} ar avea nevoie de aproximativ ${ron(c.careMonthlyCost)} pe lună pentru sprijin. Din veniturile și resursele ei ar putea acoperi aproximativ ${ron(c.parentCovered)}. `);
+  if (c.familyFundingGap === 0) return text + t("Resursele estimate acoperă costul, așa că familia nu ar avea o diferență lunară de acoperit.");
+  text += t(`${names} intenționează să contribuie împreună cu ${ron(c.familyContributions)}, `);
+  text += t(c.remainingGap > 0 ? `ceea ce lasă o diferență de aproximativ ${ron(c.remainingGap)} pe lună. ` : "ceea ce acoperă întreaga diferență. ");
+  if (s.monthlySaving > 0) text += t(`Dacă ${s.user.name} economisește ${ron(s.monthlySaving)} lunar timp de ${s.yearsUntil} ani, familia ar construi un fond de aproximativ ${ron(c.futureCareReserve)}${c.remainingGap > 0 ? `, suficient pentru circa ${c.monthsOfRemainingCovered} luni din diferența rămasă` : ""}.`);
+  return text;
 }
 
 function Summary() {
-  useLanguage();
+  const t = useT();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;

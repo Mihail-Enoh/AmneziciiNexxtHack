@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, UserRound } from "lucide-react";
@@ -66,7 +66,7 @@ function SelectField({ label, value, options, onChange }: { label: string; value
 const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…", "Calculăm diferențele de acoperit…"];
 
 function Onboarding() {
-  useLanguage();
+  const t = useT();
   const saved = usePlan();
   const navigate = useNavigate();
   const [d, setD] = useState<PlanState>(saved);

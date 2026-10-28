@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, HeartHandshake } from "lucide-react";
@@ -37,7 +37,7 @@ const MODES: { id: FamilyMember["financial"]; label: string }[] = [
 ];
 
 function Invite() {
-  useLanguage();
+  const t = useT();
   const q = Route.useSearch();
   const s = usePlan();
   const from = q.de || "Maria";

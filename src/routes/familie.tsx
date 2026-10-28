@@ -1,4 +1,4 @@
-import { t, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Copy, HeartHandshake, Mail, PiggyBank, UserPlus } from "lucide-react";
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/familie")({
 });
 
 function ContributionSlider({ name, sub, value, onChange, color = "primary" }: { name: string; sub: string; value: number; onChange: (v: number) => void; color?: "primary" | "care" }) {
-  useLanguage();
+  const t = useT();
   const id = `c-${name}`;
   return (
     <div className="card-surface p-5">
@@ -45,7 +45,7 @@ function ContributionSlider({ name, sub, value, onChange, color = "primary" }: {
 }
 
 function Family() {
-  useLanguage();
+  const t = useT();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
