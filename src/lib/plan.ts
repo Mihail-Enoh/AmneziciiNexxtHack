@@ -48,6 +48,7 @@ export interface PlanState {
   savingsSpreadMonths: number;
   careDurationMonths: number;
   costs: Record<Intensity, number>;
+  costBreakdown?: Partial<Record<Intensity, CostSlice[]>>;
   futureIncome: number | null;
   useSavings: boolean;
   monthlySaving: number;
@@ -74,6 +75,63 @@ export const PLAN_ASSUMPTIONS = {
   partialCoverageMonths: 12,
   invitationTargetMonths: 24,
 };
+
+export interface CostSlice {
+  id: string;
+  label: string;
+  amount: number;
+  /** The person already pays this expense today; avoid counting it twice. */
+  replacesOwnExpense: boolean;
+}
+
+export const DEFAULT_BREAKDOWN: Record<Intensity, CostSlice[]> = {
+  occasional: [
+    { id: "home-help", label: "Ajutor la domiciliu", amount: 600, replacesOwnExpense: false },
+    { id: "transport", label: "Transport", amount: 200, replacesOwnExpense: false },
+    { id: "supplies", label: "Consumabile și igienă", amount: 100, replacesOwnExpense: false },
+  ],
+  frequent: [
+    { id: "carer", label: "Îngrijitoare", amount: 1200, replacesOwnExpense: false },
+    { id: "meals", label: "Masă", amount: 300, replacesOwnExpense: true },
+    { id: "transport", label: "Transport", amount: 200, replacesOwnExpense: false },
+    { id: "supplies", label: "Consumabile și igienă", amount: 100, replacesOwnExpense: false },
+  ],
+  daily: [
+    { id: "carer", label: "Îngrijitoare", amount: 1900, replacesOwnExpense: false },
+    { id: "meals", label: "Masă", amount: 800, replacesOwnExpense: true },
+    { id: "transport", label: "Transport", amount: 150, replacesOwnExpense: false },
+    { id: "supplies", label: "Consumabile și igienă", amount: 150, replacesOwnExpense: false },
+  ],
+  residential: [
+    { id: "care", label: "Îngrijire și supraveghere", amount: 2400, replacesOwnExpense: false },
+    { id: "housing", label: "Cazare", amount: 1300, replacesOwnExpense: true },
+    { id: "meals", label: "Masă", amount: 900, replacesOwnExpense: true },
+    { id: "utilities", label: "Utilități", amount: 400, replacesOwnExpense: true },
+  ],
+};
+
+export function breakdownOf(s: PlanState, intensity: Intensity): CostSlice[] {
+  const custom = s.costBreakdown?.[intensity];
+  if (custom) return custom.slice(0, 8).map((slice) => ({
+    ...slice,
+    label: slice.label.trim().slice(0, 40) || "Altele",
+    amount: Number.isFinite(slice.amount) ? Math.round(Math.max(0, Math.min(100000, slice.amount))) : 0,
+    replacesOwnExpense: Boolean(slice.replacesOwnExpense),
+  }));
+  const defaults = DEFAULT_BREAKDOWN[intensity];
+  const total = s.costs[intensity];
+  let allocated = 0;
+  return defaults.map((slice, index) => {
+    const amount = index === defaults.length - 1
+      ? total - allocated
+      : Math.round(slice.amount * total / PLAN_ASSUMPTIONS.costs[intensity]);
+    allocated += amount;
+    return { ...slice, amount };
+  });
+}
+
+export const replacedExpensesOf = (s: PlanState, intensity: Intensity) =>
+  breakdownOf(s, intensity).reduce((sum, slice) => sum + (slice.replacesOwnExpense ? slice.amount : 0), 0);
 
 export const SCENARIOS: CareScenarioDef[] = [
   {
@@ -258,7 +316,7 @@ export function computePlan(s: PlanState, intensity: Intensity = s.scenario, now
         ? grow(currentMonthlyIncome, s.incomeGrowth, elapsed)
         : grow(s.futureIncome, s.incomeGrowth, month);
     const expenses = grow(
-      Math.max(0, p.expenses - Math.min(scenarioById(intensity).expensesReplaced, p.expenses)),
+      Math.max(0, p.expenses - Math.min(replacedExpensesOf(s, intensity), p.expenses)),
       s.costGrowth,
       elapsed,
     );
