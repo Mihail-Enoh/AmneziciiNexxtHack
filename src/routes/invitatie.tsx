@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, HeartHandshake } from "lucide-react";
 import { z } from "zod";
-import { Logo } from "@/components/app/AppShell";
+import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { AnimatedNumber, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -57,7 +57,7 @@ function Invite() {
 
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex h-16 max-w-2xl items-center px-4"><Logo /></header>
+      <PublicHeader />
       <main className="mx-auto max-w-2xl px-4 pb-16 pt-6">
         <div className="card-surface animate-rise p-6 md:p-10">
           {done ? (

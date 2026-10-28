@@ -134,3 +134,42 @@
 @utility animate-rise {
   animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+
+/* Presentation only: plan values and calculations are unchanged. */
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.978 0.004 210);
+  --secondary: oklch(0.955 0.006 210);
+  --muted: oklch(0.951 0.006 210);
+  --accent: oklch(0.936 0.012 210);
+  --border: oklch(0.9 0.008 210);
+  --input: oklch(0.84 0.009 210);
+  --overlay: oklch(0.18 0.02 210 / 0.5);
+}
+@theme inline { --color-overlay: var(--overlay); }
+h1, h2, h3, .font-display { letter-spacing: 0; }
+.card-surface { border-radius: 8px; }
+button, a, input, [role="combobox"] { -webkit-tap-highlight-color: transparent; }
+button { max-width: 100%; }
+button, a[data-slot="button"] { white-space: normal; }
+input { font-size: 16px; }
+.app-content > section.card-surface { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding-inline: 0; }
+.app-content .grid > *, .app-content .flex > * { min-width: 0; }
+.app-content h1, .app-content h2, .app-content h3 { overflow-wrap: anywhere; text-wrap: balance; }
+.app-content dd { flex-shrink: 0; }
+.app-content dl > .flex { gap: 1rem; }
+.mobile-nav { padding-bottom: env(safe-area-inset-bottom); }
+.menu-drawer { left: 0; top: 0; transform: none; width: min(88vw, 340px); height: 100dvh; max-height: 100dvh; display: flex; flex-direction: column; border-radius: 0; }
+.contrast { --foreground: oklch(0.15 0.015 210); --muted-foreground: oklch(0.34 0.02 210); --border: oklch(0.7 0.01 210); }
+.large-text { font-size: 18px; }
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+@media (max-width: 639px) {
+  .app-content .text-5xl, .app-content .text-6xl { font-size: 2.25rem; }
+  .app-content h1.text-4xl, .app-content h2.text-4xl { font-size: 1.875rem; }
+  .app-content .card-surface { padding: 1.125rem; }
+  .app-content dd { overflow-wrap: anywhere; }
+  .app-content dl > .flex { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+  .questionnaire-actions { position: sticky; bottom: 0; margin-inline: -1.25rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); background: var(--card); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.5rem; z-index: 20; }
+  .questionnaire-actions button { height: auto; min-height: 48px; padding-inline: 0.75rem; font-size: 0.875rem; }
+}

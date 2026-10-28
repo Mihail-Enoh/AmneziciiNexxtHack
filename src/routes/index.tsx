@@ -2,7 +2,7 @@ import { t, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Compass, LineChart, ShieldCheck, Sparkles, Users } from "lucide-react";
 import heroImg from "@/assets/hero-family.jpg";
-import { Logo } from "@/components/app/AppShell";
+import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { loadDemo } from "@/lib/store";
@@ -36,13 +36,7 @@ function Landing() {
   };
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <Link to="/cum-functioneaza" className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:block">{t("Cum funcționează")}</Link>
-          <span className="rounded-full border px-2 py-1 text-xs font-semibold">RO</span>
-        </div>
-      </header>
+      <PublicHeader />
 
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-8 md:grid-cols-[1.1fr_1fr] md:pt-16">
         <div className="animate-rise">

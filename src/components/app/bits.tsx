@@ -37,7 +37,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
   return (
     <Dialog>
       <DialogTrigger className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline-offset-4 hover:underline">
-        <Calculator className="size-3.5" aria-hidden />{t(" Cum am calculat? ")}</DialogTrigger>
+        <Calculator className="size-3.5 shrink-0" aria-hidden />{t(" Cum am calculat? ")}</DialogTrigger>
       <DialogContent className="rounded-3xl">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">{title}</DialogTitle>
@@ -82,8 +82,8 @@ export function DemoBadge() {
 export function PrivacyNote({ className }: { className?: string }) {
   useLanguage();
   return (
-    <p className={cn("flex items-center gap-2 text-xs text-muted-foreground", className)}>
-      <Lock className="size-3.5" aria-hidden />{t(" Datele tale financiare rămân private. Acest prototip salvează informațiile doar local în browser. ")}</p>
+    <p className={cn("flex items-start gap-2 text-xs leading-relaxed text-muted-foreground", className)}>
+      <Lock className="size-3.5 shrink-0" aria-hidden />{t(" Datele tale financiare rămân private. Acest prototip salvează informațiile doar local în browser. ")}</p>
   );
 }
 
@@ -129,9 +129,9 @@ export function PageHeader({ eyebrow, title, subtitle, right }: { eyebrow?: stri
   useLanguage();
   return (
     <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div className="animate-rise">
+      <div className="min-w-0 animate-rise">
         {eyebrow && <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-care">{eyebrow}</p>}
-        <h1 className="text-4xl font-semibold md:text-5xl">{title}</h1>
+        <h1 className="text-3xl font-semibold md:text-4xl">{title}</h1>
         {subtitle && <p className="mt-3 max-w-2xl text-muted-foreground">{subtitle}</p>}
       </div>
       {right}

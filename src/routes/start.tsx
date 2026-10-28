@@ -2,7 +2,7 @@ import { t, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, UserRound } from "lucide-react";
-import { Logo } from "@/components/app/AppShell";
+import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { AnimatedNumber, InfoTip, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,7 +109,7 @@ function Onboarding() {
 
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4"><Logo /></header>
+      <PublicHeader />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">
         <div className="mb-8">
           <p className="text-sm font-semibold text-muted-foreground">{t("Pasul ")}{step}{t(" din 4")}</p>
@@ -223,7 +223,7 @@ function Onboarding() {
             </div>
           )}
 
-          <div className="mt-10 flex items-center justify-between">
+          <div className="questionnaire-actions mt-10 flex items-center justify-between">
             <Button variant="ghost" onClick={() => (step === 1 ? navigate({ to: "/" }) : setStep(step - 1))}><ArrowLeft />{t(" Înapoi")}</Button>
             {step < 4 ? <Button size="lg" onClick={() => setStep(step + 1)}>{t("Continuă ")}<ArrowRight /></Button> : <Button size="lg" onClick={finish}>{t("Vezi viitorul financiar al familiei ")}<ArrowRight /></Button>}
           </div>
