@@ -459,7 +459,7 @@ function Onboarding() {
                   id="uinc"
                   label="Venitul tău net lunar"
                   value={d.user.income}
-                  onChange={(n) => setD({ ...d, user: { ...d.user, income: n } })}
+                  onChange={(n) => setD({ ...d, user: { ...d.user, income: n }, userContribution: n > 0 ? Math.min(d.userContribution, n) : d.userContribution })}
                 />
                 <NumberField
                   id="usav"
@@ -537,7 +537,7 @@ function Onboarding() {
                 <AmountSlider
                   id="ucontrib"
                   className="mt-4"
-                  max={Math.max(2000, d.user.income)}
+                  limit={d.user.income}
                   value={d.userContribution}
                   onChange={(v) => setD({ ...d, userContribution: v })}
                   label="Contribuția ta lunară"

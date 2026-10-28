@@ -69,12 +69,15 @@ function ContributionSlider({
   onChange,
   color = "primary",
   max = 2000,
+  limit,
 }: {
   name: string;
   sub: string;
   value: number;
   /** Slider end; the exact-amount field accepts more. */
   max?: number;
+  /** Hard maximum (your income), if known. */
+  limit?: number | undefined;
   onChange: (v: number) => void;
   color?: "primary" | "care";
 }) {
@@ -106,6 +109,7 @@ function ContributionSlider({
         id={id}
         className="mt-3"
         max={max}
+        limit={limit}
         value={value}
         onChange={onChange}
         label={`Contribuția lunară ${name}`}
@@ -226,7 +230,7 @@ function Family() {
           name={s.user.name}
           sub="Tu · Contribuția ta"
           value={s.userContribution}
-          max={Math.max(2000, s.user.income)}
+          limit={s.user.income}
           color="care"
           onChange={(v) => setPlan({ userContribution: v })}
         />
@@ -261,7 +265,8 @@ function Family() {
           <AmountSlider
             id="saving"
             className="mt-4"
-            max={Math.max(1500, s.user.income)}
+            max={1500}
+            limit={s.user.income}
             step={25}
             value={s.monthlySaving}
             onChange={(v) => setPlan({ monthlySaving: v })}

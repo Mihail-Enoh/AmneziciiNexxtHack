@@ -34,6 +34,13 @@ describe('contribution: any amount', () => {
     fireEvent.change(screen.getByLabelText('Sau scrie suma:'), { target: { value: '4500' } });
     expect(onChange).toHaveBeenCalledWith(4500);
   });
+  it('with a limit (the income), nothing above it is accepted', () => {
+    const onChange = vi.fn();
+    render(<AmountSlider id="y" value={1} max={2000} limit={2} onChange={onChange} label="Contribuția" />);
+    expect(screen.getByText('2 (venitul tău)')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Sau scrie suma:'), { target: { value: '4500' } });
+    expect(onChange).toHaveBeenCalledWith(2);
+  });
 });
 
 describe('health answers belong to one person', () => {
