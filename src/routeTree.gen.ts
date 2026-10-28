@@ -10,7 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CumFunctioneazaRouteImport } from './routes/cum-functioneaza'
+import { Route as FamilieRouteImport } from './routes/familie'
+import { Route as InvitatieRouteImport } from './routes/invitatie'
 import { Route as PlanRouteImport } from './routes/plan'
+import { Route as RezumatRouteImport } from './routes/rezumat'
+import { Route as ScenariiRouteImport } from './routes/scenarii'
 import { Route as StartRouteImport } from './routes/start'
 
 const IndexRoute = IndexRouteImport.update({
@@ -18,9 +23,34 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CumFunctioneazaRoute = CumFunctioneazaRouteImport.update({
+  id: '/cum-functioneaza',
+  path: '/cum-functioneaza',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FamilieRoute = FamilieRouteImport.update({
+  id: '/familie',
+  path: '/familie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvitatieRoute = InvitatieRouteImport.update({
+  id: '/invitatie',
+  path: '/invitatie',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRoute = PlanRouteImport.update({
   id: '/plan',
   path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RezumatRoute = RezumatRouteImport.update({
+  id: '/rezumat',
+  path: '/rezumat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScenariiRoute = ScenariiRouteImport.update({
+  id: '/scenarii',
+  path: '/scenarii',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StartRoute = StartRouteImport.update({
@@ -31,31 +61,76 @@ const StartRoute = StartRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cum-functioneaza': typeof CumFunctioneazaRoute
+  '/familie': typeof FamilieRoute
+  '/invitatie': typeof InvitatieRoute
   '/plan': typeof PlanRoute
+  '/rezumat': typeof RezumatRoute
+  '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cum-functioneaza': typeof CumFunctioneazaRoute
+  '/familie': typeof FamilieRoute
+  '/invitatie': typeof InvitatieRoute
   '/plan': typeof PlanRoute
+  '/rezumat': typeof RezumatRoute
+  '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cum-functioneaza': typeof CumFunctioneazaRoute
+  '/familie': typeof FamilieRoute
+  '/invitatie': typeof InvitatieRoute
   '/plan': typeof PlanRoute
+  '/rezumat': typeof RezumatRoute
+  '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/plan' | '/start'
+  fullPaths:
+    | '/'
+    | '/cum-functioneaza'
+    | '/familie'
+    | '/invitatie'
+    | '/plan'
+    | '/rezumat'
+    | '/scenarii'
+    | '/start'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/plan' | '/start'
-  id: '__root__' | '/' | '/plan' | '/start'
+  to:
+    | '/'
+    | '/cum-functioneaza'
+    | '/familie'
+    | '/invitatie'
+    | '/plan'
+    | '/rezumat'
+    | '/scenarii'
+    | '/start'
+  id:
+    | '__root__'
+    | '/'
+    | '/cum-functioneaza'
+    | '/familie'
+    | '/invitatie'
+    | '/plan'
+    | '/rezumat'
+    | '/scenarii'
+    | '/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CumFunctioneazaRoute: typeof CumFunctioneazaRoute
+  FamilieRoute: typeof FamilieRoute
+  InvitatieRoute: typeof InvitatieRoute
   PlanRoute: typeof PlanRoute
+  RezumatRoute: typeof RezumatRoute
+  ScenariiRoute: typeof ScenariiRoute
   StartRoute: typeof StartRoute
 }
 
@@ -68,11 +143,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cum-functioneaza': {
+      id: '/cum-functioneaza'
+      path: '/cum-functioneaza'
+      fullPath: '/cum-functioneaza'
+      preLoaderRoute: typeof CumFunctioneazaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/familie': {
+      id: '/familie'
+      path: '/familie'
+      fullPath: '/familie'
+      preLoaderRoute: typeof FamilieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invitatie': {
+      id: '/invitatie'
+      path: '/invitatie'
+      fullPath: '/invitatie'
+      preLoaderRoute: typeof InvitatieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan': {
       id: '/plan'
       path: '/plan'
       fullPath: '/plan'
       preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rezumat': {
+      id: '/rezumat'
+      path: '/rezumat'
+      fullPath: '/rezumat'
+      preLoaderRoute: typeof RezumatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenarii': {
+      id: '/scenarii'
+      path: '/scenarii'
+      fullPath: '/scenarii'
+      preLoaderRoute: typeof ScenariiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/start': {
@@ -87,7 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CumFunctioneazaRoute: CumFunctioneazaRoute,
+  FamilieRoute: FamilieRoute,
+  InvitatieRoute: InvitatieRoute,
   PlanRoute: PlanRoute,
+  RezumatRoute: RezumatRoute,
+  ScenariiRoute: ScenariiRoute,
   StartRoute: StartRoute,
 }
 export const routeTree = rootRouteImport
