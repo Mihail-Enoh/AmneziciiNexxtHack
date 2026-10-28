@@ -4,11 +4,10 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import { ChevronDown } from 'lucide-react';
 import { forecast } from '@/lib/forecast';
 import { readHealthSession } from '@/lib/health-files';
-import type { QuizAnswers } from '@/lib/health';
+import type { DomainResult, QuizAnswers } from '@/lib/health';
 import type { PlanState } from '@/lib/plan';
 
-type Domains = Parameters<typeof forecast>[1] extends infer O ? O extends { domains?: infer D } ? D : never : never;
-export interface ForecastHealth { domains?: Domains; answers?: QuizAnswers | null }
+export interface ForecastHealth { domains?: DomainResult[] | null; answers?: QuizAnswers | null }
 
 const yrs = (n: number) => new Intl.NumberFormat('ro-RO', { maximumFractionDigits: 1 }).format(n);
 const lei = (n: number) => `${new Intl.NumberFormat('ro-RO', { maximumFractionDigits: 0 }).format(Math.max(0, Math.round(n)))} lei`;
