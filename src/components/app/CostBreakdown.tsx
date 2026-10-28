@@ -77,7 +77,7 @@ export function CostBreakdown() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor={`${id}-amount`} className="text-xs">Sumă (lei)</Label>
-                  <Input id={`${id}-amount`} className="tabular" type="number" min={0} max={100000} step={1} value={String(slice.amount)} onChange={(e) => { const raw = e.target.value.trim(); const next = raw === "" ? 0 : Number(raw); edit(index, { amount: Number.isFinite(next) ? next : 0 }); }} />
+                  <Input id={`${id}-amount`} className="tabular" type="number" min={0} max={100000} step={1} value={String(slice.amount)} onChange={(e) => { const raw = e.target.value.trim(); const next = raw === "" ? 0 : Number(raw); const amount = Number.isFinite(next) ? next : 0; const shown = String(amount); if (e.target.value !== shown) e.target.value = shown; edit(index, { amount }); }} />
                 </div>
                 <span className="hidden pb-2 text-right text-xs text-muted-foreground sm:block">{percent(slice.amount, total)}%</span>
                 <Button type="button" size="icon" variant="ghost" className="size-8 self-end" disabled={slices.length <= 1} aria-label={`Șterge categoria ${slice.label}`} title={`Șterge categoria ${slice.label}`} onClick={() => update(slices.filter((_, i) => i !== index))}><Trash2 className="size-4" /></Button>
