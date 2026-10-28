@@ -1,8 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { HeartHandshake, LayoutDashboard, SlidersHorizontal, Users, ClipboardCheck, BookOpen, LogIn, LogOut, Menu, ArrowUpRight } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { HeartHandshake, LayoutDashboard, SlidersHorizontal, Users, ClipboardCheck, BookOpen, LogIn, LogOut, Menu, ArrowUpRight, X } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LanguageSwitch, SettingsMenu } from "./Preferences";
 import { t, useT, useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
