@@ -120,6 +120,6 @@ describe("prompt", () => {
   });
   it("its own example parses to a plan that opens /plan", () => {
     const m = INTAKE_SYSTEM_PROMPT.match(/Răspuns: (\{.*\})/s)!;
-    expect(intakeFromModelText(m[1])?.path).toBe("/plan");
+    expect(intakeFromModelText(m[1] ?? "")?.path).toBe("/plan");
   });
 });
