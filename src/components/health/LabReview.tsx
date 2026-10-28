@@ -1,0 +1,21 @@
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { reflag, type LabResult, type Flag } from '@/lib/health';
+
+const FLAGS: Record<Flag, string> = { low: 'Sub interval', high: 'Peste interval', normal: 'În interval', unknown: 'Fără interval' };
+const TONES: Record<Flag, string> = { low: 'bg-warning-soft text-foreground', high: 'bg-warning-soft text-foreground', normal: 'bg-success-soft text-success', unknown: 'bg-muted text-muted-foreground' };
+export function LabReview({ labs, onChange }: { labs: LabResult[]; onChange: (labs: LabResult[]) => void }) {
+  const edit = (index: number, patch: Partial<LabResult>) => onChange(reflag(labs.map((row, i) => i === index ? { ...row, ...patch } : row)));
+  const number = (index: number, key: 'value' | 'refLow' | 'refHigh', text: string) => {
+    const parsed = text.trim() === '' ? null : Number(text.replace(',', '.'));
+    if (parsed === null && key !== 'value') edit(index, { [key]: null });
+    else if (parsed !== null && Number.isFinite(parsed)) edit(index, { [key]: parsed });
+  };
+  return <div>
+    {!labs.length && <div className="border-y py-8 text-center"><p className="font-semibold">Nu sunt analize de verificat.</p><p className="mt-2 text-sm text-muted-foreground">Poți adăuga o valoare sau continua cu răspunsurile din chestionar.</p></div>}
+    {!!labs.length && <div className="overflow-x-auto rounded-lg border bg-card"><table className="w-full min-w-[740px] text-left text-sm"><caption className="sr-only">Analizele părintelui: valori și intervale de referință editabile</caption><thead className="border-b bg-muted"><tr>{['Analiză', 'Valoare', 'Unitate', 'Referință', 'Interval', ''].map((title, i) => <th key={i} scope="col" className="p-3 font-semibold">{title}</th>)}</tr></thead><tbody>{labs.map((lab, i) => <tr key={i} className="border-b last:border-0"><td className="min-w-40 p-3"><Input aria-label={`Nume analiză ${i + 1}`} value={lab.name} maxLength={80} required onChange={e => edit(i, { name: e.target.value })} /></td><td className="min-w-28 p-3"><Input key={`${i}-value`} aria-label={`Valoare analiză ${i + 1}`} type="number" step="any" required defaultValue={lab.value} onChange={e => number(i, 'value', e.target.value)} /></td><td className="min-w-24 p-3"><Input aria-label={`Unitate analiză ${i + 1}`} value={lab.unit} maxLength={30} onChange={e => edit(i, { unit: e.target.value })} /></td><td className="min-w-52 p-3"><div className="grid grid-cols-2 gap-2"><Input aria-label={`Limită inferioară analiză ${i + 1}`} placeholder="Minim" type="number" step="any" defaultValue={lab.refLow ?? ''} onChange={e => number(i, 'refLow', e.target.value)} /><Input aria-label={`Limită superioară analiză ${i + 1}`} placeholder="Maxim" type="number" step="any" defaultValue={lab.refHigh ?? ''} onChange={e => number(i, 'refHigh', e.target.value)} /></div><Input className="mt-2" aria-label={`Referință analiză ${i + 1}`} placeholder="Referința de pe buletin" value={lab.refText} maxLength={40} onChange={e => edit(i, { refText: e.target.value })} /></td><td className="p-3"><span className={`inline-block whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold ${TONES[lab.flag]}`}>{FLAGS[lab.flag]}</span></td><td className="p-3"><Button type="button" variant="ghost" size="icon" title="Șterge analiza" aria-label={`Șterge analiza ${i + 1}`} onClick={() => onChange(reflag(labs.filter((_, index) => index !== i)))}><Trash2 /></Button></td></tr>)}</tbody></table></div>}
+    <Button type="button" variant="outline" className="mt-5" disabled={labs.length >= 60} onClick={() => onChange(reflag([...labs, { name: '', value: 0, unit: '', refLow: null, refHigh: null, refText: '', flag: 'unknown' }]))}><Plus />Adaugă o analiză</Button>
+    {labs.length >= 60 && <p className="mt-2 text-sm text-muted-foreground">Poți verifica maximum 60 de analize.</p>}
+  </div>;
+}

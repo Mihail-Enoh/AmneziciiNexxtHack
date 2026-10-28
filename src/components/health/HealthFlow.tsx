@@ -1,0 +1,74 @@
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { useServerFn } from '@tanstack/react-start';
+import { ArrowLeft, ArrowRight, HeartPulse, Loader2, ShieldCheck } from 'lucide-react';
+import { AppShell } from '@/components/app/AppShell';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { QUIZ, DOMAIN_LABEL, healthPatch, reflag, type HealthAssessment, type QuizAnswers, type LabResult } from '@/lib/health';
+import { assessHealthFn } from '@/lib/health.functions';
+import { readHealthSession, saveHealthSession } from '@/lib/health-files';
+import { setPlan, usePlan } from '@/lib/store';
+import { DocumentUpload } from './DocumentUpload';
+import { LabReview } from './LabReview';
+import { HealthResult } from './HealthResult';
+
+const STEPS = ['Povestea', 'Chestionar', 'Documente', 'Verifică analizele', 'Rezultat'];
+const NOTE = 'Nu este o evaluare medicală. Sunt estimări pentru planificarea financiară; discută rezultatele cu medicul.';
+export function HealthFlow() {
+  const plan = usePlan();
+  const navigate = useNavigate();
+  const assess = useServerFn(assessHealthFn);
+  const [step, setStep] = useState(0);
+  const [story, setStory] = useState('');
+  const [answers, setAnswers] = useState<QuizAnswers>({});
+  const [labs, setLabs] = useState<LabResult[]>([]);
+  const [assessment, setAssessment] = useState<HealthAssessment | null>(null);
+  const [aiFail, setAiFail] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [resultAge, setResultAge] = useState<number | null>(null);
+  const lock = useRef(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const saved = readHealthSession();
+    if (saved) {
+      setStory(saved.story.slice(0, 4000)); setAnswers(saved.answers); setAssessment(saved.assessment);
+      setLabs(reflag(saved.assessment?.labs ?? []));
+      setAiFail(saved.assessment && !saved.assessment.aiUsed ? 'unavailable' : null);
+    }
+    setReady(true);
+  }, []);
+  useEffect(() => { if (ready) saveHealthSession({ story, answers, assessment }); }, [ready, story, answers, assessment]);
+  const go = (value: number) => { setStep(value); setError(''); requestAnimationFrame(() => { heading.current?.focus(); heading.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }); };
+  const invalidate = () => { setAssessment(null); setResultAge(null); };
+  const changeLabs = (rows: LabResult[]) => { setLabs(reflag(rows)); invalidate(); };
+  const addLabs = (rows: LabResult[]) => { setLabs(old => reflag([...old, ...rows].slice(0, 60))); invalidate(); };
+  const submit = async () => {
+    if (lock.current) return;
+    if (assessment && resultAge === plan.parent.age) { go(4); return; }
+    lock.current = true; setBusy(true); setError(''); go(4);
+    try {
+      const result = await assess({ data: { age: plan.parent.age, story: story.trim(), answers, labs: reflag(labs) } });
+      setAssessment(result.assessment); setAiFail(result.aiFail); setResultAge(plan.parent.age);
+    } catch { setError('Nu am putut pregăti rezultatul momentan. Răspunsurile tale sunt păstrate; poți încerca din nou.'); }
+    finally { lock.current = false; setBusy(false); }
+  };
+  return <AppShell><div className="mx-auto max-w-4xl" lang="ro">
+    <header className="mb-7"><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary"><HeartPulse className="size-5" />Pentru {plan.parent.name}</div><h1 className="text-3xl font-semibold sm:text-4xl">Sănătate și obiceiuri</h1><p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">Un pas în plus pentru a înțelege ce sprijin ar putea fi util părintelui tău. Răspunde în ritmul tău.</p></header>
+    <div className="mb-8"><div className="mb-3 flex justify-between gap-3 text-sm"><span className="font-semibold">Pasul {step + 1} din 5 · {STEPS[step]}</span><span className="text-muted-foreground">{Math.round((step + 1) / 5 * 100)}%</span></div><Progress value={(step + 1) / 5 * 100} aria-label="Progres sănătate și obiceiuri" /><ol className="mt-3 hidden grid-cols-5 gap-3 text-xs sm:grid">{STEPS.map((label, i) => <li key={label} aria-current={i === step ? 'step' : undefined} className={i === step ? 'font-bold text-primary' : 'text-muted-foreground'}>{label}</li>)}</ol></div>
+    <h2 ref={heading} tabIndex={-1} className="mb-5 scroll-mt-24 text-2xl font-semibold focus:outline-none">{step === 0 ? 'Povestește despre sănătatea și obiceiurile părintelui tău' : step === 1 ? 'Cum arată o zi obișnuită?' : step === 2 ? 'Documente, doar dacă dorești' : step === 3 ? 'Verifică analizele' : 'Rezultatul pentru planificare'}</h2>
+    {step === 0 && <div><label htmlFor="health-story" className="sr-only">Povestește despre sănătatea și obiceiurile părintelui tău</label><Textarea id="health-story" className="min-h-56 bg-card text-base leading-relaxed" maxLength={4000} value={story} onChange={e => { setStory(e.target.value); invalidate(); }} placeholder="De exemplu: mama se plimbă zilnic, locuiește singură și o ajut uneori cu cumpărăturile…" /><div className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground"><span>Scrie doar ce te simți confortabil să împărtășești. Poți lăsa acest pas necompletat.</span><span>{story.length} / 4000</span></div></div>}
+    {step === 1 && <div className="space-y-7"><p className="text-sm text-muted-foreground">Poți lăsa fără răspuns orice întrebare.</p>{QUIZ.map((q, index) => <fieldset key={q.id} className="border-b pb-6"><legend className="mb-3 w-full"><span className="mb-1 block text-xs font-semibold text-primary">{index + 1} · {DOMAIN_LABEL[q.domain]}</span><span className="font-semibold">{q.text}</span></legend><div className="grid gap-2 sm:grid-cols-2">{q.options.map(option => { const selected = (answers[q.id] ?? []).includes(option.id); return q.multi ? <label key={option.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm ${selected ? 'border-primary bg-primary-soft' : 'bg-card'}`}><Checkbox checked={selected} onCheckedChange={checked => { setAnswers(old => ({ ...old, [q.id]: checked ? [...(old[q.id] ?? []), option.id] : (old[q.id] ?? []).filter(id => id !== option.id) })); invalidate(); }} />{option.label}</label> : <Button key={option.id} type="button" variant="outline" aria-pressed={selected} className={`min-h-12 justify-start p-3 text-left ${selected ? 'border-primary bg-primary-soft text-primary' : 'bg-card'}`} onClick={() => { setAnswers(old => ({ ...old, [q.id]: selected ? [] : [option.id] })); invalidate(); }}><span aria-hidden className={`size-4 shrink-0 rounded-full border ${selected ? 'border-4 border-primary' : 'border-input'}`} />{option.label}</Button>; })}</div></fieldset>)}</div>}
+    <div hidden={step !== 2}><DocumentUpload onLabs={addLabs} onBusy={setUploadBusy} /></div>
+    {step === 3 && <form id="health-labs" onSubmit={e => { e.preventDefault(); void submit(); }}><LabReview labs={labs} onChange={changeLabs} /></form>}
+    {step === 4 && (busy ? <div role="status" className="py-16 text-center"><Loader2 className="mx-auto mb-4 size-9 animate-spin text-primary" /><p className="text-xl font-semibold">Pregătim imaginea de ansamblu…</p><p className="mt-2 text-sm text-muted-foreground">Luăm în considerare răspunsurile și analizele disponibile.</p></div> : error ? <div role="alert" className="space-y-4 border-y py-8"><p>{error}</p><Button onClick={() => void submit()}>Încearcă din nou</Button></div> : assessment ? <HealthResult assessment={assessment} aiFail={aiFail} onApply={() => { setPlan(current => healthPatch(current, assessment)); void navigate({ to: '/plan' }); }} /> : null)}
+    {step < 4 && <div className="mt-8 flex items-center justify-between gap-3 border-t py-5">{step > 0 ? <Button variant="ghost" disabled={busy || uploadBusy} onClick={() => go(step - 1)}><ArrowLeft />Înapoi</Button> : <span />}<Button size="lg" disabled={!ready || busy || uploadBusy} {...(step === 3 ? { type: 'submit', form: 'health-labs' } : { onClick: () => go(step + 1) })}>{step === 3 ? 'Vezi rezultatul' : step === 2 ? labs.length ? 'Verifică analizele' : 'Continuă' : 'Continuă'}<ArrowRight /></Button></div>}
+    {step === 4 && !busy && <Button variant="ghost" className="mt-5" onClick={() => go(3)}><ArrowLeft />Revino la analize</Button>}
+    <p className="mt-6 flex items-start gap-2 border-t pt-5 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="size-4 shrink-0 text-primary" />{NOTE}</p>
+  </div></AppShell>;
+}
