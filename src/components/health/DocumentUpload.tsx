@@ -19,6 +19,7 @@ export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[])
   const [drag, setDrag] = useState(false);
   const lock = useRef(false);
   const nextId = useRef(0);
+  const readPages = useRef(new Set<string>());
   const picker = useRef<HTMLInputElement>(null);
   const patch = (id: number, update: Partial<Entry>) => setEntries(rows => rows.map(r => r.id === id ? { ...r, ...update } : r));
   const process = async (entry: Entry) => {
@@ -26,10 +27,12 @@ export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[])
     let count = 0; const errors: string[] = [];
     try {
       for await (const { image, page, total } of documentImages(entry.file)) {
+        const pageKey = `${entry.id}-${page}`;
+        if (readPages.current.has(pageKey)) continue;
         patch(entry.id, { status: `Citim pagina ${page} din ${total}…`, progress: Math.round((page - 1) / total * 100) });
         try {
           const response = await read({ data: { image } });
-          if (response.ok) { count += response.read.labs.length; onLabs(response.read.labs); }
+          if (response.ok) { count += response.read.labs.length; onLabs(response.read.labs); readPages.current.add(pageKey); }
           else errors.push(readError(response.reason));
         } catch { errors.push(readError('network')); }
         patch(entry.id, { progress: Math.round(page / total * 100) });
@@ -38,6 +41,7 @@ export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[])
     } catch { patch(entry.id, { status: 'Nu am putut deschide documentul. Alege alt fișier sau continuă manual.', error: true, progress: 100 }); }
   };
   const run = async (rows: Entry[]) => {
+    if (!consent || lock.current) return;
     lock.current = true; setBusy(true); onBusy(true);
     try { for (const row of rows) await process(row); }
     finally { lock.current = false; setBusy(false); onBusy(false); }
@@ -77,6 +81,6 @@ export function DocumentUpload({ onLabs, onBusy }: { onLabs: (labs: LabResult[])
     <Button variant="ghost" className="text-primary" disabled={!consent || busy || entries.length >= MAX_FILES} onClick={() => void demo()}><FileText />Folosește un buletin demonstrativ</Button>
     <p className="text-xs leading-relaxed text-muted-foreground">Documentele sunt trimise serviciului de citire automată. Nu le salvăm; sunt păstrate doar în memorie cât timp ești pe această pagină.</p>
     {notice && <p role="alert" className="text-sm text-care">{notice}</p>}
-    <ul className="space-y-3" aria-live="polite">{entries.map(entry => <li key={entry.id} className="rounded-lg border bg-card p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{entry.name}</p><p className="mt-1 text-sm text-muted-foreground">{entry.status}</p></div><div className="flex shrink-0 gap-1">{busy ? <Loader2 className="size-5 animate-spin text-primary" /> : <>{entry.error && <Button variant="ghost" size="icon" aria-label={`Recitește ${entry.name}`} title="Încearcă din nou" onClick={() => void run([entry])}><RotateCcw /></Button>}<Button variant="ghost" size="icon" aria-label={`Elimină ${entry.name}`} title="Elimină documentul" onClick={() => setEntries(old => old.filter(r => r.id !== entry.id))}><Trash2 /></Button></>}</div></div><Progress value={entry.progress} className="mt-3" aria-label={`Progres ${entry.name}`} /></li>)}</ul>
+    <ul className="space-y-3" aria-live="polite">{entries.map(entry => <li key={entry.id} className="rounded-lg border bg-card p-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{entry.name}</p><p className="mt-1 text-sm text-muted-foreground">{entry.status}</p></div><div className="flex shrink-0 gap-1">{busy ? <Loader2 className="size-5 animate-spin text-primary" /> : <>{entry.error && <Button variant="ghost" size="icon" disabled={!consent} aria-label={`Recitește ${entry.name}`} title="Încearcă din nou" onClick={() => void run([entry])}><RotateCcw /></Button>}<Button variant="ghost" size="icon" aria-label={`Elimină ${entry.name}`} title="Elimină documentul" onClick={() => setEntries(old => old.filter(r => r.id !== entry.id))}><Trash2 /></Button></>}</div></div><Progress value={entry.progress} className="mt-3" aria-label={`Progres ${entry.name}`} /></li>)}</ul>
   </div>;
 }
