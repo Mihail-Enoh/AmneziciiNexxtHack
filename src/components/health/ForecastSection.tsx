@@ -7,7 +7,7 @@ import { readHealthSession } from '@/lib/health-files';
 import type { DomainResult, QuizAnswers } from '@/lib/health';
 import type { PlanState } from '@/lib/plan';
 
-export interface ForecastHealth { domains?: DomainResult[] | null; answers?: QuizAnswers | null }
+export interface ForecastHealth { domains?: DomainResult[] | null | undefined; answers?: QuizAnswers | null | undefined }
 
 const yrs = (n: number) => new Intl.NumberFormat('ro-RO', { maximumFractionDigits: 1 }).format(n);
 const lei = (n: number) => `${new Intl.NumberFormat('ro-RO', { maximumFractionDigits: 0 }).format(Math.max(0, Math.round(n)))} lei`;
@@ -20,11 +20,11 @@ export function useForecast(plan: PlanState, health?: ForecastHealth) {
   useEffect(() => {
     if (health) return;
     const s = readHealthSession();
-    setStored(s ? { domains: s.assessment?.domains, answers: s.answers } : null);
+    setStored(s ? { domains: s.assessment?.domains ?? null, answers: s.answers } : null);
     setHasSession(!!s && (!!s.assessment || Object.keys(s.answers ?? {}).length > 0));
   }, [health, plan]);
   const src = health ?? stored;
-  const f = useMemo(() => forecast(plan, { domains: src?.domains, answers: src?.answers }), [plan, src]);
+  const f = useMemo(() => forecast(plan, { domains: src?.domains ?? null, answers: src?.answers ?? null }), [plan, src]);
   return { f, hasSession: health ? true : hasSession };
 }
 
