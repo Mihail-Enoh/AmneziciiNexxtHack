@@ -38,6 +38,7 @@ const MODES: { id: FamilyMember["financial"]; label: string }[] = [
 
 function Invite() {
   const t = useT();
+  const locale = useLanguage();
   const q = Route.useSearch();
   const s = usePlan();
   const from = q.de || "Maria";
@@ -70,7 +71,7 @@ function Invite() {
           ) : (
             <>
               <HeartHandshake className="size-8 text-care" />
-              <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{from}{t(" construiește un plan pentru viitorul ")}{displayName(parent)}</h1>
+              <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{from}{t(" construiește un plan pentru viitorul ")}{displayName(parent, locale)}</h1>
               <p className="mt-3 text-muted-foreground">{t("Dacă în viitor ar fi nevoie, ce contribuție lunară ar fi realistă pentru tine? Nu este o promisiune.")}</p>
               <fieldset className="mt-6">
                 <legend className="sr-only">{t("Cum ai putea ajuta")}</legend>

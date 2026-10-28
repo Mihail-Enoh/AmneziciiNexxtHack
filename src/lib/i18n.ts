@@ -40,7 +40,7 @@ export function useT() {
   return (text: string | number | undefined): string => translate(String(text ?? ""), locale);
 }
 export function t(text: string | number | undefined): string { return translate(String(text ?? ""), language); }
-export function displayName(name: string) {
-  if (language === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
+export function displayName(name: string, locale: Language) {
+  if (locale === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
   return name;
 }

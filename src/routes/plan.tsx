@@ -27,6 +27,7 @@ const INDEP_LABEL = { independent: "Independent(ă)", occasional: "Ajutor ocazio
 
 function Dashboard() {
   const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -41,13 +42,13 @@ function Dashboard() {
 
   return (
     <AppShell>
-      <PageHeader eyebrow={t("Planul familiei tale")} title={t(`Planul ${displayName(p.name)}`)}
+      <PageHeader eyebrow={t("Planul familiei tale")} title={t(`Planul ${displayName(p.name, locale)}`)}
         subtitle={t(`O privire asupra posibilelor nevoi financiare în următorii ${s.horizon} ani. Aceasta este o estimare, nu o predicție.`)} right={<DemoBadge />} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label={t("Părinte")} icon={<UserRound className="size-3.5" />}>{p.name}, {p.age}</Metric>
         <Metric label={t("Orizont analizat")} icon={<CalendarDays className="size-3.5" />}>{s.horizon}{t(" ani")}</Metric>
-        <Metric label={t("Posibilă diferență lunară")} icon={<HandCoins className="size-3.5" />} hint={<ExplainButton title={t("Diferența lunară")} lines={[{ label: t("Cost estimat îngrijire"), value: ron(c.careMonthlyCost) }, { label: t(`Contribuția ${displayName(p.name)}`), value: ron(c.parentCovered), op: "−" }, { label: t("Diferență de acoperit"), value: ron(c.familyFundingGap), op: "=" }]} />}>
+        <Metric label={t("Posibilă diferență lunară")} icon={<HandCoins className="size-3.5" />} hint={<ExplainButton title={t("Diferența lunară")} lines={[{ label: t("Cost estimat îngrijire"), value: ron(c.careMonthlyCost) }, { label: t(`Contribuția ${displayName(p.name, locale)}`), value: ron(c.parentCovered), op: "−" }, { label: t("Diferență de acoperit"), value: ron(c.familyFundingGap), op: "=" }]} />}>
           <span className="text-care"><AnimatedNumber value={c.familyFundingGap} /></span>
         </Metric>
         <Metric label={t("Fond planificat")} icon={<PiggyBank className="size-3.5" />} hint={<ExplainButton title={t("Fondul pentru îngrijire")} lines={[{ label: t("Economisești lunar"), value: ron(s.monthlySaving) }, { label: t("Luni până la scenariu"), value: String(c.monthsUntilScenario), op: "×" }, { label: t("Fond estimat"), value: ron(c.futureCareReserve), op: "=" }]} note={t("Nu presupunem randamente din investiții.")} />}>
@@ -134,7 +135,7 @@ function Dashboard() {
             <p className="mt-6 rounded-2xl bg-success-soft p-5 text-sm font-medium">{t("În acest scenariu, resursele estimate ale părintelui acoperă costul.")}</p>
           )}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <ExplainButton title={t("Diferența de acoperit")} lines={[{ label: t("Cost estimat îngrijire"), value: ron(c.careMonthlyCost) }, { label: t(`Contribuția disponibilă a ${displayName(p.name)}`), value: ron(c.parentCovered), op: "−" }, { label: t("Diferența estimată pentru familie"), value: ron(c.familyFundingGap), op: "=" }]}
+            <ExplainButton title={t("Diferența de acoperit")} lines={[{ label: t("Cost estimat îngrijire"), value: ron(c.careMonthlyCost) }, { label: t(`Contribuția disponibilă a ${displayName(p.name, locale)}`), value: ron(c.parentCovered), op: "−" }, { label: t("Diferența estimată pentru familie"), value: ron(c.familyFundingGap), op: "=" }]}
               note={t(`Contribuția părintelui = venit (${ron(c.parentMonthlyIncome)}) − cheltuieli esențiale (${ron(p.expenses)}) + cheltuieli preluate de serviciul de îngrijire (${ron(sel.expensesReplaced)}).`)} />
             <Button asChild variant="care"><Link to="/familie">{t("Construiește un plan pentru această diferență ")}<ArrowRight /></Link></Button>
           </div>

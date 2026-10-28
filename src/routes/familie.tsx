@@ -31,6 +31,7 @@ export const Route = createFileRoute("/familie")({
 
 function ContributionSlider({ name, sub, value, onChange, color = "primary" }: { name: string; sub: string; value: number; onChange: (v: number) => void; color?: "primary" | "care" }) {
   const t = useT();
+  const locale = useLanguage();
   const id = `c-${name}`;
   return (
     <div className="card-surface p-5">
@@ -46,6 +47,7 @@ function ContributionSlider({ name, sub, value, onChange, color = "primary" }: {
 
 function Family() {
   const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -75,7 +77,7 @@ function Family() {
           <div><p className="text-xs text-muted-foreground">{t("Diferența viitoare")}</p><p className="font-display text-3xl font-semibold"><AnimatedNumber value={c.familyFundingGap} /></p></div>
           <div><p className="text-xs text-muted-foreground">{t("Contribuții planificate")}</p><p className="font-display text-3xl font-semibold text-care"><AnimatedNumber value={Math.min(c.familyContributions, c.familyFundingGap)} /></p></div>
           <div className="md:col-span-2"><p className="text-xs text-muted-foreground">{t("Rămâne neacoperit")}</p><p className="font-display text-4xl font-semibold"><AnimatedNumber value={c.remainingGap} /><span className="text-base font-normal text-muted-foreground">{t("/lună")}</span></p>
-            <ExplainButton title={t("Diferența rămasă")} lines={[{ label: t("Diferența familiei"), value: ron(c.familyFundingGap) }, { label: t(`Contribuția ta (${s.user.name})`), value: ron(s.userContribution), op: "−" }, ...s.members.filter((m) => m.financial === "da").map((m) => ({ label: t(`Contribuția ${displayName(m.name)}`), value: ron(m.contribution), op: "−" as const })), { label: t("Rămâne neacoperit"), value: ron(c.remainingGap), op: "=" }]} />
+            <ExplainButton title={t("Diferența rămasă")} lines={[{ label: t("Diferența familiei"), value: ron(c.familyFundingGap) }, { label: t(`Contribuția ta (${s.user.name})`), value: ron(s.userContribution), op: "−" }, ...s.members.filter((m) => m.financial === "da").map((m) => ({ label: t(`Contribuția ${displayName(m.name, locale)}`), value: ron(m.contribution), op: "−" as const })), { label: t("Rămâne neacoperit"), value: ron(c.remainingGap), op: "=" }]} />
           </div>
         </div>
         <div className="mt-5"><GapBar cost={c.careMonthlyCost} parent={c.parentCovered} family={Math.min(c.familyContributions, c.familyFundingGap)} /></div>

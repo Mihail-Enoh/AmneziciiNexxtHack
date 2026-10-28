@@ -29,6 +29,7 @@ export const Route = createFileRoute("/scenarii")({
 
 function Scenarios() {
   const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -103,7 +104,7 @@ function Scenarios() {
             </div>
             <div className="mt-5"><GapBar cost={c.careMonthlyCost} parent={c.parentCovered} /></div>
             {c.familyFundingGap === 0 && <p className="mt-4 rounded-xl bg-success-soft p-3 text-sm">{t("În acest scenariu, resursele estimate ale părintelui acoperă costul.")}</p>}
-            <div className="mt-4"><ExplainButton title="Diferența în acest scenariu" lines={[{ label: t("Cost estimat"), value: ron(c.careMonthlyCost) }, { label: t(`Resursele ${displayName(p.name)}`), value: ron(c.parentCovered), op: "−" }, { label: t("Diferență"), value: ron(c.familyFundingGap), op: "=" }]} /></div>
+            <div className="mt-4"><ExplainButton title="Diferența în acest scenariu" lines={[{ label: t("Cost estimat"), value: ron(c.careMonthlyCost) }, { label: t(`Resursele ${displayName(p.name, locale)}`), value: ron(c.parentCovered), op: "−" }, { label: t("Diferență"), value: ron(c.familyFundingGap), op: "=" }]} /></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="card-surface p-5">

@@ -28,16 +28,17 @@ function explainPlan(s: PlanState, c: ReturnType<typeof computePlan>) {
   const p = s.parent;
   const payers = s.members.filter((m) => m.financial === "da");
   const names = [s.user.name, ...payers.map((m) => m.name)].join(t(" și "));
-  let text = t(`În scenariul selectat („${scenarioById(s.scenario).label.toLowerCase()}”, în aproximativ ${s.yearsUntil} ani), ${p.name} ar avea nevoie de aproximativ ${ron(c.careMonthlyCost)} pe lună pentru sprijin. Din veniturile și resursele ei ar putea acoperi aproximativ ${ron(c.parentCovered)}. `);
+  let text = t(`În scenariul selectat („${t(scenarioById(s.scenario).label).toLowerCase()}”, în aproximativ ${s.yearsUntil} ani), ${p.name} ar avea nevoie de aproximativ ${ron(c.careMonthlyCost)} pe lună pentru sprijin. Din veniturile și resursele ei ar putea acoperi aproximativ ${ron(c.parentCovered)}. `);
   if (c.familyFundingGap === 0) return text + t("Resursele estimate acoperă costul, așa că familia nu ar avea o diferență lunară de acoperit.");
   text += t(`${names} intenționează să contribuie împreună cu ${ron(c.familyContributions)}, `);
   text += t(c.remainingGap > 0 ? `ceea ce lasă o diferență de aproximativ ${ron(c.remainingGap)} pe lună. ` : "ceea ce acoperă întreaga diferență. ");
-  if (s.monthlySaving > 0) text += t(`Dacă ${s.user.name} economisește ${ron(s.monthlySaving)} lunar timp de ${s.yearsUntil} ani, familia ar construi un fond de aproximativ ${ron(c.futureCareReserve)}${c.remainingGap > 0 ? `, suficient pentru circa ${c.monthsOfRemainingCovered} luni din diferența rămasă` : ""}.`);
+  if (s.monthlySaving > 0) text += t(`Dacă ${s.user.name} economisește ${ron(s.monthlySaving)} lunar timp de ${s.yearsUntil} ani, familia ar construi un fond de aproximativ ${ron(c.futureCareReserve)}${c.remainingGap > 0 ? t(`, suficient pentru circa ${c.monthsOfRemainingCovered} luni din diferența rămasă`) : ""}.`);
   return text;
 }
 
 function Summary() {
   const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -70,10 +71,10 @@ function Summary() {
           <dl className="mt-6 divide-y">
             {[
               ["Necesar lunar estimat pentru îngrijire", ron(c.careMonthlyCost)],
-              [`Resursele ${displayName(p.name)}`, `− ${ron(c.parentCovered)}`],
+              [`Resursele ${displayName(p.name, locale)}`, `− ${ron(c.parentCovered)}`],
               ["Diferența de acoperit de familie", ron(c.familyFundingGap)],
               [`Contribuția ta (${s.user.name})`, `− ${ron(s.userContribution)}`],
-              ...s.members.filter((m) => m.financial === "da").map((m) => [`Contribuția ${displayName(m.name)}`, `− ${ron(m.contribution)}`]),
+              ...s.members.filter((m) => m.financial === "da").map((m) => [`Contribuția ${displayName(m.name, locale)}`, `− ${ron(m.contribution)}`]),
             ].map(([k, v]) => <div key={k} className="flex justify-between py-3 text-sm"><dt>{t(k)}</dt><dd className="tabular font-semibold">{v}</dd></div>)}
             <div className="flex items-center justify-between py-4"><dt className="font-semibold">{t("Rămâne de acoperit")}</dt><dd className="font-display text-3xl font-semibold text-care"><AnimatedNumber value={c.remainingGap} />{t("/lună")}</dd></div>
           </dl>
