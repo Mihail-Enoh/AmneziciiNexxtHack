@@ -1,5 +1,6 @@
 // Prototype123 — browser helpers for the health feature (client only). Owner: P3.
 import type { HealthAssessment, LabResult, QuizAnswers } from "./health";
+import { getActiveProfileId, healthSessionKey } from "./store";
 
 export const MAX_FILES = 3;
 export const ACCEPTED_IMAGES = ["image/png", "image/jpeg", "image/webp"];
@@ -37,7 +38,8 @@ export function canvasToDataUrl(canvas: HTMLCanvasElement, maxSide = 1600, quali
 }
 
 // Keep the health flow across pages for this browser tab only (never persisted, never sent anywhere else).
-const KEY = "prototype123-health-v1";
+/** One health session per person (this browser tab only). */
+const key = () => healthSessionKey(getActiveProfileId());
 export interface HealthSession {
   story: string; answers: QuizAnswers; assessment: HealthAssessment | null;
   /** Lab results read so far (also before a result exists) and fingerprints of the documents already read. */
@@ -45,11 +47,11 @@ export interface HealthSession {
 }
 
 export function saveHealthSession(s: HealthSession) {
-  try { sessionStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  try { sessionStorage.setItem(key(), JSON.stringify(s)); } catch { /* ignore */ }
 }
 export function readHealthSession(): HealthSession | null {
-  try { const r = sessionStorage.getItem(KEY); return r ? (JSON.parse(r) as HealthSession) : null; } catch { return null; }
+  try { const r = sessionStorage.getItem(key()); return r ? (JSON.parse(r) as HealthSession) : null; } catch { return null; }
 }
 export function clearHealthSession() {
-  try { sessionStorage.removeItem(KEY); } catch { /* ignore */ }
+  try { sessionStorage.removeItem(key()); } catch { /* ignore */ }
 }

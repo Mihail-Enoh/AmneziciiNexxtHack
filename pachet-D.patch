@@ -1,0 +1,617 @@
+diff --git a/src/components/app/AppShell.tsx b/src/components/app/AppShell.tsx
+index ef57abc..aeae94a 100644
+--- a/src/components/app/AppShell.tsx
++++ b/src/components/app/AppShell.tsx
+@@ -4,6 +4,7 @@ import { HeartHandshake, HeartPulse, LayoutDashboard, SlidersHorizontal, Users,
+ import { useEffect, useState, type ReactNode } from "react";
+ import { Button } from "@/components/ui/button";
+ import { SettingsMenu } from "./Preferences";
++import { PersonSwitcher } from "./PersonSwitcher";
+ import { t, useT } from "@/lib/i18n";
+ import { useAuth } from "@/lib/auth";
+ 
+@@ -39,15 +40,16 @@ export function AppShell({ children }: { children: ReactNode }) {
+   useEffect(() => { setMenu(false); }, [location.pathname]);
+   const navigation = <nav className="space-y-1.5" aria-label={"Navigare principală"}>{NAV.map(n => <Button key={n.to} variant="ghost" asChild className="h-12 w-full justify-start rounded-lg px-3 text-sm font-semibold text-muted-foreground"><Link to={n.to} onClick={() => setMenu(false)} activeProps={{ className: "bg-primary-soft text-primary" }}><n.icon className="size-5 shrink-0" /><span className="min-w-0 truncate">{t(n.label)}</span></Link></Button>)}</nav>;
+   return <div className="min-h-screen pb-20 md:pb-0 md:pl-64">
+-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r bg-card px-5 py-7 md:flex"><Logo /><div className="mb-4 mt-10 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{"SPAȚIUL FAMILIEI"}</div>{navigation}<div className="mt-auto space-y-3 border-t pt-5"><SettingsMenu expanded /><AccountButton expanded /></div></aside>
++    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col overflow-y-auto border-r bg-card px-5 py-7 md:flex"><Logo /><div className="mt-8"><PersonSwitcher /></div><div className="mb-4 mt-8 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{"SPAȚIUL FAMILIEI"}</div>{navigation}<div className="mt-auto space-y-3 border-t pt-5"><SettingsMenu expanded /><AccountButton expanded /></div></aside>
+     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur"><div className="mx-auto grid h-18 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-7"><div className="flex min-w-0 items-center gap-3"><Button variant="ghost" size="icon" className="shrink-0 rounded-lg md:hidden" aria-label={"Deschide meniul"} onClick={() => setMenu(true)}><Menu /></Button><span className="truncate text-sm font-semibold text-muted-foreground">{page ? t(page.label) : "Prototype123"}</span></div><div className="flex shrink-0 items-center gap-2"><span className="md:hidden"><SettingsMenu /></span><span className="hidden sm:block"><Button asChild variant="ghost" size="sm"><Link to="/start">{"Actualizează datele"}<ArrowUpRight /></Link></Button></span></div></div></header>
+     <main className="app-content mx-auto max-w-6xl px-4 py-7 sm:px-7 sm:py-10"><IntakeBanner />{children}<footer className="mt-12 border-t pt-5 text-xs text-muted-foreground"><Link to="/cum-folosim-datele" className="font-semibold underline underline-offset-4">Cum folosim datele</Link></footer></main>
+     <nav className="mobile-nav fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-card md:hidden" aria-label={"Navigare mobilă"}>{NAV.slice(0, 4).map(n => <Link key={n.to} to={n.to} className="flex min-w-0 flex-col items-center gap-1 py-3 text-[11px] font-semibold text-muted-foreground" activeProps={{ className: "text-primary bg-primary-soft/50" }}><n.icon className="size-5 shrink-0" />{t(n.short)}</Link>)}</nav>
+     {menu && <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label={"Meniu"}>
+       <button type="button" className="absolute inset-0 bg-overlay" aria-label={"Închide meniul"} onClick={() => setMenu(false)} />
+-      <aside className="absolute inset-y-0 left-0 flex w-[min(85vw,320px)] flex-col border-r bg-card px-5 py-6 shadow-lift">
++      <aside className="absolute inset-y-0 left-0 flex w-[min(85vw,320px)] flex-col overflow-y-auto border-r bg-card px-5 py-6 shadow-lift">
+         <div className="flex items-center justify-between gap-2"><Logo /><Button variant="ghost" size="icon" className="shrink-0 rounded-lg" aria-label={"Închide meniul"} onClick={() => setMenu(false)}><X /></Button></div>
+-        <div className="mt-8">{navigation}</div>
++        <div className="mt-6"><PersonSwitcher onDone={() => setMenu(false)} /></div>
++        <div className="mt-6">{navigation}</div>
+         <div className="mt-auto space-y-3 border-t pt-5"><SettingsMenu expanded /><AccountButton expanded /></div>
+       </aside>
+     </div>}
+diff --git a/src/components/app/PersonSwitcher.tsx b/src/components/app/PersonSwitcher.tsx
+new file mode 100644
+index 0000000..74ecb5c
+--- /dev/null
++++ b/src/components/app/PersonSwitcher.tsx
+@@ -0,0 +1,63 @@
++import { useNavigate } from "@tanstack/react-router";
++import { Check, Plus, Trash2 } from "lucide-react";
++import { Button } from "@/components/ui/button";
++import { addProfile, removeProfile, switchProfile, useProfiles, type PersonSummary } from "@/lib/store";
++import { cn } from "@/lib/utils";
++
++const label = (p: PersonSummary) => `${p.name}${p.age > 0 ? `, ${p.age}` : ""}${p.isDemo ? " (exemplu)" : ""}`;
++
++/** The people you plan for: switch, add, remove. Used in the sidebar and the mobile menu. */
++export function PersonSwitcher({ onDone }: { onDone?: () => void }) {
++  const { activeId, people } = useProfiles();
++  const navigate = useNavigate();
++  return (
++    <div>
++      <div className="mb-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Persoane</div>
++      <ul className="space-y-1" aria-label="Persoanele pentru care planifici">
++        {people.map((p) => {
++          const active = p.id === activeId;
++          return (
++            <li key={p.id} className="group flex items-center gap-1">
++              <button
++                type="button"
++                aria-pressed={active}
++                title={label(p)}
++                onClick={() => { switchProfile(p.id); onDone?.(); }}
++                className={cn(
++                  "flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold",
++                  active ? "bg-care-soft text-care" : "text-muted-foreground hover:bg-muted",
++                )}
++              >
++                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-background text-xs">{active ? <Check className="size-3.5" /> : (p.firstName || "?").charAt(0).toUpperCase()}</span>
++                <span className="truncate">{label(p)}</span>
++              </button>
++              {people.length > 1 && (
++                <Button
++                  type="button"
++                  variant="ghost"
++                  size="icon"
++                  className="size-8 shrink-0 opacity-60 hover:opacity-100"
++                  aria-label={`Șterge planul pentru ${p.name}`}
++                  title="Șterge persoana"
++                  onClick={() => {
++                    if (window.confirm(`Ștergi planul pentru ${p.name}? Răspunsurile și analizele acestei persoane se șterg și ele.`)) removeProfile(p.id);
++                  }}
++                >
++                  <Trash2 className="size-4" />
++                </Button>
++              )}
++            </li>
++          );
++        })}
++      </ul>
++      <Button
++        type="button"
++        variant="ghost"
++        className="mt-1 h-10 w-full justify-start rounded-lg px-3 text-sm font-semibold text-primary"
++        onClick={() => { addProfile(); onDone?.(); void navigate({ to: "/start" }); }}
++      >
++        <Plus className="size-4" />Adaugă o persoană
++      </Button>
++    </div>
++  );
++}
+diff --git a/src/components/health/HealthFlow.tsx b/src/components/health/HealthFlow.tsx
+index 8b7824b..21f0a93 100644
+--- a/src/components/health/HealthFlow.tsx
++++ b/src/components/health/HealthFlow.tsx
+@@ -13,7 +13,7 @@ import { fullName, genitive } from '@/lib/plan';
+ import { OtherAnswers } from './OtherAnswers';
+ import { assessHealthFn } from '@/lib/health.functions';
+ import { readHealthSession, saveHealthSession } from '@/lib/health-files';
+-import { setPlan, usePlan } from '@/lib/store';
++import { setPlan, switchProfile, usePlan, useProfiles } from '@/lib/store';
+ import { DocumentUpload } from './DocumentUpload';
+ import { LabReview } from './LabReview';
+ import { HealthResult } from './HealthResult';
+@@ -32,6 +32,7 @@ function mergeMessage(m: ReturnType<typeof mergeLabs>): string {
+ }
+ export function HealthFlow() {
+   const plan = usePlan();
++  const profiles = useProfiles();
+   const navigate = useNavigate();
+   const assess = useServerFn(assessHealthFn);
+   const [step, setStep] = useState(0);
+@@ -83,6 +84,7 @@ export function HealthFlow() {
+     <header className="mb-7"><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary"><HeartPulse className="size-5" />Pentru {fullName(plan.parent, 'persoana îngrijită')}</div><h1 className="text-3xl font-semibold sm:text-4xl">Sănătate și obiceiuri</h1><p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">Un pas în plus pentru a înțelege ce sprijin ar putea fi util {who ? `pentru ${who}` : 'persoanei îngrijite'}. Răspunde în ritmul tău.</p></header>
+     <div className="mb-8"><div className="mb-3 flex justify-between gap-3 text-sm"><span className="font-semibold">Pasul {step + 1} din {STEPS.length} · {STEPS[step]}</span><span className="text-muted-foreground">{Math.round((step + 1) / STEPS.length * 100)}%</span></div><Progress value={(step + 1) / STEPS.length * 100} aria-label="Progres sănătate și obiceiuri" /><ol className="mt-3 hidden grid-cols-5 gap-3 text-xs sm:grid" style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}>{STEPS.map((label, i) => <li key={label} aria-current={i === step ? 'step' : undefined} className={i === step ? 'font-bold text-primary' : 'text-muted-foreground'}>{label}</li>)}</ol></div>
+     <h2 ref={heading} tabIndex={-1} className="mb-5 scroll-mt-24 text-2xl font-semibold focus:outline-none">{step === 0 ? `Povestește despre sănătatea și obiceiurile ${ofWho}` : step === 1 ? 'Cum arată o zi obișnuită?' : step === 2 ? 'Înainte de documente' : step === 3 ? 'Documente, doar dacă dorești' : step === 4 ? 'Verifică analizele' : 'Scenarii de îngrijire pentru planificare'}</h2>
++    {step === 0 && profiles.people.length > 1 && <div className="mb-5 rounded-xl border bg-card p-4"><label htmlFor="health-person" className="mb-2 block text-sm font-semibold">Despre cine completezi?</label><select id="health-person" className="h-11 w-full rounded-lg border bg-background px-3 text-base" value={profiles.activeId} onChange={e => switchProfile(e.target.value)}>{profiles.people.map(p => <option key={p.id} value={p.id}>{p.name}{p.age > 0 ? `, ${p.age}` : ''}{p.isDemo ? ' (exemplu)' : ''}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">Răspunsurile și documentele se păstrează separat pentru fiecare persoană.</p></div>}
+     {step === 0 && <div><label htmlFor="health-story" className="sr-only">{`Povestește despre sănătatea și obiceiurile ${ofWho}`}</label><Textarea id="health-story" className="min-h-56 bg-card text-base leading-relaxed" maxLength={4000} value={story} onChange={e => { setStory(e.target.value); invalidate(); }} placeholder="De exemplu: mama se plimbă zilnic, locuiește singură și o ajut uneori cu cumpărăturile…" /><div className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground"><span>Scrie doar ce te simți confortabil să împărtășești. Poți lăsa acest pas necompletat.</span><span>{story.length} / 4000</span></div></div>}
+     {step === 1 && <div className="space-y-7"><p className="text-sm text-muted-foreground">Poți lăsa fără răspuns orice întrebare.</p>{QUIZ.map((q, index) => <fieldset key={q.id} className="border-b pb-6"><legend className="mb-3 w-full"><span className="mb-1 block text-xs font-semibold text-primary">{index + 1} · {DOMAIN_LABEL[q.domain]}</span><span className="font-semibold">{q.text}</span></legend><div className="grid gap-2 sm:grid-cols-2">{q.options.map(option => { const selected = (answers[q.id] ?? []).includes(option.id); return q.multi ? <label key={option.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm ${selected ? 'border-primary bg-primary-soft' : 'bg-card'}`}><Checkbox checked={selected} onCheckedChange={checked => { setAnswers(old => toggleAnswer(q, old, option.id, checked === true)); invalidate(); }} />{option.label}</label> : <Button key={option.id} type="button" variant="outline" aria-pressed={selected} className={`min-h-12 justify-start p-3 text-left ${selected ? 'border-primary bg-primary-soft text-primary' : 'bg-card'}`} onClick={() => { setAnswers(old => ({ ...old, [q.id]: selected ? [] : [option.id] })); invalidate(); }}><span aria-hidden className={`size-4 shrink-0 rounded-full border ${selected ? 'border-4 border-primary' : 'border-input'}`} />{option.label}</Button>; })}</div>{q.allowOther && <OtherAnswers q={q} answers={answers} onChange={next => { setAnswers(next); invalidate(); }} />}</fieldset>)}</div>}
+     {step === 2 && <div className="space-y-4"><p className="text-sm leading-relaxed text-muted-foreground">Acest pas este opțional. Dacă vrei să adaugi analize, avem nevoie mai întâi de confirmarea ta.</p><label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-5 leading-relaxed"><Checkbox checked={consent} onCheckedChange={v => { const on = v === true; setConsent(on); if (on) saveConsent(); else clearConsent(); }} className="mt-1" /><span>Înțeleg că documentele medicale conțin date despre sănătate. Am acordul explicit al persoanei ale cărei documente le încarc{who ? ` (${who})` : ''}, sau folosesc documente demonstrative.</span></label><p className="text-sm"><Link to="/cum-folosim-datele" className="font-semibold text-primary underline underline-offset-4">Cum folosim datele</Link></p></div>}
+diff --git a/src/components/health/consent.ts b/src/components/health/consent.ts
+index d2df7c1..35529cb 100644
+--- a/src/components/health/consent.ts
++++ b/src/components/health/consent.ts
+@@ -1,18 +1,22 @@
++import { consentKey, getActiveProfileId } from "@/lib/store";
++
+ export const CONSENT_KEY = "prototype123-health-consent";
++/** Consent is given per person (the documents are about that person). */
++export const activeConsentKey = () => consentKey(getActiveProfileId());
+ export const CONSENT_VERSION = "2";
+ export type HealthConsent = { consentVersion: string; acceptedAt: string };
+ 
+ export function saveConsent(now: Date = new Date()): HealthConsent {
+   const value: HealthConsent = { consentVersion: CONSENT_VERSION, acceptedAt: now.toISOString() };
+-  try { localStorage.setItem(CONSENT_KEY, JSON.stringify(value)); } catch { /* storage unavailable */ }
++  try { localStorage.setItem(activeConsentKey(), JSON.stringify(value)); } catch { /* storage unavailable */ }
+   return value;
+ }
+ export function clearConsent() {
+-  try { localStorage.removeItem(CONSENT_KEY); } catch { /* storage unavailable */ }
++  try { localStorage.removeItem(activeConsentKey()); } catch { /* storage unavailable */ }
+ }
+ export function hasConsent(): boolean {
+   try {
+-    const value = JSON.parse(localStorage.getItem(CONSENT_KEY) ?? "null") as HealthConsent | null;
++    const value = JSON.parse(localStorage.getItem(activeConsentKey()) ?? "null") as HealthConsent | null;
+     return value?.consentVersion === CONSENT_VERSION && !Number.isNaN(Date.parse(value.acceptedAt));
+   } catch { return false; }
+ }
+diff --git a/src/lib/health-files.ts b/src/lib/health-files.ts
+index 51da93b..0352779 100644
+--- a/src/lib/health-files.ts
++++ b/src/lib/health-files.ts
+@@ -1,5 +1,6 @@
+ // Prototype123 — browser helpers for the health feature (client only). Owner: P3.
+ import type { HealthAssessment, LabResult, QuizAnswers } from "./health";
++import { getActiveProfileId, healthSessionKey } from "./store";
+ 
+ export const MAX_FILES = 3;
+ export const ACCEPTED_IMAGES = ["image/png", "image/jpeg", "image/webp"];
+@@ -37,7 +38,8 @@ export function canvasToDataUrl(canvas: HTMLCanvasElement, maxSide = 1600, quali
+ }
+ 
+ // Keep the health flow across pages for this browser tab only (never persisted, never sent anywhere else).
+-const KEY = "prototype123-health-v1";
++/** One health session per person (this browser tab only). */
++const key = () => healthSessionKey(getActiveProfileId());
+ export interface HealthSession {
+   story: string; answers: QuizAnswers; assessment: HealthAssessment | null;
+   /** Lab results read so far (also before a result exists) and fingerprints of the documents already read. */
+@@ -45,11 +47,11 @@ export interface HealthSession {
+ }
+ 
+ export function saveHealthSession(s: HealthSession) {
+-  try { sessionStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ }
++  try { sessionStorage.setItem(key(), JSON.stringify(s)); } catch { /* ignore */ }
+ }
+ export function readHealthSession(): HealthSession | null {
+-  try { const r = sessionStorage.getItem(KEY); return r ? (JSON.parse(r) as HealthSession) : null; } catch { return null; }
++  try { const r = sessionStorage.getItem(key()); return r ? (JSON.parse(r) as HealthSession) : null; } catch { return null; }
+ }
+ export function clearHealthSession() {
+-  try { sessionStorage.removeItem(KEY); } catch { /* ignore */ }
++  try { sessionStorage.removeItem(key()); } catch { /* ignore */ }
+ }
+\ No newline at end of file
+diff --git a/src/lib/store.ts b/src/lib/store.ts
+index 1a1a077..78d8134 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -1,49 +1,116 @@
+ import { useSyncExternalStore } from "react";
+-import { demoState, type PlanState } from "./plan";
++import { demoState, fullName, type PlanState } from "./plan";
++import { blankState } from "./intake";
+ 
++/**
++ * Several people can be planned for. Each person has a full plan; pages keep using usePlan()/setPlan(),
++ * which always work on the ACTIVE person. Everything stays in this browser (localStorage).
++ *
++ * - PROFILES_KEY holds all people.
++ * - KEY mirrors the active person's plan (the format used before profiles existed); if it was written
++ *   by an older version it wins for the active person, so nothing saved earlier is lost.
++ */
+ const KEY = "prototype123-plan-v1";
+-let state: PlanState = demoState();
++const PROFILES_KEY = "prototype123-profiles-v1";
++export const DEMO_ID = "demo";
++
++/** Per-person keys for health answers (tab only) and document consent. */
++export const healthSessionKey = (id: string) => `prototype123-health-v1:${id}`;
++export const consentKey = (id: string) => `prototype123-health-consent:${id}`;
++
++interface Profiles { activeId: string; order: string[]; plans: Record<string, PlanState> }
++export interface PersonSummary { id: string; name: string; firstName: string; age: number; isDemo: boolean }
++export interface ProfilesView { activeId: string; people: PersonSummary[] }
++
++const initial = (): Profiles => ({ activeId: DEMO_ID, order: [DEMO_ID], plans: { [DEMO_ID]: demoState() } });
++let profiles: Profiles = initial();
++let state: PlanState = profiles.plans[DEMO_ID]!;
+ const listeners = new Set<() => void>();
+ const serverSnapshot = demoState();
+ 
++function summarize(p: Profiles): ProfilesView {
++  return {
++    activeId: p.activeId,
++    people: p.order.filter((id) => p.plans[id]).map((id) => {
++      const plan = p.plans[id]!;
++      return { id, name: plan.parent.name.trim() ? fullName(plan.parent) : "Persoană nouă", firstName: plan.parent.name.trim(), age: plan.parent.age, isDemo: id === DEMO_ID };
++    }),
++  };
++}
++let view: ProfilesView = summarize(profiles);
++const serverView: ProfilesView = summarize(initial());
++
+ function emit() {
++  view = summarize(profiles);
+   listeners.forEach((l) => l());
+ }
+ 
++function persist() {
++  try {
++    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
++    localStorage.setItem(KEY, JSON.stringify(state));
++  } catch {
++    /* storage unavailable */
++  }
++}
++
++/** Fill missing fields from the defaults and reject invalid projection inputs (older saved plans). */
++export function normalizePlan(saved: unknown): PlanState | null {
++  if (!saved || typeof saved !== "object" || Array.isArray(saved)) return null;
++  const s = saved as Partial<PlanState> & Record<string, unknown>;
++  const defaults = demoState();
++  const plan: PlanState = {
++    ...defaults,
++    ...s,
++    parent: { ...defaults.parent, lastName: "", ...(s.parent ?? {}) },
++    user: { ...defaults.user, ...(s.user ?? {}) },
++    costs: { ...defaults.costs, ...(s.costs ?? {}) },
++  } as PlanState;
++  for (const key of ["costGrowth", "incomeGrowth", "savingsSpreadMonths", "careDurationMonths"] as const) {
++    const value = plan[key];
++    const maximum = key.endsWith("Months") ? 600 : 100;
++    const minimum = key.endsWith("Months") ? 1 : 0;
++    plan[key] =
++      typeof value === "number" && Number.isFinite(value)
++        ? key.endsWith("Months")
++          ? Math.round(Math.max(minimum, Math.min(maximum, value)))
++          : Math.max(minimum, Math.min(maximum, value))
++        : defaults[key];
++  }
++  if (typeof plan.careStartDate !== "string") plan.careStartDate = "";
++  return plan;
++}
++
+ export function loadPlanFromStorage() {
+   try {
+-    const raw = localStorage.getItem(KEY);
+-    if (raw) {
+-      const saved = JSON.parse(raw);
+-      if (!saved || typeof saved !== "object" || Array.isArray(saved)) return;
+-      const defaults = demoState();
+-      state = {
+-        ...defaults,
+-        ...saved,
+-        parent: { ...defaults.parent, lastName: "", ...saved.parent },
+-        user: { ...defaults.user, ...saved.user },
+-        costs: { ...defaults.costs, ...saved.costs },
+-      };
+-      // Migrate older local plans and reject invalid new projection inputs.
+-      for (const key of [
+-        "costGrowth",
+-        "incomeGrowth",
+-        "savingsSpreadMonths",
+-        "careDurationMonths",
+-      ] as const) {
+-        const value = state[key];
+-        const maximum = key.endsWith("Months") ? 600 : 100;
+-        const minimum = key.endsWith("Months") ? 1 : 0;
+-        state[key] =
+-          typeof value === "number" && Number.isFinite(value)
+-            ? key.endsWith("Months")
+-              ? Math.round(Math.max(minimum, Math.min(maximum, value)))
+-              : Math.max(minimum, Math.min(maximum, value))
+-            : defaults[key];
++    const rawProfiles = localStorage.getItem(PROFILES_KEY);
++    if (rawProfiles) {
++      const parsed = JSON.parse(rawProfiles) as Partial<Profiles> | null;
++      const plans: Record<string, PlanState> = {};
++      for (const id of Array.isArray(parsed?.order) ? parsed!.order : []) {
++        const plan = typeof id === "string" ? normalizePlan(parsed?.plans?.[id]) : null;
++        if (plan) plans[id] = plan;
++      }
++      const order = Object.keys(plans);
++      if (order.length) {
++        const activeId = typeof parsed?.activeId === "string" && plans[parsed.activeId] ? parsed.activeId : order[0]!;
++        profiles = { activeId, order, plans };
+       }
+-      if (typeof state.careStartDate !== "string") state.careStartDate = "";
+-      emit();
+     }
++    const rawActive = localStorage.getItem(KEY);
++    if (rawActive) {
++      const plan = normalizePlan(JSON.parse(rawActive));
++      if (plan) {
++        if (rawProfiles) profiles.plans[profiles.activeId] = plan;
++        else {
++          profiles = { activeId: "p1", order: ["p1"], plans: { p1: plan } }; // first visit after the update
++          state = plan;
++          persist();
++        }
++      }
++    }
++    state = profiles.plans[profiles.activeId]!;
++    emit();
+   } catch {
+     /* ignore */
+   }
+@@ -52,25 +119,73 @@ export function loadPlanFromStorage() {
+ export function setPlan(update: Partial<PlanState> | ((s: PlanState) => Partial<PlanState>)) {
+   const patch = typeof update === "function" ? update(state) : update;
+   state = { ...state, ...patch };
+-  try {
+-    localStorage.setItem(KEY, JSON.stringify(state));
+-  } catch {
+-    /* ignore */
+-  }
++  profiles = { ...profiles, plans: { ...profiles.plans, [profiles.activeId]: state } };
++  persist();
++  emit();
++}
++
++export function getActiveProfileId() {
++  return profiles.activeId;
++}
++
++/** Make another saved person the active one. */
++export function switchProfile(id: string) {
++  if (!profiles.plans[id] || id === profiles.activeId) return;
++  profiles = { ...profiles, activeId: id };
++  state = profiles.plans[id]!;
++  persist();
++  emit();
++}
++
++/** Add a person (blank plan unless one is given) and make them active. Returns the new id. */
++export function addProfile(plan: PlanState = blankState()): string {
++  const id = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
++  profiles = { activeId: id, order: [...profiles.order, id], plans: { ...profiles.plans, [id]: plan } };
++  state = plan;
++  persist();
++  emit();
++  return id;
++}
++
++/** Remove a person and their health answers and consent. The last person cannot be removed. */
++export function removeProfile(id: string): boolean {
++  if (!profiles.plans[id] || profiles.order.length <= 1) return false;
++  const order = profiles.order.filter((x) => x !== id);
++  const plans = { ...profiles.plans };
++  delete plans[id];
++  const activeId = profiles.activeId === id ? order[0]! : profiles.activeId;
++  profiles = { activeId, order, plans };
++  state = plans[activeId]!;
++  try { sessionStorage.removeItem(healthSessionKey(id)); } catch { /* unavailable */ }
++  try { localStorage.removeItem(consentKey(id)); } catch { /* unavailable */ }
++  persist();
+   emit();
++  return true;
+ }
+ 
++/** "Încearcă exemplul Elenei": the example is its own person, so it never overwrites someone you added. */
+ export function loadDemo() {
+-  setPlan(demoState());
++  const exists = !!profiles.plans[DEMO_ID];
++  profiles = {
++    activeId: DEMO_ID,
++    order: exists ? profiles.order : [...profiles.order, DEMO_ID],
++    plans: { ...profiles.plans, [DEMO_ID]: demoState() },
++  };
++  state = profiles.plans[DEMO_ID]!;
++  persist();
++  emit();
+ }
+ 
++const subscribe = (l: () => void) => {
++  listeners.add(l);
++  return () => listeners.delete(l);
++};
++
+ export function usePlan() {
+-  return useSyncExternalStore(
+-    (l) => {
+-      listeners.add(l);
+-      return () => listeners.delete(l);
+-    },
+-    () => state,
+-    () => serverSnapshot,
+-  );
++  return useSyncExternalStore(subscribe, () => state, () => serverSnapshot);
++}
++
++/** The saved people and who is active (for the person switcher). */
++export function useProfiles() {
++  return useSyncExternalStore(subscribe, () => view, () => serverView);
+ }
+diff --git a/src/routes/index.tsx b/src/routes/index.tsx
+index 80e656c..723124c 100644
+--- a/src/routes/index.tsx
++++ b/src/routes/index.tsx
+@@ -5,12 +5,12 @@ import heroImg from "@/assets/hero-family.jpg";
+ import { Logo, PublicHeader } from "@/components/app/AppShell";
+ import { PrivacyNote } from "@/components/app/bits";
+ import { Button } from "@/components/ui/button";
+-import { loadDemo, setPlan } from "@/lib/store";
++import { addProfile, loadDemo } from "@/lib/store";
+ import { useEffect, useState } from "react";
+ import { useServerFn } from "@tanstack/react-start";
+ import { runIntake } from "@/lib/intake.functions";
+ import { saveIntakeNote } from "@/lib/intake-session";
+-import { blankWithName } from "@/lib/intake";
++import { blankState, blankWithName } from "@/lib/intake";
+ 
+ const EXAMPLE_STORY = "Mama are 72 de ani, stă singură la Iași, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi fac eu cumpărăturile. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500.";
+ const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…", "Calculăm diferențele de acoperit…"];
+@@ -61,12 +61,12 @@ function Landing() {
+     try { res = await intake({ data: { story: text, name } }); } catch { /* fall through */ }
+     if (res.ok) {
+       const r = res.result;
+-      setPlan(r.patch);
++      addProfile({ ...blankState(), ...r.patch });
+       saveIntakeNote({ message: r.message, filled: r.filled, assumed: r.assumed, missing: r.missing });
+       navigate({ to: r.path as "/plan" });
+     } else {
+       // Start from a blank plan with the typed name — never from the "Elena" example.
+-      setPlan(blankWithName(name));
++      addProfile(blankWithName(name));
+       saveIntakeNote({ message: "Nu am putut citi povestea. Completează manual.", filled: [], assumed: [], missing: [] });
+       navigate({ to: "/start" });
+     }
+@@ -98,7 +98,7 @@ function Landing() {
+           <h1 className="text-5xl font-semibold leading-[1.05] md:text-6xl">{t(" Știi cât te-ar costa dacă ")}<em className="text-care not-italic">{t("părinții tăi")}</em>{t(" ar avea nevoie de tine? ")}</h1>
+           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" Prototype123 te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
+           <div className="mt-8 flex flex-wrap gap-3">
+-            <Button size="lg" asChild><Link to="/start">{t("Construiește planul familiei ")}<ArrowRight /></Link></Button>
++            <Button size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
+             <Button size="lg" variant="care" onClick={tryDemo}>{t("Încearcă exemplul Elenei")}</Button>
+           </div>
+           <div className="card-surface mt-6 max-w-xl p-4">
+diff --git a/src/routes/sanatate.tsx b/src/routes/sanatate.tsx
+index b5fb9a0..c528568 100644
+--- a/src/routes/sanatate.tsx
++++ b/src/routes/sanatate.tsx
+@@ -1,14 +1,21 @@
+ import { createFileRoute } from '@tanstack/react-router';
+ import { HealthFlow } from '@/components/health/HealthFlow';
++import { useProfiles } from '@/lib/store';
+ 
+ export const Route = createFileRoute('/sanatate')({
+   head: () => ({ meta: [
+     { title: 'Sănătate și obiceiuri — Prototype123' },
+     { name: 'description', content: 'Răspunsuri și analize verificate de tine, pentru scenarii de sprijin și planificarea financiară a familiei.' },
+     { property: 'og:title', content: 'Sănătate și obiceiuri — Prototype123' },
+-    { property: 'og:description', content: 'Un parcurs calm pentru a înțelege posibilele nevoi de sprijin ale părintelui tău.' },
++    { property: 'og:description', content: 'Un parcurs calm pentru a înțelege posibilele nevoi de sprijin ale persoanei de care ai grijă.' },
+     { property: 'og:type', content: 'website' },
+     { name: 'twitter:card', content: 'summary' },
+   ] }),
+-  component: HealthFlow,
++  component: HealthPage,
+ });
++
++/** Each person has their own answers and documents: switching person remounts the flow with that person's session. */
++function HealthPage() {
++  const { activeId } = useProfiles();
++  return <HealthFlow key={activeId} />;
++}
+diff --git a/src/test/health-consent.test.ts b/src/test/health-consent.test.ts
+index 8a63050..97d6a62 100644
+--- a/src/test/health-consent.test.ts
++++ b/src/test/health-consent.test.ts
+@@ -1,11 +1,11 @@
+ import { beforeEach, describe, expect, it } from "vitest";
+-import { CONSENT_KEY, clearConsent, hasConsent, saveConsent } from "@/components/health/consent";
++import { activeConsentKey, clearConsent, hasConsent, saveConsent } from "@/components/health/consent";
+ describe("health document consent", () => {
+   beforeEach(() => localStorage.clear());
+   it("starts unticked and stores only version 1 and an ISO timestamp", () => {
+     expect(hasConsent()).toBe(false);
+     saveConsent(new Date("2026-10-28T18:00:00.000Z"));
+-    expect(JSON.parse(localStorage.getItem(CONSENT_KEY)!)).toEqual({ consentVersion: "2", acceptedAt: "2026-10-28T18:00:00.000Z" });
++    expect(JSON.parse(localStorage.getItem(activeConsentKey())!)).toEqual({ consentVersion: "2", acceptedAt: "2026-10-28T18:00:00.000Z" });
+     expect(hasConsent()).toBe(true);
+     clearConsent();
+     expect(hasConsent()).toBe(false);
+diff --git a/src/test/profiles.test.ts b/src/test/profiles.test.ts
+new file mode 100644
+index 0000000..369acfb
+--- /dev/null
++++ b/src/test/profiles.test.ts
+@@ -0,0 +1,84 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest';
++
++async function fresh() {
++  vi.resetModules();
++  return await import('@/lib/store');
++}
++beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
++
++describe('several people', () => {
++  it('starts with the example person', async () => {
++    const s = await fresh();
++    s.loadPlanFromStorage();
++    expect(s.getActiveProfileId()).toBe(s.DEMO_ID);
++  });
++
++  it('adds, switches and keeps plans separate', async () => {
++    const s = await fresh();
++    const { blankWithName } = await import('@/lib/intake');
++    const a = s.addProfile(blankWithName('Maria Ionescu'));
++    s.setPlan({ yearsUntil: 3 });
++    const b = s.addProfile(blankWithName('Ion Pop'));
++    expect(s.getActiveProfileId()).toBe(b);
++    s.setPlan({ yearsUntil: 9 });
++    s.switchProfile(a);
++    const store = await import('@/lib/store');
++    expect(JSON.parse(localStorage.getItem('prototype123-plan-v1')!).parent.name).toBe('Maria');
++    expect(JSON.parse(localStorage.getItem('prototype123-plan-v1')!).yearsUntil).toBe(3);
++    expect(store.getActiveProfileId()).toBe(a);
++  });
++
++  it('restores all people after reload', async () => {
++    let s = await fresh();
++    const { blankWithName } = await import('@/lib/intake');
++    const a = s.addProfile(blankWithName('Maria Ionescu'));
++    s.addProfile(blankWithName('Ion Pop'));
++    s.switchProfile(a);
++    s = await fresh();
++    s.loadPlanFromStorage();
++    expect(s.getActiveProfileId()).toBe(a);
++    const raw = JSON.parse(localStorage.getItem('prototype123-profiles-v1')!);
++    expect(raw.order).toHaveLength(3);
++  });
++
++  it('migrates a plan saved before profiles existed', async () => {
++    const { demoState } = await import('@/lib/plan');
++    localStorage.setItem('prototype123-plan-v1', JSON.stringify({ ...demoState(), parent: { ...demoState().parent, name: 'Vechi' } }));
++    const s = await fresh();
++    s.loadPlanFromStorage();
++    expect(s.getActiveProfileId()).toBe('p1');
++    expect(JSON.parse(localStorage.getItem('prototype123-profiles-v1')!).plans.p1.parent.name).toBe('Vechi');
++  });
++
++  it('removes a person with their health data, never the last one', async () => {
++    const s = await fresh();
++    expect(s.removeProfile(s.DEMO_ID)).toBe(false);
++    const a = s.addProfile();
++    sessionStorage.setItem(s.healthSessionKey(a), '{}');
++    localStorage.setItem(s.consentKey(a), '{}');
++    expect(s.removeProfile(a)).toBe(true);
++    expect(s.getActiveProfileId()).toBe(s.DEMO_ID);
++    expect(sessionStorage.getItem(s.healthSessionKey(a))).toBeNull();
++    expect(localStorage.getItem(s.consentKey(a))).toBeNull();
++  });
++
++  it('the example never overwrites a person you added', async () => {
++    const s = await fresh();
++    const { blankWithName } = await import('@/lib/intake');
++    const a = s.addProfile(blankWithName('Maria Ionescu'));
++    s.loadDemo();
++    expect(s.getActiveProfileId()).toBe(s.DEMO_ID);
++    s.switchProfile(a);
++    expect(JSON.parse(localStorage.getItem('prototype123-plan-v1')!).parent.name).toBe('Maria');
++  });
++
++  it('keeps health answers per person', async () => {
++    const s = await fresh();
++    const files = await import('@/lib/health-files');
++    files.saveHealthSession({ story: 'demo story' } as never);
++    s.addProfile();
++    expect(files.readHealthSession()?.story ?? '').toBe('');
++    s.switchProfile(s.DEMO_ID);
++    expect(files.readHealthSession()?.story).toBe('demo story');
++  });
++});

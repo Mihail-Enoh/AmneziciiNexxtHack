@@ -5,12 +5,12 @@ import heroImg from "@/assets/hero-family.jpg";
 import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
-import { loadDemo, setPlan } from "@/lib/store";
+import { addProfile, loadDemo } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { runIntake } from "@/lib/intake.functions";
 import { saveIntakeNote } from "@/lib/intake-session";
-import { blankWithName } from "@/lib/intake";
+import { blankState, blankWithName } from "@/lib/intake";
 
 const EXAMPLE_STORY = "Mama are 72 de ani, stă singură la Iași, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi fac eu cumpărăturile. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500.";
 const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…", "Calculăm diferențele de acoperit…"];
@@ -61,12 +61,12 @@ function Landing() {
     try { res = await intake({ data: { story: text, name } }); } catch { /* fall through */ }
     if (res.ok) {
       const r = res.result;
-      setPlan(r.patch);
+      addProfile({ ...blankState(), ...r.patch });
       saveIntakeNote({ message: r.message, filled: r.filled, assumed: r.assumed, missing: r.missing });
       navigate({ to: r.path as "/plan" });
     } else {
       // Start from a blank plan with the typed name — never from the "Elena" example.
-      setPlan(blankWithName(name));
+      addProfile(blankWithName(name));
       saveIntakeNote({ message: "Nu am putut citi povestea. Completează manual.", filled: [], assumed: [], missing: [] });
       navigate({ to: "/start" });
     }
@@ -98,7 +98,7 @@ function Landing() {
           <h1 className="text-5xl font-semibold leading-[1.05] md:text-6xl">{t(" Știi cât te-ar costa dacă ")}<em className="text-care not-italic">{t("părinții tăi")}</em>{t(" ar avea nevoie de tine? ")}</h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" Prototype123 te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button size="lg" asChild><Link to="/start">{t("Construiește planul familiei ")}<ArrowRight /></Link></Button>
+            <Button size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
             <Button size="lg" variant="care" onClick={tryDemo}>{t("Încearcă exemplul Elenei")}</Button>
           </div>
           <div className="card-surface mt-6 max-w-xl p-4">
