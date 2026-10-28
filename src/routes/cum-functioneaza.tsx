@@ -1,3 +1,4 @@
+import { t, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/app/AppShell";
 import { PageHeader, PrivacyNote } from "@/components/app/bits";
@@ -29,28 +30,29 @@ const FORMULAS = [
 ];
 
 function HowItWorks() {
+  useLanguage();
   return (
     <AppShell>
-      <PageHeader eyebrow="Transparență" title="Cum facem estimările?" />
+      <PageHeader eyebrow={t("Transparență")} title={t("Cum facem estimările?")} />
       <div className="card-surface p-6 md:p-8">
-        <p className="text-lg leading-relaxed">Prototype123 folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul de mărime al unei posibile nevoi financiare. Costurile reale pot varia semnificativ în funcție de locație, tipul serviciilor, evoluția prețurilor și situația personală.</p>
-        <p className="mt-4 font-semibold">Nu reprezintă consultanță financiară, medicală sau juridică.</p>
+        <p className="text-lg leading-relaxed">{t("Prototype123 folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul de mărime al unei posibile nevoi financiare. Costurile reale pot varia semnificativ în funcție de locație, tipul serviciilor, evoluția prețurilor și situația personală.")}</p>
+        <p className="mt-4 font-semibold">{t("Nu reprezintă consultanță financiară, medicală sau juridică.")}</p>
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="card-surface p-6">
-          <h2 className="text-2xl font-semibold">Ipoteze demonstrative</h2>
+          <h2 className="text-2xl font-semibold">{t("Ipoteze demonstrative")}</h2>
           <table className="mt-4 w-full text-sm">
-            <thead><tr className="text-left text-muted-foreground"><th className="py-2 font-medium">Scenariu</th><th className="py-2 text-right font-medium">Cost lunar</th></tr></thead>
-            <tbody className="divide-y">{SCENARIOS.map((s) => <tr key={s.id}><td className="py-3">{s.label}</td><td className="py-3 text-right tabular font-semibold">{ron(PLAN_ASSUMPTIONS.costs[s.id])}</td></tr>)}</tbody>
+            <thead><tr className="text-left text-muted-foreground"><th className="py-2 font-medium">{t("Scenariu")}</th><th className="py-2 text-right font-medium">{t("Cost lunar")}</th></tr></thead>
+            <tbody className="divide-y">{SCENARIOS.map((s) => <tr key={s.id}><td className="py-3">{t(s.label)}</td><td className="py-3 text-right tabular font-semibold">{ron(PLAN_ASSUMPTIONS.costs[s.id])}</td></tr>)}</tbody>
           </table>
-          <p className="mt-4 text-xs text-muted-foreground">Valori pentru hackathon. În viitor: seturi de date verificate pentru România, costuri ajustate cu inflația, proiecții de pensie și beneficii publice.</p>
+          <p className="mt-4 text-xs text-muted-foreground">{t("Valori pentru hackathon. În viitor: seturi de date verificate pentru România, costuri ajustate cu inflația, proiecții de pensie și beneficii publice.")}</p>
         </div>
         <div className="card-surface p-6">
-          <h2 className="text-2xl font-semibold">Formule</h2>
-          <dl className="mt-4 space-y-3 text-sm">{FORMULAS.map(([k, v]) => <div key={k}><dt className="font-semibold">{k}</dt><dd className="text-muted-foreground">{v}</dd></div>)}</dl>
+          <h2 className="text-2xl font-semibold">{t("Formule")}</h2>
+          <dl className="mt-4 space-y-3 text-sm">{FORMULAS.map(([k, v]) => <div key={k}><dt className="font-semibold">{t(k)}</dt><dd className="text-muted-foreground">{v}</dd></div>)}</dl>
         </div>
       </div>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4"><PrivacyNote /><Button asChild><Link to="/plan">Înapoi la plan</Link></Button></div>
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4"><PrivacyNote /><Button asChild><Link to="/plan">{t("Înapoi la plan")}</Link></Button></div>
     </AppShell>
   );
 }
