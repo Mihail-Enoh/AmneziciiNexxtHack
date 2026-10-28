@@ -27,6 +27,11 @@ describe("Live planning controls and persistence", () => {
   let container: HTMLDivElement;
   let root: Root;
   beforeEach(() => {
+    vi.stubGlobal("ResizeObserver", class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    });
     Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-10-28T12:00:00Z"));
@@ -53,6 +58,7 @@ describe("Live planning controls and persistence", () => {
     sessionStorage.clear();
     loadDemo();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   const result = () => JSON.parse(container.querySelector("[data-result]")!.textContent!);
@@ -93,6 +99,19 @@ describe("Live planning controls and persistence", () => {
     const previousGap = result().endGap;
     change("#income-growth", "15");
     expect(result().endGap).toBeLessThan(previousGap);
+  });
+
+  it("persists category edits and their total together, and restores the default costs", () => {
+    change("#cost-slice-daily-0-amount", "2000");
+    change("#cost-slice-daily-1-amount", "500");
+    const saved = JSON.parse(sessionStorage.getItem("prototype123-plan-v1") ?? "{}");
+    expect(saved.costs.daily).toBe(2800);
+    expect(saved.costBreakdown.daily.map((slice: { amount: number }) => slice.amount)).toEqual([2000, 500, 150, 150]);
+    expect(result().cost).toBe(2800);
+    act(() => button("Revino la valorile demonstrative").click());
+    const reset = JSON.parse(sessionStorage.getItem("prototype123-plan-v1") ?? "{}");
+    expect(reset.costs.daily).toBe(3000);
+    expect(reset.costBreakdown.daily).toBeUndefined();
   });
 
   it("updates savings depletion, duration and readiness from the controls", () => {
