@@ -11,6 +11,7 @@ import {
 import { HEALTH_INTERPRET_PROMPT, VISION_READ_PROMPT, interpretMessage } from "./health-prompt";
 
 const DEFAULT_VISION_MODEL = "Qwen/Qwen2.5-VL-72B-Instruct";
+const DEFAULT_TEXT_MODEL = "Qwen/Qwen3-235B-A22B";
 type Fail = "no_key" | "timeout" | "network" | `http_${number}` | "parse";
 type Content = string | ({ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } })[];
 
@@ -22,7 +23,7 @@ function oneAtATime<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 async function chat(model: string, messages: { role: "system" | "user"; content: Content }[], timeoutMs: number, maxTokens: number): Promise<{ text: string } | { fail: Fail }> {
-  const key = process.env["FEATHERLESS_API_KEY"];
+  const key = process.env["FEATHERLESS_API_KEY"]?.trim();
   if (!key || !model) return { fail: "no_key" };
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -51,7 +52,7 @@ const ImageInput = z.object({
 export const readHealthDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ImageInput.parse(d))
   .handler(async ({ data }): Promise<{ ok: true; read: DocumentRead } | { ok: false; reason: Fail }> => {
-    const model = process.env["FEATHERLESS_VISION_MODEL"] || DEFAULT_VISION_MODEL;
+    const model = process.env["FEATHERLESS_VISION_MODEL"]?.trim() || DEFAULT_VISION_MODEL;
     return oneAtATime(async () => {
       for (let attempt = 0; attempt < 2; attempt++) {
         const r = await chat(model, [{ role: "user", content: [{ type: "text", text: VISION_READ_PROMPT }, { type: "image_url", image_url: { url: data.image } }] }], 90_000, 2000);
@@ -86,7 +87,7 @@ export const assessHealthFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AssessInput.parse(d))
   .handler(async ({ data }): Promise<{ assessment: HealthAssessment; aiFail: Fail | null }> => {
     const labs: LabResult[] = reflag(data.labs);
-    const model = process.env["FEATHERLESS_MODEL"] ?? "";
+    const model = process.env["FEATHERLESS_MODEL"]?.trim() || DEFAULT_TEXT_MODEL;
     const user = interpretMessage({ age: data.age, story: data.story, quizText: quizAsText(data.answers), labsText: labsAsText(labs) });
     const ai = await oneAtATime(async () => {
       for (let attempt = 0; attempt < 2; attempt++) {
