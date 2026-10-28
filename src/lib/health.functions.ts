@@ -10,38 +10,13 @@ import {
 } from "./health";
 import { HEALTH_INTERPRET_PROMPT, VISION_READ_PROMPT, interpretMessage } from "./health-prompt";
 
-const DEFAULT_VISION_MODEL = "Qwen/Qwen2.5-VL-72B-Instruct";
-const DEFAULT_TEXT_MODEL = "Qwen/Qwen3-235B-A22B";
-type Fail = "no_key" | "timeout" | "network" | `http_${number}` | "parse";
-type Content = string | ({ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } })[];
+import { chat, fatal, textTask, visionModel, type Fail } from "./featherless";
 
 let busy: Promise<unknown> = Promise.resolve();
 function oneAtATime<T>(fn: () => Promise<T>): Promise<T> {
   const job = busy.then(fn);
   busy = job.catch(() => null);
   return job;
-}
-
-async function chat(model: string, messages: { role: "system" | "user"; content: Content }[], timeoutMs: number, maxTokens: number): Promise<{ text: string } | { fail: Fail }> {
-  const key = process.env["FEATHERLESS_API_KEY"]?.trim();
-  if (!key || !model) return { fail: "no_key" };
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch("https://api.featherless.ai/v1/chat/completions", {
-      method: "POST",
-      signal: ctrl.signal,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model, temperature: 0.1, max_tokens: maxTokens, messages }),
-    });
-    if (!res.ok) return { fail: `http_${res.status}` };
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    return { text: json.choices?.[0]?.message?.content ?? "" };
-  } catch (e) {
-    return { fail: e instanceof Error && e.name === "AbortError" ? "timeout" : "network" };
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 // ------------------------------------------------------------ 1) read one document image
@@ -52,13 +27,13 @@ const ImageInput = z.object({
 export const readHealthDocument = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ImageInput.parse(d))
   .handler(async ({ data }): Promise<{ ok: true; read: DocumentRead } | { ok: false; reason: Fail }> => {
-    const model = process.env["FEATHERLESS_VISION_MODEL"]?.trim() || DEFAULT_VISION_MODEL;
+    const model = visionModel();
     return oneAtATime(async () => {
       for (let attempt = 0; attempt < 2; attempt++) {
         const r = await chat(model, [{ role: "user", content: [{ type: "text", text: VISION_READ_PROMPT }, { type: "image_url", image_url: { url: data.image } }] }], 90_000, 2000);
         if ("fail" in r) {
           console.error("health: vision call failed", r.fail);
-          if (r.fail === "no_key" || r.fail.startsWith("http_4")) return { ok: false as const, reason: r.fail };
+          if (fatal(r.fail) || r.fail.startsWith("http_4")) return { ok: false as const, reason: r.fail };
           continue;
         }
         const raw = extractJson(r.text);
@@ -89,21 +64,14 @@ export const assessHealthFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AssessInput.parse(d))
   .handler(async ({ data }): Promise<{ assessment: HealthAssessment; aiFail: Fail | null }> => {
     const labs: LabResult[] = reflag(data.labs.map(({ date, ...l }) => (date ? { ...l, date } : l)));
-    const model = process.env["FEATHERLESS_MODEL"]?.trim() || DEFAULT_TEXT_MODEL;
     const user = interpretMessage({ name: data.name, age: data.age, story: data.story, quizText: quizAsText(data.answers), labsText: labsAsText(labs) });
-    const ai = await oneAtATime(async () => {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const r = await chat(model, [{ role: "system", content: HEALTH_INTERPRET_PROMPT }, { role: "user", content: user }], 45_000, 1200);
-        if ("fail" in r) {
-          console.error("health: interpret call failed", r.fail);
-          if (r.fail === "no_key" || r.fail.startsWith("http_4")) return { fail: r.fail };
-          continue;
-        }
-        const parsed = sanitizeInterpretation(extractJson(r.text));
-        if (parsed) return { parsed };
-      }
-      return { fail: "parse" as Fail };
-    });
+    const r = await oneAtATime(() => textTask(
+      [{ role: "system", content: HEALTH_INTERPRET_PROMPT }, { role: "user", content: user }],
+      (text) => sanitizeInterpretation(extractJson(text)),
+      60_000,
+      2000,
+    ));
+    const ai = "ok" in r ? { parsed: r.ok } : { fail: r.fail };
     const interpretation = "parsed" in ai ? ai.parsed : null;
     return {
       assessment: assessHealth({ age: data.age, answers: data.answers, labs, ai: interpretation }),

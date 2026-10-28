@@ -20,7 +20,7 @@ export const consentKey = (id: string) => `prototype123-health-consent:${id}`;
 
 interface Profiles { activeId: string; order: string[]; plans: Record<string, PlanState> }
 export interface PersonSummary { id: string; name: string; firstName: string; age: number; isDemo: boolean }
-export interface ProfilesView { activeId: string; people: PersonSummary[] }
+export interface ProfilesView { activeId: string; people: PersonSummary[]; /** True once this browser's saved data was read. */ loaded: boolean }
 
 const initial = (): Profiles => ({ activeId: DEMO_ID, order: [DEMO_ID], plans: { [DEMO_ID]: demoState() } });
 let profiles: Profiles = initial();
@@ -28,8 +28,10 @@ let state: PlanState = profiles.plans[DEMO_ID]!;
 const listeners = new Set<() => void>();
 const serverSnapshot = demoState();
 
+let loaded = false;
 function summarize(p: Profiles): ProfilesView {
   return {
+    loaded,
     activeId: p.activeId,
     people: p.order.filter((id) => p.plans[id]).map((id) => {
       const plan = p.plans[id]!;
@@ -110,10 +112,11 @@ export function loadPlanFromStorage() {
       }
     }
     state = profiles.plans[profiles.activeId]!;
-    emit();
   } catch {
     /* ignore */
   }
+  loaded = true;
+  emit();
 }
 
 export function setPlan(update: Partial<PlanState> | ((s: PlanState) => Partial<PlanState>)) {

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { AmountSlider } from "@/components/app/AmountSlider";
 import {
   Select,
   SelectContent,
@@ -68,14 +68,17 @@ function ContributionSlider({
   value,
   onChange,
   color = "primary",
+  max = 2000,
 }: {
   name: string;
   sub: string;
   value: number;
+  /** Slider end; the exact-amount field accepts more. */
+  max?: number;
   onChange: (v: number) => void;
   color?: "primary" | "care";
 }) {
-  const id = `c-${name}`;
+  const id = `c-${name.normalize("NFD").replace(/[^A-Za-z0-9]+/g, "-") || "membru"}`;
   return (
     <div className="card-surface p-5">
       <div className="flex items-center gap-3">
@@ -99,15 +102,13 @@ function ContributionSlider({
         <AnimatedNumber value={value} />
         <span className="text-sm font-normal text-muted-foreground">/lună</span>
       </p>
-      <Slider
+      <AmountSlider
         id={id}
         className="mt-3"
-        min={0}
-        max={2000}
-        step={50}
-        value={[value]}
-        onValueChange={([v = 0]) => onChange(v)}
-        aria-label={`Contribuția lunară ${name}`}
+        max={max}
+        value={value}
+        onChange={onChange}
+        label={`Contribuția lunară ${name}`}
       />
     </div>
   );
@@ -225,6 +226,7 @@ function Family() {
           name={s.user.name}
           sub="Tu · Contribuția ta"
           value={s.userContribution}
+          max={Math.max(2000, s.user.income)}
           color="care"
           onChange={(v) => setPlan({ userContribution: v })}
         />
@@ -256,15 +258,14 @@ function Family() {
             <AnimatedNumber value={s.monthlySaving} />
             <span className="text-base font-normal text-muted-foreground">/lună</span>
           </p>
-          <Slider
+          <AmountSlider
             id="saving"
             className="mt-4"
-            min={0}
-            max={1500}
+            max={Math.max(1500, s.user.income)}
             step={25}
-            value={[s.monthlySaving]}
-            onValueChange={([v = 0]) => setPlan({ monthlySaving: v })}
-            aria-label="Economisire lunară"
+            value={s.monthlySaving}
+            onChange={(v) => setPlan({ monthlySaving: v })}
+            label="Economisire lunară"
           />
           <div className="mt-8 rounded-2xl bg-primary-soft p-5">
             <p className="text-sm font-semibold">Fond estimat peste {years} ani</p>
@@ -412,7 +413,7 @@ function Family() {
           {!link ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="iname">Prenume</Label>
+                <Label htmlFor="iname">Nume complet</Label>
                 <Input
                   id="iname"
                   value={inv.name}

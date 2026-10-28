@@ -3,6 +3,7 @@ import { Check, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { addProfile, removeProfile, switchProfile, useProfiles, type PersonSummary } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { clearIntakeNote } from "@/lib/intake-session";
 
 const label = (p: PersonSummary) => `${p.name}${p.age > 0 ? `, ${p.age}` : ""}${p.isDemo ? " (exemplu)" : ""}`;
 
@@ -22,7 +23,7 @@ export function PersonSwitcher({ onDone }: { onDone?: () => void }) {
                 type="button"
                 aria-pressed={active}
                 title={label(p)}
-                onClick={() => { switchProfile(p.id); onDone?.(); }}
+                onClick={() => { if (p.id !== activeId) clearIntakeNote(); switchProfile(p.id); onDone?.(); }}
                 className={cn(
                   "flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold",
                   active ? "bg-care-soft text-care" : "text-muted-foreground hover:bg-muted",
@@ -54,7 +55,7 @@ export function PersonSwitcher({ onDone }: { onDone?: () => void }) {
         type="button"
         variant="ghost"
         className="mt-1 h-10 w-full justify-start rounded-lg px-3 text-sm font-semibold text-primary"
-        onClick={() => { addProfile(); onDone?.(); void navigate({ to: "/start" }); }}
+        onClick={() => { clearIntakeNote(); addProfile(); onDone?.(); void navigate({ to: "/start" }); }}
       >
         <Plus className="size-4" />Adaugă o persoană
       </Button>

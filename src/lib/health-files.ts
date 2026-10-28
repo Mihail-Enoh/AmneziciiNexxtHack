@@ -44,13 +44,21 @@ export interface HealthSession {
   story: string; answers: QuizAnswers; assessment: HealthAssessment | null;
   /** Lab results read so far (also before a result exists) and fingerprints of the documents already read. */
   labs?: LabResult[]; docHashes?: string[];
+  /** Full name of the person the answers are about; a session for someone else is never shown. */
+  person?: string;
 }
 
 export function saveHealthSession(s: HealthSession) {
   try { sessionStorage.setItem(key(), JSON.stringify(s)); } catch { /* ignore */ }
 }
-export function readHealthSession(): HealthSession | null {
-  try { const r = sessionStorage.getItem(key()); return r ? (JSON.parse(r) as HealthSession) : null; } catch { return null; }
+/** The saved session, only if it belongs to `person` (full name). Answers for anyone else are dropped. */
+export function readHealthSession(person?: string): HealthSession | null {
+  try {
+    const r = sessionStorage.getItem(key());
+    const s = r ? (JSON.parse(r) as HealthSession) : null;
+    if (s && person !== undefined && s.person !== person) { sessionStorage.removeItem(key()); return null; }
+    return s;
+  } catch { return null; }
 }
 export function clearHealthSession() {
   try { sessionStorage.removeItem(key()); } catch { /* ignore */ }

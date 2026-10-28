@@ -2,12 +2,14 @@
 // Builds on plan.ts (month-by-month care costs) and health.ts (quiz + risk signals) and answers:
 //   1. WHEN daily help may be needed: a probability per year (Gompertz curve) + a central interval.
 //   2. WHAT it may cost the family: plan.ts run for every possible start year, weighted by probability.
-//   3. HOW MUCH to set aside per month to have the reserve by the most likely year.
-//   4. WHICH HABITS move the date: per habit, years gained and % of family cost saved.
+//   3. HOW MUCH to set aside per month to have the family's share ready by the most likely year.
+//   4. WHICH HABITS move the date: per habit, years gained and how much less to set aside each month.
+//      Habit effects are hazard ratios from studies — edit them in habit-evidence.ts.
 // Everything is in TODAY'S LEI. Planning estimates only: not medical or financial advice.
 // Every assumption lives in FORECAST_ASSUMPTIONS with its source or "Demo".
 import { computePlan, type Intensity, type PlanState } from "./plan";
 import { DOMAIN_WEIGHT, DOMAINS, QUIZ, questionPoints, type Domain, type DomainResult, type QuizAnswers } from "./health";
+import { HABIT_EVIDENCE, HABIT_EVIDENCE_NOTE } from "./habit-evidence";
 
 // ------------------------------------------------------------------ assumptions
 export const FORECAST_ASSUMPTIONS = {
@@ -36,16 +38,9 @@ export const FORECAST_ASSUMPTIONS = {
     savingsRate: 0.07,
     savingsNote: "Dobânda Tezaur din oct. 2026 (3 ani, 7%/an, neimpozabilă). Dobânzile viitoare pot fi diferite.",
   },
-  /** Habits the user can change, with the wording used in suggestions. Ids must exist in QUIZ (health.ts);
-   *  a habit missing from the quiz is simply ignored.
-   *  weight = how much one quiz point of this habit counts (lifestyle habits only; "social" is its own domain). */
-  habits: [
-    { id: "smoking", title: "Renunțarea la fumat", action: "renunță la fumat", weight: 1 },
-    { id: "exercise", title: "Mișcare regulată", action: "face mișcare de câteva ori pe săptămână", weight: 1 },
-    { id: "alcohol", title: "Mai puțin alcool", action: "bea alcool cel mult ocazional", weight: 0.75 },
-    { id: "social", title: "Mai multă viață socială", action: "iese mai des din casă și se vede cu alți oameni", weight: 1 },
-  ],
-  habitsNote: "Demo: ponderi orientative pentru fiecare obicei, de verificat cu un specialist.",
+  /** Habits the user can change: hazard ratios and wording live in habit-evidence.ts. */
+  habits: HABIT_EVIDENCE,
+  habitsNote: HABIT_EVIDENCE_NOTE,
   maxYears: 25,
 };
 
@@ -72,22 +67,36 @@ export function monthlySavingFor(target: number, months: number, annualRate: num
 // ------------------------------------------------------------------ risk points
 /**
  * Risk points from the health check, age excluded (age is in the curve).
- * Habits (lifestyle) count one by one, so changing a single habit always changes the result.
- * Other domains count their worst answer. Signals from lab results or the story (AI) can only raise a domain.
+ * Habit questions (habit-evidence.ts) are NOT points: they act through their own hazard ratio (habitLogHazard).
+ * Other quiz questions: lifestyle ones add up, other domains count their worst answer.
+ * Signals from lab results or the story (AI) can only raise a domain.
  */
 export function riskPoints(domains: Pick<DomainResult, "domain" | "level" | "reasons">[] | null | undefined, answers: QuizAnswers | null | undefined): number {
   const quiz: Record<Domain, number> = { mobility: 0, daily: 0, cognition: 0, chronic: 0, lifestyle: 0, social: 0 };
   for (const q of QUIZ) {
     const p = answers ? questionPoints(q, answers) : null;
     if (p === null) continue;
-    const w = FORECAST_ASSUMPTIONS.habits.find((h) => h.id === q.id)?.weight ?? 1;
-    quiz[q.domain] = q.domain === "lifestyle" ? quiz[q.domain] + p * w : Math.max(quiz[q.domain], p);
+    if (FORECAST_ASSUMPTIONS.habits.some((h) => h.id === q.id)) continue;
+    quiz[q.domain] = q.domain === "lifestyle" ? quiz[q.domain] + p : Math.max(quiz[q.domain], p);
   }
   return DOMAINS.reduce((sum, d) => {
     const other = Math.max(0, ...(domains ?? []).filter((x) => x.domain === d).flatMap((x) => x.reasons.filter((r) => r.source !== "quiz").map((r) => r.level)));
     // Domains passed without reasons (e.g. older saved results) still count at their level.
     const fallback = answers ? 0 : Math.max(0, ...(domains ?? []).filter((x) => x.domain === d).map((x) => x.level));
     return sum + Math.max(quiz[d], other, fallback) * DOMAIN_WEIGHT[d];
+  }, 0);
+}
+
+/**
+ * Sum of ln(hazard ratio) for the current habits. Habits in `changed` keep only the part of the extra
+ * risk that does not go away (1 − reversible), as if they changed today.
+ */
+export function habitLogHazard(answers: QuizAnswers | null | undefined, changed: string[] = []): number {
+  if (!answers) return 0;
+  return FORECAST_ASSUMPTIONS.habits.reduce((sum, h) => {
+    const hr = Math.max(1, ...(answers[h.id] ?? []).map((id) => h.hr[id] ?? 1));
+    const keep = changed.includes(h.id) ? 1 - Math.max(0, Math.min(1, h.reversible)) : 1;
+    return sum + Math.log(hr) * keep;
   }, 0);
 }
 
@@ -100,10 +109,11 @@ export interface OnsetCurve {
   withinHorizon: number;
 }
 
-export function onsetCurve(age: number, points: number, intensity: Intensity, horizonYears: number): OnsetCurve {
+/** `habitLog` = habitLogHazard(...): multiplies the yearly chance by e^habitLog. */
+export function onsetCurve(age: number, points: number, intensity: Intensity, horizonYears: number, habitLog = 0): OnsetCurve {
   const { a, b, perRiskPoint, band } = FORECAST_ASSUMPTIONS.onset;
   const age0 = Math.max(50, Math.min(105, Number.isFinite(age) && age > 0 ? age : 70));
-  const A = (a / b) * Math.exp(b * (age0 - 65)) * FORECAST_ASSUMPTIONS.onset.intensity[intensity] * Math.exp(perRiskPoint * Math.max(0, points));
+  const A = (a / b) * Math.exp(b * (age0 - 65)) * FORECAST_ASSUMPTIONS.onset.intensity[intensity] * Math.exp(perRiskPoint * Math.max(0, points)) * Math.exp(Math.max(0, habitLog));
   const cumulativeAt = (t: number) => 1 - Math.exp(-A * (Math.exp(b * t) - 1));
   const quantile = (q: number) => Math.log(1 + -Math.log(1 - q) / A) / b;
   const H = Math.max(1, Math.min(FORECAST_ASSUMPTIONS.maxYears, Math.round(horizonYears)));
@@ -135,8 +145,11 @@ export interface HabitSuggestion {
   /** Drop in the expected family cost over the horizon. */
   costSaved: number;
   costSavedPct: number;
-  /** How much less to set aside each month. */
+  /** How much less to set aside each month (more time to save the same amount). */
   savingLessPerMonth: number;
+  /** Monthly amount to set aside before and after the change. */
+  perMonthBefore: number;
+  perMonthAfter: number;
 }
 export interface Forecast {
   intensity: Intensity;
@@ -147,7 +160,8 @@ export interface Forecast {
   expectedFamilyCost: number;
   /** If help starts in the most likely year. */
   atMedian: { year: number; monthlyGapAtStart: number; familyCost: number };
-  /** One savings figure: reserve needed and monthly amount to reach it by the most likely year. */
+  /** One savings figure: the family's share of the care cost (valued at the start of care) and the
+   *  monthly amount to set aside to have it by the most likely year. */
   saving: { reserveNeeded: number; perMonth: number | null; months: number };
   habits: HabitSuggestion[];
   assumptions: { label: string; value: string; note: string }[];
@@ -169,8 +183,8 @@ const savingsRateFor = (s: PlanState) =>
   (s.costGrowth || 0) > 0 ? FORECAST_ASSUMPTIONS.economy.savingsRate : realRate(FORECAST_ASSUMPTIONS.economy.savingsRate);
 
 /** Core numbers for a given risk level (used for the real case and for each habit change). */
-function core(s: PlanState, intensity: Intensity, points: number, horizon: number, now: Date) {
-  const onset = onsetCurve(s.parent.age, points, intensity, horizon);
+function core(s: PlanState, intensity: Intensity, points: number, habitLog: number, horizon: number, now: Date) {
+  const onset = onsetCurve(s.parent.age, points, intensity, horizon, habitLog);
   const cache = new Map<number, ReturnType<typeof planAt>>();
   const at = (y: number) => { let p = cache.get(y); if (!p) { p = planAt(s, intensity, y, now); cache.set(y, p); } return p; };
   const familyCostOf = (y: number) => at(y).projection.reduce((sum, m) => sum + m.gap, 0);
@@ -178,8 +192,11 @@ function core(s: PlanState, intensity: Intensity, points: number, horizon: numbe
   const medianYear = Math.max(1, Math.round(onset.p50));
   const m = at(medianYear);
   const rate = savingsRateFor(s);
-  const reserveNeeded = presentValue(m.projection.map((row) => row.remaining), rate);
-  const months = medianYear * 12;
+  // The whole family share (same as the "cost total pentru familie" card), so the amount is never 0 just
+  // because contributions promised for later would cover it.
+  const reserveNeeded = presentValue(m.projection.map((row) => row.gap), rate);
+  // Months until the most likely start, unrounded: a delay of a few months already lowers the monthly amount.
+  const months = Math.max(1, Math.round(onset.p50 * 12));
   const perMonth = monthlySavingFor(reserveNeeded, months, rate);
   return {
     onset, expectedFamilyCost,
@@ -195,42 +212,35 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
   const horizon = Math.max(1, Math.min(FORECAST_ASSUMPTIONS.maxYears, opts.horizonYears ?? Math.max(s.horizon, 10)));
   const hasHealth = !!opts.domains || !!opts.answers;
   const points = hasHealth ? riskPoints(opts.domains, opts.answers) : FORECAST_ASSUMPTIONS.onset.fromIndependence[s.parent.independence];
-  const base = core(s, intensity, points, horizon, now);
+  const habitLog = hasHealth ? habitLogHazard(opts.answers) : 0;
+  const base = core(s, intensity, points, habitLog, horizon, now);
 
   // Habit suggestions: change one habit to its best answer, keep everything else.
   const who = s.parent.name.trim() || "persoana";
   const lei = (n: number) => `${Math.round(n).toLocaleString("ro-RO")} lei`;
   const yrs = (n: number) => `${n.toLocaleString("ro-RO")} ${n === 1 ? "an" : "ani"}`;
   const habits: HabitSuggestion[] = [];
-  const improve = (ids: string[]) => {
-    const next: QuizAnswers = { ...(opts.answers ?? {}) };
-    for (const id of ids) {
-      const q = QUIZ.find((x) => x.id === id);
-      const best = q?.options.find((o) => o.points === 0);
-      if (q && best) next[id] = [best.id];
-    }
-    return next;
-  };
   const evaluate = (id: string, title: string, action: string, ids: string[]) => {
-    const p = riskPoints(opts.domains, improve(ids));
-    if (p >= points) return;
-    const better = core(s, intensity, p, horizon, now);
+    const better = core(s, intensity, points, habitLogHazard(opts.answers, ids), horizon, now);
     const delayYears = Math.round((better.onset.p50 - base.onset.p50) * 10) / 10;
+    if (delayYears <= 0) return;
     const costSaved = Math.max(0, Math.round(base.expectedFamilyCost - better.expectedFamilyCost));
     const costSavedPct = base.expectedFamilyCost > 0 ? Math.round((costSaved / base.expectedFamilyCost) * 100) : 0;
-    const savingLessPerMonth = base.saving.perMonth !== null && better.saving.perMonth !== null ? Math.max(0, base.saving.perMonth - better.saving.perMonth) : 0;
-    if (delayYears <= 0) return;
+    const before = base.saving.perMonth ?? 0;
+    const after = better.saving.perMonth ?? 0;
+    const savingLessPerMonth = Math.max(0, before - after);
     habits.push({
-      id, title, delayYears, costSaved, costSavedPct, savingLessPerMonth,
+      id, title, delayYears, costSaved, costSavedPct, savingLessPerMonth, perMonthBefore: before, perMonthAfter: after,
       detail: `În modelul nostru, dacă ${who} ${action} de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${yrs(delayYears)}. ` +
-        `În următorii ${horizon} ani, costul estimat pentru familie ar scădea cu ${costSavedPct >= 1 ? `${costSavedPct}%` : "sub 1%"} (aprox. ${lei(costSaved)})` +
-        (savingLessPerMonth > 0 ? `, iar suma de pus deoparte ar fi cu ${lei(savingLessPerMonth)}/lună mai mică.` : "."),
+        (savingLessPerMonth > 0
+          ? `Familia ar avea mai mult timp să strângă banii: ${lei(after)}/lună în loc de ${lei(before)}/lună.`
+          : `Familia ar avea mai mult timp să se pregătească.`),
     });
   };
   if (opts.answers) {
     const bad = FORECAST_ASSUMPTIONS.habits.filter((h) => {
       const q = QUIZ.find((x) => x.id === h.id);
-      return (opts.answers?.[h.id] ?? []).some((id) => (q?.options.find((o) => o.id === id)?.points ?? 0) > 0);
+      return !!q && (opts.answers?.[h.id] ?? []).some((id) => (h.hr[id] ?? 1) > 1);
     });
     for (const h of bad) evaluate(h.id, h.title, h.action, [h.id]);
     if (bad.length >= 2) evaluate("all", "Toate schimbările de mai sus", "face toate aceste schimbări", bad.map((h) => h.id));
@@ -242,7 +252,7 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
   const assumptions = [
     { label: "Când poate fi nevoie de ajutor", value: "curbă de risc pe vârstă (Gompertz) × factori de risc", note: FORECAST_ASSUMPTIONS.onset.note },
     { label: "Intervalul afișat", value: "între percentilele 40 și 60", note: FORECAST_ASSUMPTIONS.onset.bandNote },
-    { label: "Efectul obiceiurilor", value: FORECAST_ASSUMPTIONS.habits.map((h) => `${h.title.toLowerCase()} ×${h.weight.toLocaleString("ro-RO")}`).join(", "), note: FORECAST_ASSUMPTIONS.habitsNote },
+    { label: "Efectul obiceiurilor (risc anual, maxim)", value: FORECAST_ASSUMPTIONS.habits.map((h) => `${h.label} ×${Math.max(...Object.values(h.hr)).toLocaleString("ro-RO")}`).join(", "), note: FORECAST_ASSUMPTIONS.habitsNote },
     { label: "Creșterea costurilor de îngrijire", value: `${pct((s.costGrowth || 0) / 100)}/an`, note: e.growthNote },
     { label: "Creșterea pensiei", value: `${pct((s.incomeGrowth || 0) / 100)}/an`, note: e.growthNote },
     { label: "Durata îngrijirii", value: `${base.careDurationMonths} luni`, note: e.growthNote },
@@ -255,7 +265,7 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
     intensity, riskPoints: points, horizonYears: horizon, onset: base.onset,
     expectedFamilyCost: Math.round(base.expectedFamilyCost), atMedian: base.atMedian, saving: base.saving,
     habits, assumptions,
-    chartYears: onsetCurve(s.parent.age, points, intensity, chartHorizon).years,
+    chartYears: onsetCurve(s.parent.age, points, intensity, chartHorizon, habitLog).years,
     careDurationMonths: base.careDurationMonths,
     todaysPrices: !((s.costGrowth || 0) > 0),
   };

@@ -319,6 +319,17 @@ export function mergeLabs(existing: LabResult[], incoming: LabResult[]): LabMerg
 }
 
 /** One row per test (keeps the last one) — so a test typed twice is never counted twice. */
+/** Names that appear more than once (same test written differently counts too), e.g. ["Vitamina B12"]. */
+export function duplicateLabNames(labs: LabResult[]): string[] {
+  const seen = new Map<string, number>();
+  for (const l of labs) { const k = labKey(l.name); if (k) seen.set(k, (seen.get(k) ?? 0) + 1); }
+  const out: string[] = [];
+  for (const l of labs) { const k = labKey(l.name); if (k && (seen.get(k) ?? 0) > 1 && !out.some((n) => labKey(n) === k)) out.push(l.name.trim()); }
+  return out;
+}
+/** Rows without a name are unfinished: they are left out when the labs are used. */
+export const namedLabs = (labs: LabResult[]): LabResult[] => labs.filter((l) => l.name.trim() !== "");
+
 export const uniqueLabs = (labs: LabResult[]): LabResult[] => {
   const byKey = new Map<string, LabResult>();
   labs.forEach((l, i) => byKey.set(labKey(l.name) || `#${i}`, l));

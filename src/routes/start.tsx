@@ -7,7 +7,7 @@ import { AnimatedNumber, InfoTip, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { AmountSlider } from "@/components/app/AmountSlider";
 import {
   Select,
   SelectContent,
@@ -21,6 +21,7 @@ import { setPlan, usePlan } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { IntakeBanner } from "@/components/app/IntakeBanner";
+import { clearIntakeNote } from "@/lib/intake-session";
 
 export const Route = createFileRoute("/start")({
   head: () => ({
@@ -194,6 +195,7 @@ function Onboarding() {
 
   const finish = () => {
     setPlan({ ...d, onboarded: true });
+    clearIntakeNote(); // the AI note was about filling this form; it is done
     setLoading(0);
   };
   useEffect(() => {
@@ -445,7 +447,7 @@ function Onboarding() {
               </h1>
               <div className="grid gap-5 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="uname">Prenumele tău</Label>
+                  <Label htmlFor="uname">Numele tău complet</Label>
                   <Input
                     id="uname"
                     value={d.user.name}
@@ -484,11 +486,11 @@ function Onboarding() {
                     className="grid items-end gap-3 rounded-2xl border p-4 sm:grid-cols-[1fr_1fr_auto]"
                   >
                     <div className="space-y-2">
-                      <Label htmlFor={`n-${m.id}`}>Prenume</Label>
+                      <Label htmlFor={`n-${m.id}`}>Nume complet</Label>
                       <Input
                         id={`n-${m.id}`}
                         value={m.name}
-                        placeholder="ex. Andrei"
+                        placeholder="ex. Andrei Popescu"
                         onChange={(e) => setMember(m.id, { name: e.target.value })}
                         className="h-11 rounded-xl"
                       />
@@ -532,15 +534,13 @@ function Onboarding() {
                   <AnimatedNumber value={d.userContribution} />
                   /lună
                 </p>
-                <Slider
+                <AmountSlider
                   id="ucontrib"
                   className="mt-4"
-                  min={0}
-                  max={2000}
-                  step={50}
-                  value={[d.userContribution]}
-                  onValueChange={([v = 0]) => setD({ ...d, userContribution: v })}
-                  aria-label="Contribuția ta lunară"
+                  max={Math.max(2000, d.user.income)}
+                  value={d.userContribution}
+                  onChange={(v) => setD({ ...d, userContribution: v })}
+                  label="Contribuția ta lunară"
                 />
                 <p className="mt-3 text-sm text-muted-foreground">
                   Aceasta nu este o promisiune. Ne ajută doar să simulăm capacitatea familiei.

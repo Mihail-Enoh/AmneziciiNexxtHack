@@ -13,6 +13,17 @@ import { saveIntakeNote } from "@/lib/intake-session";
 import { blankState, blankWithName } from "@/lib/intake";
 
 const EXAMPLE_STORY = "Mama are 72 de ani, stă singură la Iași, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi fac eu cumpărăturile. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500.";
+/** Why the AI could not read the story, in plain words (the code helps debugging). */
+function intakeFailText(reason: string): string {
+  if (reason === "no_key") return "lipsește cheia FEATHERLESS_API_KEY pe server";
+  if (reason === "http_401" || reason === "http_403") return "cheia API nu este acceptată";
+  if (reason === "http_429") return "serviciul AI este ocupat; încearcă peste un minut";
+  if (reason === "timeout") return "serviciul AI a răspuns prea greu";
+  if (reason === "parse") return "răspunsul AI nu a putut fi folosit";
+  if (reason.startsWith("http_")) return `serviciul AI a răspuns cu eroarea ${reason.slice(5)}`;
+  return "nu am putut contacta serviciul AI";
+}
+
 const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…", "Calculăm diferențele de acoperit…"];
 
 export const Route = createFileRoute("/")({
@@ -57,7 +68,7 @@ function Landing() {
     const name = person.trim().slice(0, 80);
     if (!text || !name || busy) return;
     setStep(0); setBusy(true);
-    let res: Awaited<ReturnType<typeof intake>> | { ok: false } = { ok: false };
+    let res: Awaited<ReturnType<typeof intake>> | { ok: false; reason: string } = { ok: false, reason: "network" };
     try { res = await intake({ data: { story: text, name } }); } catch { /* fall through */ }
     if (res.ok) {
       const r = res.result;
@@ -67,7 +78,7 @@ function Landing() {
     } else {
       // Start from a blank plan with the typed name — never from the "Elena" example.
       addProfile(blankWithName(name));
-      saveIntakeNote({ message: "Nu am putut citi povestea. Completează manual.", filled: [], assumed: [], missing: [] });
+      saveIntakeNote({ message: `Nu am putut citi povestea (${intakeFailText(res.reason)}). Completează manual.`, filled: [], assumed: [], missing: [] });
       navigate({ to: "/start" });
     }
   };

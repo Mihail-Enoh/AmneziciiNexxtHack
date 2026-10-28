@@ -16,6 +16,7 @@ export const Route = createFileRoute('/sanatate')({
 
 /** Each person has their own answers and documents: switching person remounts the flow with that person's session. */
 function HealthPage() {
-  const { activeId } = useProfiles();
-  return <HealthFlow key={activeId} />;
+  const { activeId, loaded } = useProfiles();
+  // Remount once saved data is loaded and on every person change, so the right session is read.
+  return <HealthFlow key={`${activeId}:${loaded ? 1 : 0}`} />;
 }

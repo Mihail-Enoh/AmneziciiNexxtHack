@@ -31,24 +31,24 @@ describe('the same document is not read twice', () => {
     expect(await fileFingerprint(new File(['abc'], 'b.jpg'))).toBe(a);
     expect(await fileFingerprint(new File(['abd'], 'a.jpg'))).not.toBe(a);
   });
-  it('rejects a file with the same content, even with another name', async () => {
+  it('rejects a file with the same content, even with another name; a failed read is not remembered', async () => {
     const onHash = vi.fn();
     render(<DocumentUpload onLabs={() => {}} onBusy={() => {}} consent onHash={onHash} />);
     const picker = screen.getByLabelText('Alege documente');
     const a = new File(['same bytes'], 'analize.jpg', { type: 'image/jpeg' });
     const b = new File(['same bytes'], 'analize (1).jpg', { type: 'image/jpeg' });
     await act(async () => { fireEvent.change(picker, { target: { files: [a] } }); });
-    await waitFor(() => expect(onHash).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(picker).toBeEnabled()); // reading the first file has finished
+    await waitFor(() => expect(screen.getByText('analize.jpg')).toBeTruthy()); // the first file is in the list
+    await waitFor(() => expect(picker).toBeEnabled()); // and reading it has finished (it fails in jsdom)
+    expect(onHash).not.toHaveBeenCalled(); // not read → can be tried again later
     await act(async () => { fireEvent.change(picker, { target: { files: [b] } }); });
-    await waitFor(() => expect(screen.getByText(/a fost deja încărcat/)).toBeTruthy());
-    expect(onHash).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.getByText(/este deja în listă/)).toBeTruthy());
   });
-  it('also rejects a document read in an earlier visit (known fingerprint)', async () => {
+  it('a document read in an earlier visit gets a friendly note, not an error', async () => {
     const hash = await fileFingerprint(new File(['old document'], 'first-name.jpg', { type: 'image/jpeg' }));
     render(<DocumentUpload onLabs={() => {}} onBusy={() => {}} consent knownHashes={[hash]} />);
     await act(async () => { fireEvent.change(screen.getByLabelText('Alege documente'), { target: { files: [new File(['old document'], 'other-name.jpg', { type: 'image/jpeg' })] } }); });
-    await waitFor(() => expect(screen.getByText(/a fost deja încărcat/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/a fost deja citit.*Începe din nou/)).toBeTruthy());
   });
 });
 

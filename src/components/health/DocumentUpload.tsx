@@ -35,6 +35,8 @@ export function DocumentUpload({ onLabs, onBusy, consent, knownHashes = [], onHa
         } catch { errors.push(readError('network')); }
         patch(entry.id, { progress: Math.round(page / total * 100) });
       }
+      // Remember the document only once it was really read: a failed read can always be tried again.
+      if (!errors.length && count > 0) onHash?.(entry.hash);
       patch(entry.id, { status: errors.length ? [...new Set(errors)].join(' ') : count ? `${count} analize citite. Le verificăm la pasul următor.` : 'Nu am găsit analize numerice. Poți adăuga valorile manual.', progress: 100, error: errors.length > 0 });
     } catch { patch(entry.id, { status: 'Nu am putut deschide documentul. Alege alt fișier sau continuă manual.', error: true, progress: 100 }); }
   };
@@ -49,13 +51,15 @@ export function DocumentUpload({ onLabs, onBusy, consent, knownHashes = [], onHa
     const accepted = selectDocuments(files, entries.length);
     setNotice(accepted.length < files.length ? `Poți încărca maximum ${MAX_FILES} fișiere.` : '');
     const rows: Entry[] = [];
-    const seen = new Set([...knownHashes, ...entries.map(e => e.hash)]);
+    const known = new Set(knownHashes);
+    const seen = new Set(entries.map(e => e.hash));
     for (const file of accepted) {
       const error = documentError(file);
       if (error) { setNotice(error); continue; }
       const hash = await fileFingerprint(file);
-      if (seen.has(hash)) { setNotice(`Documentul „${file.name}” a fost deja încărcat. Nu îl citim de două ori.`); continue; }
-      seen.add(hash); onHash?.(hash);
+      if (seen.has(hash)) { setNotice(`Documentul „${file.name}” este deja în listă. Dacă nu a putut fi citit, folosește butonul „Încearcă din nou” de lângă el.`); continue; }
+      if (known.has(hash)) { setNotice(`Documentul „${file.name}” a fost deja citit, iar valorile lui sunt în lista de analize. Ca să îl citești din nou, apasă „Începe din nou”.`); continue; }
+      seen.add(hash);
       rows.push({ id: nextId.current++, name: file.name, file, hash, status: 'În așteptare', progress: 0, error: false });
     }
     setEntries(old => [...old, ...rows]);
