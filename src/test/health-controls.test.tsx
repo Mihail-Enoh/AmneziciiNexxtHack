@@ -7,6 +7,7 @@ import { selectDocuments, MAX_PDF_PAGES } from '@/components/health/documents';
 import { useState } from 'react';
 import type { LabResult } from '@/lib/health';
 vi.mock('@tanstack/react-start', () => ({ useServerFn: () => vi.fn() }));
+vi.mock('@/lib/health.functions', () => ({ readHealthDocument: vi.fn() }));
 afterEach(cleanup);
 
 describe('Health document and review rules', () => {
