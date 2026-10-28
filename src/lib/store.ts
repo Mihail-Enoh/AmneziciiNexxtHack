@@ -20,7 +20,7 @@ export function loadPlanFromStorage() {
       state = {
         ...defaults,
         ...saved,
-        parent: { ...defaults.parent, ...saved.parent },
+        parent: { ...defaults.parent, lastName: "", ...saved.parent },
         user: { ...defaults.user, ...saved.user },
         costs: { ...defaults.costs, ...saved.costs },
       };

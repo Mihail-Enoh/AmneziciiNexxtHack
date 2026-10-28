@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { runIntake } from "@/lib/intake.functions";
 import { saveIntakeNote } from "@/lib/intake-session";
+import { blankWithName } from "@/lib/intake";
 
 const EXAMPLE_STORY = "Mama are 72 de ani, stă singură la Iași, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi fac eu cumpărăturile. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500.";
 const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…", "Calculăm diferențele de acoperit…"];
@@ -43,6 +44,7 @@ function Landing() {
   };
   const intake = useServerFn(runIntake);
   const [story, setStory] = useState("");
+  const [person, setPerson] = useState("");
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
   useEffect(() => {
@@ -52,16 +54,19 @@ function Landing() {
   }, [busy]);
   const submit = async () => {
     const text = story.trim().slice(0, 600);
-    if (!text || busy) return;
+    const name = person.trim().slice(0, 80);
+    if (!text || !name || busy) return;
     setStep(0); setBusy(true);
     let res: Awaited<ReturnType<typeof intake>> | { ok: false } = { ok: false };
-    try { res = await intake({ data: { story: text } }); } catch { /* fall through */ }
+    try { res = await intake({ data: { story: text, name } }); } catch { /* fall through */ }
     if (res.ok) {
       const r = res.result;
       setPlan(r.patch);
       saveIntakeNote({ message: r.message, filled: r.filled, assumed: r.assumed, missing: r.missing });
       navigate({ to: r.path as "/plan" });
     } else {
+      // Start from a blank plan with the typed name — never from the "Elena" example.
+      setPlan(blankWithName(name));
       saveIntakeNote({ message: "Nu am putut citi povestea. Completează manual.", filled: [], assumed: [], missing: [] });
       navigate({ to: "/start" });
     }
@@ -97,13 +102,17 @@ function Landing() {
             <Button size="lg" variant="care" onClick={tryDemo}>{t("Încearcă exemplul Elenei")}</Button>
           </div>
           <div className="card-surface mt-6 max-w-xl p-4">
+            <label htmlFor="person" className="text-sm font-semibold">Numele persoanei de care vrei să ai grijă</label>
+            <input id="person" value={person} maxLength={80} required autoComplete="off" onChange={(e) => setPerson(e.target.value)}
+              placeholder="Ex.: Maria Ionescu"
+              className="mt-2 mb-4 h-11 w-full rounded-xl border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
             <label htmlFor="story" className="text-sm font-semibold">Povestește-ne situația ta</label>
             <textarea id="story" value={story} maxLength={600} rows={4} onChange={(e) => setStory(e.target.value)}
               placeholder="Ex.: Tata are 70 de ani, stă la Cluj, are pensie 2.500 lei. Eu și sora mea am putea ajuta…"
               className="mt-2 w-full resize-y rounded-xl border bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-              <button type="button" onClick={() => setStory(EXAMPLE_STORY)} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Folosește o poveste exemplu</button>
-              <Button onClick={submit} disabled={!story.trim()}>Construiește planul <ArrowRight /></Button>
+              <button type="button" onClick={() => { setStory(EXAMPLE_STORY); if (!person.trim()) setPerson("Maria Ionescu"); }} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Folosește o poveste exemplu</button>
+              <Button onClick={submit} disabled={!story.trim() || !person.trim()} title={!person.trim() ? "Scrie numele persoanei" : undefined}>Construiește planul <ArrowRight /></Button>
             </div>
           </div>
           <a href="#cum" className="mt-4 inline-block text-sm font-semibold text-primary underline-offset-4 hover:underline">{t("Vezi cum funcționează ↓")}</a>

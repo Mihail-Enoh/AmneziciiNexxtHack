@@ -259,15 +259,29 @@ function Onboarding() {
           {step === 1 && (
             <div className="space-y-6">
               <h1 className="text-3xl font-semibold md:text-4xl">
-                Spune-ne puțin despre părintele tău
+                Spune-ne puțin despre persoana de care ai grijă
               </h1>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="pname">Prenume</Label>
+                  <Label htmlFor="pname">Prenume <span className="text-care">*</span></Label>
                   <Input
                     id="pname"
                     value={p.name}
+                    required
+                    aria-required
+                    aria-invalid={!p.name.trim() ? true : undefined}
+                    aria-describedby="pname-help"
                     onChange={(e) => setP({ name: e.target.value })}
+                    className="h-12 rounded-xl text-base"
+                  />
+                  {!p.name.trim() && <p id="pname-help" className="text-xs text-muted-foreground">Prenumele este obligatoriu; îl folosim în tot planul.</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="plast">Nume de familie (opțional)</Label>
+                  <Input
+                    id="plast"
+                    value={p.lastName ?? ""}
+                    onChange={(e) => setP({ lastName: e.target.value })}
                     className="h-12 rounded-xl text-base"
                   />
                 </div>
@@ -333,7 +347,7 @@ function Onboarding() {
           {step === 2 && (
             <div className="space-y-6">
               <h1 className="text-3xl font-semibold md:text-4xl">
-                Ce resurse financiare are {p.name || "părintele tău"} astăzi?
+                Ce resurse financiare are {p.name || "persoana"} astăzi?
               </h1>
               <p className="rounded-xl bg-primary-soft p-3 text-sm">
                 Nu trebuie să introduci valori exacte. O estimare este suficientă pentru primul
@@ -399,7 +413,7 @@ function Onboarding() {
                       /lună
                     </strong>
                     <br />
-                    {p.name || "Părintele tău"} are aproximativ {ron(surplus)}/lună disponibili
+                    {p.name || "Persoana"} are aproximativ {ron(surplus)}/lună disponibili
                     peste cheltuielile curente.
                   </p>
                 )}
@@ -541,7 +555,7 @@ function Onboarding() {
               <ArrowLeft /> Înapoi
             </Button>
             {step < 4 ? (
-              <Button size="lg" onClick={() => setStep(step + 1)}>
+              <Button size="lg" disabled={step === 1 && !p.name.trim()} onClick={() => setStep(step + 1)}>
                 Continuă <ArrowRight />
               </Button>
             ) : (

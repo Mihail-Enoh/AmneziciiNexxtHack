@@ -5,7 +5,10 @@ export type Intensity = "occasional" | "frequent" | "daily" | "residential";
 export type Independence = "independent" | "occasional" | "regular";
 
 export interface ParentProfile {
+  /** First name (required in the forms). */
   name: string;
+  /** Family name (optional). */
+  lastName: string;
   age: number;
   city: string;
   living: string;
@@ -117,6 +120,7 @@ export function demoState(): PlanState {
     onboarded: true,
     parent: {
       name: "Elena",
+      lastName: "Popescu",
       age: 67,
       city: "București",
       living: "Locuiește singur(ă)",
@@ -434,6 +438,17 @@ export const STATUS_META = {
 /** Romanian genitive for first names: Elena → Elenei, Maria → Mariei, Ion → lui Ion. */
 export function genitive(name: string) {
   const n = name.trim();
-  if (!n) return "părintelui";
+  if (!n) return "persoanei";
   return /a$/i.test(n) ? n.slice(0, -1) + "ei" : `lui ${n}`;
+}
+
+/** "Elena Popescu" (or just "Elena"); a neutral label when no name was given. */
+export function fullName(p: { name: string; lastName?: string }, fallback = "Persoana îngrijită") {
+  return [p.name, p.lastName ?? ""].map((x) => x.trim()).filter(Boolean).join(" ") || fallback;
+}
+
+/** "Maria Ionescu Pop" → first name "Maria", family name "Ionescu Pop". */
+export function splitName(full: string): { name: string; lastName: string } {
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  return { name: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
 }

@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { QUIZ, DOMAIN_LABEL, healthPatch, mergeLabs, reflag, toggleAnswer, type HealthAssessment, type QuizAnswers, type LabResult } from '@/lib/health';
-import { genitive } from '@/lib/plan';
+import { fullName, genitive } from '@/lib/plan';
 import { OtherAnswers } from './OtherAnswers';
 import { assessHealthFn } from '@/lib/health.functions';
 import { readHealthSession, saveHealthSession } from '@/lib/health-files';
@@ -80,7 +80,7 @@ export function HealthFlow() {
     finally { lock.current = false; setBusy(false); }
   };
   return <AppShell><div className="mx-auto max-w-4xl" lang="ro">
-    <header className="mb-7"><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary"><HeartPulse className="size-5" />Pentru {who || 'persoana îngrijită'}</div><h1 className="text-3xl font-semibold sm:text-4xl">Sănătate și obiceiuri</h1><p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">Un pas în plus pentru a înțelege ce sprijin ar putea fi util {who ? `pentru ${who}` : 'persoanei îngrijite'}. Răspunde în ritmul tău.</p></header>
+    <header className="mb-7"><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary"><HeartPulse className="size-5" />Pentru {fullName(plan.parent, 'persoana îngrijită')}</div><h1 className="text-3xl font-semibold sm:text-4xl">Sănătate și obiceiuri</h1><p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">Un pas în plus pentru a înțelege ce sprijin ar putea fi util {who ? `pentru ${who}` : 'persoanei îngrijite'}. Răspunde în ritmul tău.</p></header>
     <div className="mb-8"><div className="mb-3 flex justify-between gap-3 text-sm"><span className="font-semibold">Pasul {step + 1} din {STEPS.length} · {STEPS[step]}</span><span className="text-muted-foreground">{Math.round((step + 1) / STEPS.length * 100)}%</span></div><Progress value={(step + 1) / STEPS.length * 100} aria-label="Progres sănătate și obiceiuri" /><ol className="mt-3 hidden grid-cols-5 gap-3 text-xs sm:grid" style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}>{STEPS.map((label, i) => <li key={label} aria-current={i === step ? 'step' : undefined} className={i === step ? 'font-bold text-primary' : 'text-muted-foreground'}>{label}</li>)}</ol></div>
     <h2 ref={heading} tabIndex={-1} className="mb-5 scroll-mt-24 text-2xl font-semibold focus:outline-none">{step === 0 ? `Povestește despre sănătatea și obiceiurile ${ofWho}` : step === 1 ? 'Cum arată o zi obișnuită?' : step === 2 ? 'Înainte de documente' : step === 3 ? 'Documente, doar dacă dorești' : step === 4 ? 'Verifică analizele' : 'Scenarii de îngrijire pentru planificare'}</h2>
     {step === 0 && <div><label htmlFor="health-story" className="sr-only">{`Povestește despre sănătatea și obiceiurile ${ofWho}`}</label><Textarea id="health-story" className="min-h-56 bg-card text-base leading-relaxed" maxLength={4000} value={story} onChange={e => { setStory(e.target.value); invalidate(); }} placeholder="De exemplu: mama se plimbă zilnic, locuiește singură și o ajut uneori cu cumpărăturile…" /><div className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground"><span>Scrie doar ce te simți confortabil să împărtășești. Poți lăsa acest pas necompletat.</span><span>{story.length} / 4000</span></div></div>}

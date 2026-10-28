@@ -4,7 +4,7 @@
 // Nothing here is trusted from the model: unknown fields are dropped, bad values are
 // ignored (not fatal), and the destination page comes from an allowlist.
 import { z } from "zod";
-import { demoState, ron, scenarioById, type FamilyMember, type Independence, type Intensity, type PlanState } from "./plan";
+import { demoState, ron, scenarioById, splitName, type FamilyMember, type Independence, type Intensity, type PlanState } from "./plan";
 
 // Same lists as the onboarding form in routes/start.tsx. Keep them in sync (or import from here there).
 export const CITIES = ["București", "Cluj-Napoca", "Iași", "Timișoara", "Brașov", "Constanța", "Alt oraș", "Zonă rurală"] as const;
@@ -92,7 +92,7 @@ export function blankState(): PlanState {
   const d = demoState();
   return {
     ...d, onboarded: false,
-    parent: { name: "", age: 0, city: "Alt oraș", living: "Locuiește singur(ă)", housing: "Altă situație", independence: "independent", pension: 0, otherIncome: 0, savings: 0, expenses: 0, assets: [] },
+    parent: { name: "", lastName: "", age: 0, city: "Alt oraș", living: "Locuiește singur(ă)", housing: "Altă situație", independence: "independent", pension: 0, otherIncome: 0, savings: 0, expenses: 0, assets: [] },
     user: { name: "", age: 0, income: 0, savings: 0 },
     userContribution: 0, members: [], monthlySaving: 0, horizon: 10, scenario: "daily", yearsUntil: 10,
     futureIncome: null, useSavings: false, checklist: {},
@@ -103,7 +103,13 @@ const ASSUMED_EXPENSE_SHARE = 0.8;
 const r = (n: number) => Math.round(n);
 const nearestHorizon = (y: number): 5 | 10 | 15 => (y <= 7 ? 5 : y <= 12 ? 10 : 15);
 
-export function applyIntake(raw: RawIntake | null): IntakeResult {
+/** Blank plan with the name the user typed (used when the AI could not read the story). */
+export function blankWithName(full: string): PlanState {
+  const b = blankState();
+  return { ...b, parent: { ...b.parent, ...splitName(full) } };
+}
+
+export function applyIntake(raw: RawIntake | null, opts: { name?: string } = {}): IntakeResult {
   const base = blankState();
   const filled: Chip[] = [];
   const assumed: Chip[] = [];
@@ -113,7 +119,9 @@ export function applyIntake(raw: RawIntake | null): IntakeResult {
 
   // --- parent
   const parent = { ...base.parent };
-  if (pin.name) { parent.name = pin.name; filled.push({ label: "Prenume părinte", value: pin.name }); }
+  const typed = splitName(opts.name ?? "");
+  if (typed.name) { parent.name = typed.name; parent.lastName = typed.lastName; filled.push({ label: "Numele persoanei", value: [typed.name, typed.lastName].filter(Boolean).join(" ") }); }
+  else if (pin.name) { parent.name = pin.name; filled.push({ label: "Prenumele persoanei", value: pin.name }); }
   if (pin.age !== undefined) { parent.age = r(pin.age); filled.push({ label: "Vârsta părintelui", value: `${parent.age} ani` }); }
   const city = snap(pin.city, CITIES); if (city) { parent.city = city; filled.push({ label: "Localitate", value: city }); }
   const living = snap(pin.living, LIVING); if (living) parent.living = living;
@@ -183,7 +191,7 @@ export function applyIntake(raw: RawIntake | null): IntakeResult {
 }
 
 /** One call for the endpoint: model text in, result out. Never throws. */
-export function intakeFromModelText(modelText: string): IntakeResult | null {
+export function intakeFromModelText(modelText: string, opts: { name?: string } = {}): IntakeResult | null {
   const raw = parseIntake(modelText);
-  return raw ? applyIntake(raw) : null;
+  return raw ? applyIntake(raw, opts) : null;
 }

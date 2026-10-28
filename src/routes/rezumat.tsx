@@ -15,7 +15,7 @@ import {
 } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { computePlan, genitive, ron, scenarioById, type PlanState } from "@/lib/plan";
+import { computePlan, fullName, genitive, ron, scenarioById, type PlanState } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 
 export const Route = createFileRoute("/rezumat")({
@@ -94,7 +94,7 @@ function Summary() {
     <AppShell>
       <PageHeader
         eyebrow="Rezumat"
-        title={`Planul familiei pentru ${p.name}`}
+        title={`Planul familiei pentru ${fullName(p)}`}
         subtitle="Planul se poate schimba pe măsură ce familia se schimbă."
         right={<StatusPill status={c.status} />}
       />

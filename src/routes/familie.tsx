@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { computePlan, formatNumber, genitive, ron, type FamilyMember } from "@/lib/plan";
+import { computePlan, formatNumber, fullName, genitive, ron, type FamilyMember } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 
 export const Route = createFileRoute("/familie")({
@@ -211,10 +211,10 @@ function Family() {
         <div className="card-surface bg-primary-soft/60 p-5">
           <div className="flex items-center gap-3">
             <span className="grid size-10 place-items-center rounded-full bg-primary font-bold text-primary-foreground">
-              {p.name.charAt(0)}
+              {(p.name.trim() || "?").charAt(0)}
             </span>
             <div>
-              <p className="font-semibold">{p.name}</p>
+              <p className="font-semibold">{fullName(p)}</p>
               <p className="text-xs text-muted-foreground">Pensie și resurse</p>
             </div>
           </div>
@@ -362,7 +362,7 @@ function Family() {
           </div>
           <ul className="grid gap-3 sm:grid-cols-2">
             <li className="rounded-2xl border bg-primary-soft/50 p-4">
-              <p className="font-semibold">{p.name}</p>
+              <p className="font-semibold">{fullName(p)}</p>
               <p className="text-xs text-muted-foreground">Părinte</p>
             </li>
             <li className="rounded-2xl border bg-care-soft/50 p-4">

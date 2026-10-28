@@ -16,7 +16,7 @@ import {
   PrivacyNote,
 } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
-import { computePlan, formatNumber, genitive, ron, SCENARIOS, type Intensity } from "@/lib/plan";
+import { computePlan, formatNumber, fullName, genitive, ron, SCENARIOS, type Intensity } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -75,7 +75,7 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label="Părinte" icon={<UserRound className="size-3.5" />}>
-          {p.name}, {p.age}
+          {fullName(p)}, {p.age}
         </Metric>
         <Metric label="Începere îngrijire" icon={<CalendarDays className="size-3.5" />}>
           {c.fundingStartLabel}

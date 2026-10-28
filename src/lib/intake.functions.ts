@@ -49,7 +49,7 @@ async function callModel(story: string): Promise<{ text: string } | { fail: Inta
 type IntakeResponse = { ok: true; result: IntakeResult } | { ok: false; reason: IntakeFail };
 
 /** The whole endpoint logic as a plain function (testable without the server runtime). */
-export function runIntakeCore(story: string): Promise<IntakeResponse> {
+export function runIntakeCore(story: string, name = ""): Promise<IntakeResponse> {
   const job = busy.then(async (): Promise<IntakeResponse> => {
     let reason: IntakeFail = "parse";
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -59,7 +59,7 @@ export function runIntakeCore(story: string): Promise<IntakeResponse> {
         if (r.fail === "no_key" || r.fail.startsWith("http_4")) break; // retrying won't help
         continue;
       }
-      const result = intakeFromModelText(r.text);
+      const result = intakeFromModelText(r.text, { name });
       if (result) return { ok: true, result };
       reason = "parse";
     }
@@ -71,5 +71,5 @@ export function runIntakeCore(story: string): Promise<IntakeResponse> {
 }
 
 export const runIntake = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ story: z.string().trim().min(1).max(600) }).parse(d))
-  .handler(({ data }): Promise<IntakeResponse> => runIntakeCore(data.story));
+  .inputValidator((d: unknown) => z.object({ story: z.string().trim().min(1).max(600), name: z.string().trim().max(80).default("") }).parse(d))
+  .handler(({ data }): Promise<IntakeResponse> => runIntakeCore(data.story, data.name));
