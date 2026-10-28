@@ -1,4 +1,4 @@
-import { t, useT, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, displayName } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Check, Loader2, Compass, LineChart, ShieldCheck, Sparkles, Users } from "lucide-react";
 import heroImg from "@/assets/hero-family.jpg";

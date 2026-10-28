@@ -1,4 +1,4 @@
-import { t, useT, useLanguage, initializeLanguage } from "@/lib/i18n";
+import { t, useT, initializeLanguage } from "@/lib/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,

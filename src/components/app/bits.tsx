@@ -1,4 +1,4 @@
-import { t, useT, useLanguage, displayName } from "@/lib/i18n";
+import { t, useT, displayName } from "@/lib/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Calculator, Info, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
