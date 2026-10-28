@@ -1,4 +1,4 @@
-import { useT, useLanguage } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import { CareDateInput, PlanningAssumptions } from "@/components/app/PlanningAssumptions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarDays, HandCoins, HeartPulse, Home, PiggyBank, UserRound } from "lucide-react";
@@ -48,7 +48,6 @@ const INDEP_LABEL = {
 
 function Dashboard() {
   const t = useT();
-  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
