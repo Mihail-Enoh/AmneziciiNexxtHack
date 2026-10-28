@@ -1,3 +1,4 @@
+import { IntakeBanner } from "@/components/app/IntakeBanner";
 import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -111,6 +112,7 @@ function Onboarding() {
     <div className="min-h-screen">
       <PublicHeader />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">
+        <IntakeBanner />
         <div className="mb-8">
           <p className="text-sm font-semibold text-muted-foreground">{t("Pasul ")}{step}{t(" din 4")}</p>
           <div className="mt-2 grid grid-cols-4 gap-2" aria-hidden>
