@@ -1,9 +1,10 @@
+import { Link } from "@tanstack/react-router";
 import { t, useT, displayName } from "@/lib/i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Calculator, Info, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatNumber, genitive, PLAN_ASSUMPTIONS, ron, scenarioById, STATUS_META, type computePlan, type PlanState } from "@/lib/plan";
+import { breakdownOf, replacedExpensesOf, formatNumber, genitive, PLAN_ASSUMPTIONS, ron, scenarioById, STATUS_META, type computePlan, type PlanState } from "@/lib/plan";
 import { cn } from "@/lib/utils";
 
 /** Smoothly tweens between numeric values. */
@@ -42,7 +43,7 @@ export function gapLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcL
   const preset = s.costs[s.scenario] === PLAN_ASSUMPTIONS.costs[s.scenario];
   const who = s.parent.name.trim();
   const of = who ? genitive(who) : "persoanei";
-  const replaced = Math.min(sc.expensesReplaced, Math.max(0, s.parent.expenses));
+  const replaced = Math.min(replacedExpensesOf(s, s.scenario), Math.max(0, s.parent.expenses));
   const lines: CalcLine[] = [
     { label: `Cost îngrijire · ${sc.label.toLowerCase()}${preset ? " (estimare demonstrativă; o poți schimba în Scenarii)" : " (valoarea ta)"}`, value: ron(c.careMonthlyCost) },
   ];
@@ -50,7 +51,7 @@ export function gapLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcL
   lines.push({ label: `Pensia și veniturile ${of}`, value: ron(first.income), op: "−" });
   if (first.expenses > 0 || replaced > 0) lines.push({
     label: replaced > 0
-      ? `Cheltuielile ${of} care rămân: ${ron(s.parent.expenses)}, minus ${ron(replaced)} incluși deja în ${sc.label.toLowerCase()} (${sc.id === "residential" ? "cazare, masă, utilități" : "masa"})`
+      ? `Cheltuielile ${of} care rămân: ${ron(s.parent.expenses)}, minus ${ron(replaced)} incluși deja în ${sc.label.toLowerCase()} (${breakdownOf(s, s.scenario).filter((slice) => slice.replacesOwnExpense).map((slice) => slice.label.toLocaleLowerCase("ro-RO")).join(", ")})`
       : `Cheltuielile lunare ale ${of}`,
     value: ron(first.expenses), op: "+",
   });
@@ -78,6 +79,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
             </div>
           ))}
         </dl>
+        <Link to="/scenarii" className="text-sm font-semibold text-primary underline underline-offset-4">Vezi din ce e format costul →</Link>
         {note && <p className="text-xs text-muted-foreground">{t(note)}</p>}
       </DialogContent>
     </Dialog>

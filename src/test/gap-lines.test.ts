@@ -12,6 +12,6 @@ describe('monthly gap explained step by step', () => {
     expect(lines.map((l) => [l.op ?? '', l.value])).toEqual([
       ['', '3.000 RON'], ['−', '1.800 RON'], ['+', '700 RON'], ['=', '1.900 RON'],
     ]);
-    expect(lines[2]!.label).toMatch(/1\.500 RON, minus 800 RON incluși deja în ajutor zilnic \(masa\)/);
+    expect(lines[2]!.label).toMatch(/1\.500 RON, minus 800 RON incluși deja în ajutor zilnic \(masă\)/);
   });
 });

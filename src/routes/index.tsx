@@ -5,7 +5,7 @@ import heroImg from "@/assets/hero-family.jpg";
 import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
-import { addProfile, loadDemo } from "@/lib/store";
+import { addProfile } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { runIntake } from "@/lib/intake.functions";
@@ -49,10 +49,6 @@ const STEPS = [
 function Landing() {
   const t = useT();
   const navigate = useNavigate();
-  const tryDemo = () => {
-    loadDemo();
-    navigate({ to: "/plan" });
-  };
   const intake = useServerFn(runIntake);
   const [story, setStory] = useState("");
   const [person, setPerson] = useState("");
@@ -110,7 +106,6 @@ function Landing() {
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" Prototype123 te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
-            <Button size="lg" variant="care" onClick={tryDemo}>{t("Încearcă exemplul Elenei")}</Button>
           </div>
           <div className="card-surface mt-6 max-w-xl p-4">
             <label htmlFor="person" className="text-sm font-semibold">Numele persoanei de care vrei să ai grijă</label>
@@ -153,7 +148,6 @@ function Landing() {
           </div>
           <div className="mt-10 flex flex-col gap-3 rounded-2xl bg-primary-soft p-5 md:flex-row md:items-center md:justify-between">
             <p className="flex items-start gap-3 text-sm font-medium"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />{t("Nu oferim evaluări medicale și nu prezicem viitorul. Construim scenarii de îngrijire pe care le poți modifica.")}</p>
-            <Button variant="outline" onClick={tryDemo}>{t("Încearcă un exemplu")}</Button>
           </div>
         </div>
       </section>

@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - All care-cost assumptions and plan formulas live in `src/lib/plan.ts` (covered by `plan.test.ts`); pages only read `computePlan` so numbers stay consistent and swappable for real datasets later.
+- Care cost categories use `breakdownOf` in the shared cost editor; edits persist the categories and their total atomically so replaced expenses and care costs cannot diverge.
 - Financial demo state remains in the existing localStorage store, loaded after hydration; Cloud is used only for email authentication and owner-scoped profiles, so login never changes plan values.
 
 - The app is Romanian-only: UI text is written directly in Romanian (no language switcher or dictionary); src/lib/i18n.ts keeps identity helpers only so existing call sites stay stable.

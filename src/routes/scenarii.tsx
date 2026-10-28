@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { computePlan, formatNumber, genitive, PLAN_ASSUMPTIONS, ron, SCENARIOS } from "@/lib/plan";
+import { breakdownOf, computePlan, formatNumber, genitive, PLAN_ASSUMPTIONS, ron, SCENARIOS } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +59,20 @@ function Scenarios() {
   const target = c.futureCareReserve;
   const later = c.comparisonSavingLater;
   const years = c.yearsUntilScenario;
+  const updateCost = (value: number) => {
+    const total = Math.max(0, Math.round(value));
+    const custom = s.costBreakdown?.[s.scenario];
+    if (!custom) { setPlan({ costs: { ...s.costs, [s.scenario]: total } }); return; }
+    const slices = breakdownOf(s, s.scenario);
+    const oldTotal = slices.reduce((sum, slice) => sum + slice.amount, 0);
+    let allocated = 0;
+    const next = slices.map((slice, index) => {
+      const amount = index === slices.length - 1 ? total - allocated : Math.min(total - allocated, Math.round(oldTotal > 0 ? slice.amount * total / oldTotal : total / slices.length));
+      allocated += amount;
+      return { ...slice, amount };
+    });
+    setPlan({ costs: { ...s.costs, [s.scenario]: total }, costBreakdown: { ...s.costBreakdown, [s.scenario]: next } });
+  };
   const chart = c.reserveGrowth.map((row) => ({
     an: `${row.years} ani`,
     "Începi azi": row.reserve,
@@ -116,9 +130,7 @@ function Scenarios() {
               min={0}
               value={s.costs[s.scenario]}
               onChange={(e) =>
-                setPlan({
-                  costs: { ...s.costs, [s.scenario]: Math.max(0, Number(e.target.value) || 0) },
-                })
+                updateCost(Number(e.target.value) || 0)
               }
             />
             <Slider
@@ -128,13 +140,17 @@ function Scenarios() {
               max={Math.max(10000, s.costs[s.scenario])}
               step={100}
               value={[s.costs[s.scenario]]}
-              onValueChange={([v = 0]) => setPlan({ costs: { ...s.costs, [s.scenario]: v } })}
+              onValueChange={([v = 0]) => updateCost(v)}
               aria-label="Cost lunar estimat"
             />
             <button
               className="mt-2 text-xs font-semibold text-primary hover:underline"
               onClick={() =>
-                setPlan({ costs: { ...s.costs, [s.scenario]: PLAN_ASSUMPTIONS.costs[s.scenario] } })
+                (() => {
+                  const costBreakdown = { ...s.costBreakdown };
+                  delete costBreakdown[s.scenario];
+                  setPlan({ costBreakdown, costs: { ...s.costs, [s.scenario]: PLAN_ASSUMPTIONS.costs[s.scenario] } });
+                })()
               }
             >
               Revino la estimarea implicită ({ron(PLAN_ASSUMPTIONS.costs[s.scenario])})
