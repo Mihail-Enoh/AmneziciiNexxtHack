@@ -17,6 +17,7 @@ import { Route as InvitatieRouteImport } from './routes/invitatie'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RezumatRouteImport } from './routes/rezumat'
+import { Route as SanatateRouteImport } from './routes/sanatate'
 import { Route as ScenariiRouteImport } from './routes/scenarii'
 import { Route as StartRouteImport } from './routes/start'
 
@@ -60,6 +61,11 @@ const RezumatRoute = RezumatRouteImport.update({
   path: '/rezumat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SanatateRoute = SanatateRouteImport.update({
+  id: '/sanatate',
+  path: '/sanatate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScenariiRoute = ScenariiRouteImport.update({
   id: '/scenarii',
   path: '/scenarii',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/reset-password': typeof ResetPasswordRoute
   '/rezumat': typeof RezumatRoute
+  '/sanatate': typeof SanatateRoute
   '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/reset-password': typeof ResetPasswordRoute
   '/rezumat': typeof RezumatRoute
+  '/sanatate': typeof SanatateRoute
   '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/reset-password': typeof ResetPasswordRoute
   '/rezumat': typeof RezumatRoute
+  '/sanatate': typeof SanatateRoute
   '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/reset-password'
     | '/rezumat'
+    | '/sanatate'
     | '/scenarii'
     | '/start'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/reset-password'
     | '/rezumat'
+    | '/sanatate'
     | '/scenarii'
     | '/start'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/reset-password'
     | '/rezumat'
+    | '/sanatate'
     | '/scenarii'
     | '/start'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RezumatRoute: typeof RezumatRoute
+  SanatateRoute: typeof SanatateRoute
   ScenariiRoute: typeof ScenariiRoute
   StartRoute: typeof StartRoute
 }
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RezumatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sanatate': {
+      id: '/sanatate'
+      path: '/sanatate'
+      fullPath: '/sanatate'
+      preLoaderRoute: typeof SanatateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scenarii': {
       id: '/scenarii'
       path: '/scenarii'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RezumatRoute: RezumatRoute,
+  SanatateRoute: SanatateRoute,
   ScenariiRoute: ScenariiRoute,
   StartRoute: StartRoute,
 }

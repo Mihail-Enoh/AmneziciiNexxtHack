@@ -1,6 +1,6 @@
 import { IntakeBanner } from "./IntakeBanner";
 import { Link, useLocation } from "@tanstack/react-router";
-import { HeartHandshake, LayoutDashboard, SlidersHorizontal, Users, ClipboardCheck, BookOpen, LogIn, LogOut, Menu, ArrowUpRight, X } from "lucide-react";
+import { HeartHandshake, HeartPulse, LayoutDashboard, SlidersHorizontal, Users, ClipboardCheck, BookOpen, LogIn, LogOut, Menu, ArrowUpRight, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitch, SettingsMenu } from "./Preferences";
@@ -12,6 +12,7 @@ const NAV = [
   { to: "/scenarii", label: "Scenarii", short: "Scenarii", icon: SlidersHorizontal },
   { to: "/familie", label: "Familie", short: "Familie", icon: Users },
   { to: "/rezumat", label: "Planul final", short: "Final", icon: ClipboardCheck },
+  { to: "/sanatate", label: "Sănătate și obiceiuri", short: "Sănătate", icon: HeartPulse },
   { to: "/cum-functioneaza", label: "Cum funcționează", short: "Cum funcționează", icon: BookOpen },
 ] as const;
 
