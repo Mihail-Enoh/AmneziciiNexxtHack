@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { computePlan, ron, type FamilyMember, type Independence, type PlanState } from "@/lib/plan";
+import { ASSET_RULES, computePlan, parentMonthlyIncomeOf, ron, type FamilyMember, type Independence, type PlanState } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -399,12 +399,29 @@ function Onboarding() {
                     </label>
                   ))}
                 </div>
+                {p.assets.some((a) => ASSET_RULES[a]) && (
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    {p.assets.filter((a) => ASSET_RULES[a]).map((a) => (
+                      <NumberField
+                        key={a}
+                        id={`asset-${a.normalize("NFD").replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}`}
+                        label={ASSET_RULES[a]!.question}
+                        suffix={ASSET_RULES[a]!.suffix}
+                        value={p.assetAmounts?.[a] ?? 0}
+                        onChange={(n) => setP({ assetAmounts: { ...(p.assetAmounts ?? {}), [a]: n } })}
+                      />
+                    ))}
+                  </div>
+                )}
+                {p.assets.includes("Locuință proprie") && (
+                  <p className="mt-3 text-xs text-muted-foreground">Locuința proprie înseamnă fără chirie; nu o transformăm automat în bani în plan.</p>
+                )}
               </fieldset>
               <div
                 className="rounded-2xl border border-success/30 bg-success-soft p-5"
                 aria-live="polite"
               >
-                {p.pension + p.otherIncome === 0 ? (
+                {parentMonthlyIncomeOf(p) === 0 ? (
                   <p className="text-sm">{t("Adaugă venitul părintelui pentru a calcula scenariul.")}</p>
                 ) : (
                   <p className="text-sm">

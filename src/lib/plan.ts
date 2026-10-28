@@ -19,6 +19,8 @@ export interface ParentProfile {
   savings: number;
   expenses: number;
   assets: string[];
+  /** Amounts for the checked resources (see ASSET_RULES): monthly income or a saved sum. */
+  assetAmounts?: Record<string, number>;
 }
 
 export interface FamilyMember {
@@ -236,14 +238,14 @@ export function computePlan(s: PlanState, intensity: Intensity = s.scenario, now
     1,
     Math.min(600, Math.round(Number.isFinite(s.savingsSpreadMonths) ? s.savingsSpreadMonths : 60)),
   );
-  const currentMonthlyIncome = nonnegative(p.pension) + nonnegative(p.otherIncome);
+  const currentMonthlyIncome = parentMonthlyIncomeOf(p);
   const parentAvailableIncome = Math.max(0, currentMonthlyIncome - nonnegative(p.expenses));
   const currentFamilyNeed = Math.max(0, nonnegative(p.expenses) - currentMonthlyIncome);
   const siblingTotal = s.members
     .filter((m) => m.financial === "da")
     .reduce((a, m) => a + nonnegative(m.contribution), 0);
   const familyContributions = nonnegative(s.userContribution) + siblingTotal;
-  let savings = s.useSavings ? nonnegative(p.savings) : 0;
+  let savings = s.useSavings ? parentSavingsOf(p) : 0;
   let parentSavingsExhaustedMonth: number | null = null;
   const savingsBudget = savings / spread;
   let familyReserve = nonnegative(s.monthlySaving) * monthsUntilScenario;
@@ -266,7 +268,7 @@ export function computePlan(s: PlanState, intensity: Intensity = s.scenario, now
     const need = cost + essentialShortfall;
     const savingsUsed = Math.min(savings, savingsBudget, Math.max(0, need - incomeContribution));
     savings = Math.max(0, savings - savingsUsed);
-    if (s.useSavings && p.savings > 0 && savings < 0.01 && parentSavingsExhaustedMonth === null)
+    if (s.useSavings && parentSavingsOf(p) > 0 && savings < 0.01 && parentSavingsExhaustedMonth === null)
       parentSavingsExhaustedMonth = month + 1;
     const parent = Math.min(need, incomeContribution + savingsUsed);
     const gap = Math.max(0, need - parent);
@@ -451,4 +453,26 @@ export function fullName(p: { name: string; lastName?: string }, fallback = "Per
 export function splitName(full: string): { name: string; lastName: string } {
   const parts = full.trim().split(/\s+/).filter(Boolean);
   return { name: parts[0] ?? "", lastName: parts.slice(1).join(" ") };
+}
+
+/** What each "Alte resurse" checkbox adds to the plan once the user gives an amount. */
+export const ASSET_RULES: Record<string, { kind: "income" | "savings"; question: string; suffix: string }> = {
+  "Pensie privată (Pilon III)": { kind: "income", question: "Cât primește lunar din pensia privată?", suffix: "RON/lună" },
+  "Altă proprietate": { kind: "income", question: "Venit lunar din chirie (0 dacă nu e închiriată)", suffix: "RON/lună" },
+  "Alte economii": { kind: "savings", question: "Ce sumă are în alte economii?", suffix: "RON" },
+};
+const assetTotal = (p: Pick<ParentProfile, "assets" | "assetAmounts">, kind: "income" | "savings") =>
+  p.assets.reduce((sum, label) => {
+    const rule = ASSET_RULES[label];
+    const amount = p.assetAmounts?.[label];
+    return rule?.kind === kind && typeof amount === "number" && Number.isFinite(amount) ? sum + Math.max(0, amount) : sum;
+  }, 0);
+/** Pension + other income + monthly income from checked resources (private pension, rent). */
+export function parentMonthlyIncomeOf(p: Pick<ParentProfile, "pension" | "otherIncome" | "assets" | "assetAmounts">) {
+  const n = (x: number) => (Number.isFinite(x) ? Math.max(0, x) : 0);
+  return n(p.pension) + n(p.otherIncome) + assetTotal(p, "income");
+}
+/** Accessible savings + the sum of "Alte economii". */
+export function parentSavingsOf(p: Pick<ParentProfile, "savings" | "assets" | "assetAmounts">) {
+  return (Number.isFinite(p.savings) ? Math.max(0, p.savings) : 0) + assetTotal(p, "savings");
 }
