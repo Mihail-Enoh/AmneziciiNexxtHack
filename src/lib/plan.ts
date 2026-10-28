@@ -56,8 +56,6 @@ export interface CareScenarioDef {
   /** Part of the parent's current essential expenses that the care setup replaces (e.g. food, utilities in residential care). */
   expensesReplaced: number;
   supports: string[];
-  /** Optional typical start (years from now); read by AI intake when present. */
-  yearsFromNow: number;
 }
 
 export const PLAN_ASSUMPTIONS = {
@@ -73,7 +71,6 @@ export const PLAN_ASSUMPTIONS = {
 export const SCENARIOS: CareScenarioDef[] = [
   {
     id: "occasional",
-    yearsFromNow: 5,
     label: "Ajutor ocazional",
     short: "Ocazional",
     expensesReplaced: 0,
@@ -81,7 +78,6 @@ export const SCENARIOS: CareScenarioDef[] = [
   },
   {
     id: "frequent",
-    yearsFromNow: 7,
     label: "Ajutor de câteva ori pe săptămână",
     short: "Câteva ori/săpt.",
     expensesReplaced: 300,
@@ -89,7 +85,6 @@ export const SCENARIOS: CareScenarioDef[] = [
   },
   {
     id: "daily",
-    yearsFromNow: 10,
     label: "Ajutor zilnic",
     short: "Zilnic",
     expensesReplaced: 800,
@@ -102,7 +97,6 @@ export const SCENARIOS: CareScenarioDef[] = [
   },
   {
     id: "residential",
-    yearsFromNow: 15,
     label: "Îngrijire rezidențială",
     short: "Rezidențial",
     expensesReplaced: 2600,
