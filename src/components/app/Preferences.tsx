@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
-import { Languages, Settings, Sun, Type, Waves } from "lucide-react";
+import { Settings, Sun, Type, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { setLanguage } from "@/lib/i18n";
-
-export function LanguageSwitch() {
-  return <div className="inline-flex shrink-0 items-center rounded-lg border bg-card p-1" aria-label={language === "ro" ? "Limba aplicației" : "Application language"}>
-    {(["ro", "en"] as const).map(locale => <Button key={locale} variant={language === locale ? "default" : "ghost"} size="sm" className="h-7 rounded-md px-2.5" aria-pressed={language === locale} aria-label={locale === "ro" ? "Română" : "English"} onClick={() => setLanguage(locale)}>{locale.toUpperCase()}</Button>)}
-  </div>;
-}
 
 export function PreferenceEffects() {
   useEffect(() => {
@@ -31,7 +24,6 @@ export function SettingsMenu({ expanded = false }: { expanded?: boolean }) {
   return <Dialog open={open} onOpenChange={value => { setOpen(value); if (value) setValues(Object.fromEntries(["contrast", "large-text", "reduce-motion"].map(k => [k, document.documentElement.classList.contains(k)]))); }}>
     <DialogTrigger asChild><Button variant="ghost" size={expanded ? "default" : "icon"} className={expanded ? "w-full justify-start rounded-lg px-3" : "rounded-lg"} aria-label={"Setări"} title={"Setări"}><Settings />{expanded && "Setări"}</Button></DialogTrigger>
     <DialogContent><DialogHeader><DialogTitle>{"Pe gustul tău"}</DialogTitle><DialogDescription>{"Setări"} · Prototype123</DialogDescription></DialogHeader>
-      <div className="flex items-center justify-between gap-4 border-b py-4"><div className="flex items-center gap-3"><Languages className="size-5 text-primary" /><span className="font-medium">{"Limba"}</span></div><LanguageSwitch /></div>
       {[{ key: "contrast", icon: Sun, label: "Contrast mai puternic" }, { key: "large-text", icon: Type, label: "Text mai mare" }, { key: "reduce-motion", icon: Waves, label: "Mai puține animații" }].map(item => <label key={item.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b py-4 last:border-0"><span className="flex min-w-0 items-center gap-3 font-medium"><item.icon className="size-5 shrink-0 text-primary" />{item.label}</span><Switch checked={values[item.key] ?? false} onCheckedChange={v => change(item.key, v)} aria-label={item.label} /></label>)}
     </DialogContent>
   </Dialog>;

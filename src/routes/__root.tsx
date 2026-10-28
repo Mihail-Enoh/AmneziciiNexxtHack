@@ -1,4 +1,4 @@
-import { t, useT, initializeLanguage } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -98,7 +98,6 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     loadPlanFromStorage();
-    initializeLanguage();
   }, []);
 
   return (
