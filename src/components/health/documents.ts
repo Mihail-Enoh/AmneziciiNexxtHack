@@ -38,7 +38,7 @@ export async function* documentImages(file: File): AsyncGenerator<{ image: strin
       canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
       const canvasContext = canvas.getContext('2d');
       if (!canvasContext) throw new Error('canvas');
-      await sheet.render({ canvasContext, canvas, viewport }).promise;
+      await sheet.render({ canvasContext, viewport }).promise;
       const image = canvasToDataUrl(canvas);
       canvas.width = 0; canvas.height = 0; sheet.cleanup();
       yield { image, page, total };
