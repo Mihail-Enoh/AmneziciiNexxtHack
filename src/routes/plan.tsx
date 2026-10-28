@@ -1,7 +1,7 @@
 import { useT, useLanguage } from "@/lib/i18n";
 import { CareDateInput, PlanningAssumptions } from "@/components/app/PlanningAssumptions";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarDays, HandCoins, Home, PiggyBank, UserRound } from "lucide-react";
+import { ArrowRight, CalendarDays, HandCoins, HeartPulse, Home, PiggyBank, UserRound } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AppShell } from "@/components/app/AppShell";
 import {
@@ -116,6 +116,14 @@ function Dashboard() {
           <AnimatedNumber value={c.futureCareReserve} />
         </Metric>
       </div>
+
+      <article className="mt-6 flex flex-col gap-4 rounded-lg border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <HeartPulse className="mt-1 size-6 shrink-0 text-primary" aria-hidden />
+          <div><h2 className="text-xl font-semibold">Adaugă sănătatea și obiceiurile</h2><p className="mt-1 text-sm text-muted-foreground">O imagine mai completă a sprijinului de care ar putea avea nevoie {p.name}.</p></div>
+        </div>
+        <Button asChild variant="outline" className="shrink-0"><Link to="/sanatate">Începe<ArrowRight /></Link></Button>
+      </article>
 
       {/* Today */}
       <section className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px]">

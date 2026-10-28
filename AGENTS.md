@@ -15,3 +15,4 @@
 - Presentation translations use a render-bound language hook and a separate dictionary; never translate persisted scenario IDs, family modes or numeric assumptions.
 - Shared navigation and reading preferences live in app shell components; mobile uses a drawer and bottom shortcuts without changing page workflows.
 - AI intake only fills the form; its logic lives in src/lib/intake*.ts — do not edit.
+- Health UI lives in `src/components/health` and imports the existing health helpers unchanged; PDF rendering is dynamically imported only after user action to keep browser-only code outside SSR execution.
