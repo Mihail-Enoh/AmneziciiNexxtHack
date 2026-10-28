@@ -48,6 +48,7 @@ describe("risk points", () => {
     expect(both).toBeCloseTo(Math.log(1.6) + Math.log(2.0), 6);
     expect(quit).toBeLessThan(both);
     expect(quit).toBeGreaterThan(Math.log(2.0)); // quitting late does not undo all the risk
+    expect(both - quit).toBeCloseTo(Math.log(1.6) * 0.25, 6); // only the reversible part of smoking goes away
     expect(habitLogHazard({ smoking: ["no"] })).toBe(0);
   });
   it("other domains count their worst answer; lab/story signals can only raise them", () => {
@@ -126,11 +127,11 @@ describe("forecast", () => {
     const younger = forecast({ ...elena74, parent: { ...elena74.parent, age: 60 } }, { domains: assessHealth({ age: 60, answers, labs: [], ai: null }).domains, answers, now: NOW });
     expect(younger.habits[0]!.delayMonths).toBeGreaterThan(f.habits[0]!.delayMonths);
   });
-  it("smoking weighs clearly more than daily alcohol; weekly alcohol adds no risk (Lang 2007)", () => {
+  it("smoking weighs more than daily alcohol; weekly alcohol adds no risk (Lang 2007)", () => {
     const answers: QuizAnswers = { smoking: ["daily"], alcohol: ["daily"] };
     const f = forecast(elena74, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
     const by = Object.fromEntries(f.habits.map((h) => [h.id, h]));
-    expect(by["smoking"]!.delayMonths).toBeGreaterThanOrEqual(3 * by["alcohol"]!.delayMonths);
+    expect(by["smoking"]!.delayMonths).toBeGreaterThan(by["alcohol"]!.delayMonths);
     const weekly = forecast(elena74, { answers: { alcohol: ["weekly"] }, now: NOW });
     expect(weekly.habits).toEqual([]);
   });

@@ -4,11 +4,11 @@
 // hr = hazard ratio: how many times higher the yearly chance of needing daily help is, compared with
 //      the healthy answer (hr 1). Example: 1.8 = 80% higher risk every year.
 //      Keys are the answer ids from the quiz (src/lib/health.ts → QUIZ).
-// reversible = share of that extra risk that goes away if the habit changes NOW (0..1).
-//      Quitting late does not undo everything: former smokers stay above never-smokers.
+// reversible = share of that extra risk that goes away if the habit changes NOW, in old age (0..1).
+//      Different per habit — see "Why these reversible values" below.
 //
-// Weight of a habit = ln(hr) × reversible. Daily smoking: ln(1.6)×0.5 = 0.235; daily alcohol: ln(1.15)×0.5 = 0.07
-//      → quitting smoking counts ≈ 3.4 times more than cutting daily alcohol.
+// Weight of a habit = ln(hr) × reversible. No exercise: ln(2.0)×0.3 = 0.21; daily smoking: ln(1.6)×0.25 = 0.12;
+//      daily alcohol: ln(1.15)×0.5 = 0.07; rarely going out: ln(1.2)×0.3 = 0.05.
 // For a younger person with few risks, years gained ≈ weight / 0.1; close to the onset the gain is smaller.
 //
 // HOW TO CHANGE A VALUE: edit `hr` (how much riskier the habit is) or `reversible` below, save, done.
@@ -29,6 +29,17 @@
 //    Heavy drinking is harmful, but the quiz does not ask how much → small values.
 //  - Social isolation. Shankar et al. (2017), Health Psychology 36(2):179–187 (ELSA, 3,070 people):
 //    loneliness predicts more ADL difficulties; isolation predicts slower walking. No pooled ratio → modest values.
+//
+// Why these reversible values (how much of the extra risk goes away when the habit changes in old age):
+//  - Smoking 0.25: damage builds up over decades and mostly stays. US adults 2019–2023 (Tobacco Control,
+//    doi:10.1136/tc-2024-059027): disability 14% in smokers, 12.5% in FORMER smokers, 7% in never-smokers →
+//    quitting removed only ~20% of the excess. Mobility problems: 8% current = 8% former vs 4% never.
+//    Shaw et al. 2013 (Preventive Medicine, 34-year Swedish cohort): former smokers also had earlier mobility problems.
+//  - Exercise 0.3: the effect starts quickly, but a late start reaches only part of the lifelong difference.
+//    LIFE trial (Pahor 2014, JAMA): 70–89-year-olds who started exercising had major mobility disability
+//    ×0.82 within ~2.6 years. ln(1/0.82) ÷ ln(2.0) ≈ 0.29.
+//  - Alcohol 0.5: drinking less helps quickly (falls, sleep, blood pressure); little direct data on disability.
+//  - Social life 0.3: programmes against loneliness have small, mixed effects (Masi et al. 2011, Pers Soc Psychol Rev).
 
 export interface HabitEvidence {
   /** Quiz question id. */
@@ -47,15 +58,15 @@ export interface HabitEvidence {
 export const HABIT_EVIDENCE: HabitEvidence[] = [
   {
     id: "exercise", title: "Mișcare regulată", action: "face mișcare de câteva ori pe săptămână", label: "lipsa mișcării",
-    because: "mișcarea regulată", hr: { rarely: 1.5, never: 2.0 }, reversible: 0.5,
+    because: "mișcarea regulată", hr: { rarely: 1.5, never: 2.0 }, reversible: 0.3,
   },
   {
     id: "smoking", title: "Renunțarea la fumat", action: "renunță la fumat", label: "fumat",
-    because: "renunțarea la fumat", hr: { sometimes: 1.3, daily: 1.6 }, reversible: 0.5,
+    because: "renunțarea la fumat", hr: { sometimes: 1.3, daily: 1.6 }, reversible: 0.25,
   },
   {
     id: "social", title: "Mai multă viață socială", action: "iese mai des din casă și se vede cu alți oameni", label: "izolare",
-    because: "o viață socială mai activă", hr: { rarely: 1.2, almostNever: 1.4 }, reversible: 0.5,
+    because: "o viață socială mai activă", hr: { rarely: 1.2, almostNever: 1.4 }, reversible: 0.3,
   },
   {
     id: "alcohol", title: "Mai puțin alcool", action: "bea alcool cel mult ocazional", label: "alcool zilnic",
