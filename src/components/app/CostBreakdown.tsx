@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export function CostBreakdown() {
   const s = usePlan();
   const slices = breakdownOf(s, s.scenario);
   const inputs = useRef(new Map<number, HTMLInputElement>());
+  const [labelDraft, setLabelDraft] = useState<{ id: string; value: string } | null>(null);
   const total = slices.reduce((sum, slice) => sum + slice.amount, 0);
   const flagged = slices.filter((slice) => slice.replacesOwnExpense);
   const replaced = flagged.reduce((sum, slice) => sum + slice.amount, 0);
@@ -64,7 +65,7 @@ export function CostBreakdown() {
               <div className="grid grid-cols-[minmax(0,1fr)_96px_32px] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_120px_48px_32px]">
                 <div className="min-w-0 space-y-1.5">
                   <Label htmlFor={`${id}-label`} className="flex items-center gap-2 text-xs"><span className={`size-2.5 shrink-0 rounded-full ${dots[index]}`} aria-hidden />Categorie {index + 1}</Label>
-                  <Input id={`${id}-label`} ref={(input) => { if (input) inputs.current.set(index, input); else inputs.current.delete(index); }} maxLength={40} value={slice.label} onChange={(e) => edit(index, { label: e.target.value })} />
+                  <Input id={`${id}-label`} ref={(input) => { if (input) inputs.current.set(index, input); else inputs.current.delete(index); }} maxLength={40} value={labelDraft?.id === id ? labelDraft.value : slice.label} onChange={(e) => { setLabelDraft({ id, value: e.target.value }); edit(index, { label: e.target.value }); }} onBlur={() => setLabelDraft(null)} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor={`${id}-amount`} className="text-xs">Sumă (lei)</Label>

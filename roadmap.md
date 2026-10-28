@@ -1,6 +1,6 @@
 # Interface work
-- [ ] Remove landing demo buttons and add editable care-cost categories with synchronized totals and explanations.
-- [ ] Verify cost-breakdown rules, existing tests and the scenario editor on phones.
+- [x] Remove landing demo buttons and add editable care-cost categories with synchronized totals and explanations.
+- [x] Verify cost-breakdown rules, existing tests and the scenario editor on phones.
 - [x] Sănătate și obiceiuri: five-step flow, document review, result and application to plan; preserve protected health/intake files.
 - [x] Verify health flow, PDF/image limits, existing tests and type-check diagnostics.
 - [x] Sidebar navigation and settings for language, appearance and motion.
