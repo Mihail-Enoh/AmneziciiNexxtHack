@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarDays, HandCoins, HeartPulse, Home, PiggyBank, UserRound } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AppShell } from "@/components/app/AppShell";
+import { ForecastSection } from "@/components/health/ForecastSection";
 import {
   AnimatedNumber,
   DemoBadge,
@@ -123,6 +124,8 @@ function Dashboard() {
         </div>
         <Button asChild variant="outline" className="shrink-0"><Link to="/sanatate">Începe<ArrowRight /></Link></Button>
       </article>
+
+      <ForecastSection plan={s} />
 
       {/* Today */}
       <section className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px]">
