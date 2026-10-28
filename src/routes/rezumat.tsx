@@ -58,6 +58,8 @@ function explainPlan(s: PlanState, c: ReturnType<typeof computePlan>) {
 }
 
 function Summary() {
+  const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -222,7 +224,7 @@ function Summary() {
       </section>
 
       <section className="mt-8 card-surface p-6 md:p-8">
-        <h2 className="text-2xl font-semibold">Următorii pași</h2>
+        <h2 className="text-2xl font-semibold">{t("Următorii pași")}</h2>
         <ol className="mt-4 space-y-2">
           {steps.map((st, i) => (
             <li key={st.id}>

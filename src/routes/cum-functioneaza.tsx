@@ -47,9 +47,10 @@ const FORMULAS = [
 ];
 
 function HowItWorks() {
+  const t = useT();
   return (
     <AppShell>
-      <PageHeader eyebrow="Transparență" title="Cum facem estimările?" />
+      <PageHeader eyebrow={t("Transparență")} title={t("Cum facem estimările?")} />
       <div className="card-surface p-6 md:p-8">
         <p className="text-lg leading-relaxed">
           Prototype123 folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul
@@ -62,7 +63,7 @@ function HowItWorks() {
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="card-surface p-6">
-          <h2 className="text-2xl font-semibold">Ipoteze demonstrative</h2>
+          <h2 className="text-2xl font-semibold">{t("Ipoteze demonstrative")}</h2>
           <table className="mt-4 w-full text-sm">
             <thead>
               <tr className="text-left text-muted-foreground">

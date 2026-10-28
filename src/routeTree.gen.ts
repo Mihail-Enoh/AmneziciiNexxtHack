@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CumFunctioneazaRouteImport } from './routes/cum-functioneaza'
 import { Route as FamilieRouteImport } from './routes/familie'
 import { Route as InvitatieRouteImport } from './routes/invitatie'
 import { Route as PlanRouteImport } from './routes/plan'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RezumatRouteImport } from './routes/rezumat'
 import { Route as ScenariiRouteImport } from './routes/scenarii'
 import { Route as StartRouteImport } from './routes/start'
@@ -21,6 +23,11 @@ import { Route as StartRouteImport } from './routes/start'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CumFunctioneazaRoute = CumFunctioneazaRouteImport.update({
@@ -43,6 +50,11 @@ const PlanRoute = PlanRouteImport.update({
   path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RezumatRoute = RezumatRouteImport.update({
   id: '/rezumat',
   path: '/rezumat',
@@ -61,20 +73,24 @@ const StartRoute = StartRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cum-functioneaza': typeof CumFunctioneazaRoute
   '/familie': typeof FamilieRoute
   '/invitatie': typeof InvitatieRoute
   '/plan': typeof PlanRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/rezumat': typeof RezumatRoute
   '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cum-functioneaza': typeof CumFunctioneazaRoute
   '/familie': typeof FamilieRoute
   '/invitatie': typeof InvitatieRoute
   '/plan': typeof PlanRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/rezumat': typeof RezumatRoute
   '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
@@ -82,10 +98,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/cum-functioneaza': typeof CumFunctioneazaRoute
   '/familie': typeof FamilieRoute
   '/invitatie': typeof InvitatieRoute
   '/plan': typeof PlanRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/rezumat': typeof RezumatRoute
   '/scenarii': typeof ScenariiRoute
   '/start': typeof StartRoute
@@ -94,30 +112,36 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/cum-functioneaza'
     | '/familie'
     | '/invitatie'
     | '/plan'
+    | '/reset-password'
     | '/rezumat'
     | '/scenarii'
     | '/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/cum-functioneaza'
     | '/familie'
     | '/invitatie'
     | '/plan'
+    | '/reset-password'
     | '/rezumat'
     | '/scenarii'
     | '/start'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/cum-functioneaza'
     | '/familie'
     | '/invitatie'
     | '/plan'
+    | '/reset-password'
     | '/rezumat'
     | '/scenarii'
     | '/start'
@@ -125,10 +149,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   CumFunctioneazaRoute: typeof CumFunctioneazaRoute
   FamilieRoute: typeof FamilieRoute
   InvitatieRoute: typeof InvitatieRoute
   PlanRoute: typeof PlanRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RezumatRoute: typeof RezumatRoute
   ScenariiRoute: typeof ScenariiRoute
   StartRoute: typeof StartRoute
@@ -141,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cum-functioneaza': {
@@ -171,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rezumat': {
       id: '/rezumat'
       path: '/rezumat'
@@ -197,10 +237,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   CumFunctioneazaRoute: CumFunctioneazaRoute,
   FamilieRoute: FamilieRoute,
   InvitatieRoute: InvitatieRoute,
   PlanRoute: PlanRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   RezumatRoute: RezumatRoute,
   ScenariiRoute: ScenariiRoute,
   StartRoute: StartRoute,

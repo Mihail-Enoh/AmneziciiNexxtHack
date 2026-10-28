@@ -51,6 +51,8 @@ export const Route = createFileRoute("/scenarii")({
 });
 
 function Scenarios() {
+  const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -82,7 +84,7 @@ function Scenarios() {
           </p>
 
           <fieldset>
-            <legend className="mb-3 text-sm font-semibold">Intensitatea îngrijirii</legend>
+            <legend className="mb-3 text-sm font-semibold">{t("Intensitatea îngrijirii")}</legend>
             <div className="grid grid-cols-2 gap-2">
               {SCENARIOS.map((sc) => (
                 <button

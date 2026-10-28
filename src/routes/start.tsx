@@ -2,7 +2,7 @@ import { CareTimingInput } from "@/components/app/CareTimingInput";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2, UserRound } from "lucide-react";
-import { Logo } from "@/components/app/AppShell";
+import { Logo, PublicHeader } from "@/components/app/AppShell";
 import { AnimatedNumber, InfoTip, PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,6 +160,7 @@ const LOADING = [
 ];
 
 function Onboarding() {
+  const t = useT();
   const saved = usePlan();
   const navigate = useNavigate();
   const [d, setD] = useState<PlanState>(saved);
@@ -236,8 +237,9 @@ function Onboarding() {
         <Logo />
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">
+        <IntakeBanner />
         <div className="mb-8">
-          <p className="text-sm font-semibold text-muted-foreground">Pasul {step} din 4</p>
+          <p className="text-sm font-semibold text-muted-foreground">{t("Pasul ")}{step}{t(" din 4")}</p>
           <div className="mt-2 grid grid-cols-4 gap-2" aria-hidden>
             {[1, 2, 3, 4].map((i) => (
               <div
@@ -364,7 +366,7 @@ function Onboarding() {
                 />
               </div>
               <fieldset>
-                <legend className="mb-3 text-sm font-medium">Alte resurse (opțional)</legend>
+                <legend className="mb-3 text-sm font-medium">{t("Alte resurse (opțional)")}</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {ASSETS.map((a) => (
                     <label
@@ -387,7 +389,7 @@ function Onboarding() {
                 aria-live="polite"
               >
                 {p.pension + p.otherIncome === 0 ? (
-                  <p className="text-sm">Adaugă venitul părintelui pentru a calcula scenariul.</p>
+                  <p className="text-sm">{t("Adaugă venitul părintelui pentru a calcula scenariul.")}</p>
                 ) : (
                   <p className="text-sm">
                     <strong className="font-display text-2xl">

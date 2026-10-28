@@ -1,3 +1,4 @@
+import { t, useT, useLanguage, initializeLanguage } from "@/lib/i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -13,17 +14,20 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { loadPlanFromStorage } from "../lib/store";
+import { AuthProvider } from "@/lib/auth";
+import { PreferenceEffects } from "@/components/app/Preferences";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
+  const t = useT();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina nu a fost găsită</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Pagina pe care o cauți nu există sau a fost mutată.</p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{t("Pagina nu a fost găsită")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("Pagina pe care o cauți nu există sau a fost mutată.")}</p>
         <div className="mt-6">
-          <Link to="/" className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Înapoi acasă</Link>
+          <Link to="/" className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">{t("Înapoi acasă")}</Link>
         </div>
       </div>
     </div>
@@ -31,6 +35,7 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
+  const t = useT();
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -40,11 +45,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Pagina nu s-a încărcat</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Ceva nu a funcționat. Încearcă din nou.</p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t("Pagina nu s-a încărcat")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("Ceva nu a funcționat. Încearcă din nou.")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Încearcă din nou</button>
-          <a href="/" className="inline-flex items-center justify-center rounded-full border border-input bg-background px-5 py-2 text-sm font-medium text-foreground hover:bg-accent">Acasă</a>
+          <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">{t("Încearcă din nou")}</button>
+          <a href="/" className="inline-flex items-center justify-center rounded-full border border-input bg-background px-5 py-2 text-sm font-medium text-foreground hover:bg-accent">{t("Acasă")}</a>
         </div>
       </div>
     </div>
@@ -93,12 +98,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     loadPlanFromStorage();
+    initializeLanguage();
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster />
+      <AuthProvider><PreferenceEffects /><Outlet /><Toaster /></AuthProvider>
     </QueryClientProvider>
   );
 }

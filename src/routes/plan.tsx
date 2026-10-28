@@ -46,6 +46,8 @@ const INDEP_LABEL = {
 };
 
 function Dashboard() {
+  const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -338,8 +340,8 @@ function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatNumber(v)} />
                 <Tooltip formatter={(v: number) => ron(v)} contentStyle={{ borderRadius: 12 }} />
-                <Bar dataKey="Părinte" stackId="a" fill="var(--primary)" />
-                <Bar dataKey="Familie" stackId="a" fill="var(--care)" radius={[6, 6, 0, 0]} />
+                <Bar name={t("Părinte")} dataKey="Părinte" stackId="a" fill="var(--primary)" />
+                <Bar name={t("Familie")} dataKey="Familie" stackId="a" fill="var(--care)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

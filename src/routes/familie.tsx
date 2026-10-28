@@ -1,3 +1,4 @@
+import { t, useT, useLanguage, displayName } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Copy, HeartHandshake, Mail, PiggyBank, UserPlus } from "lucide-react";
@@ -113,6 +114,8 @@ function ContributionSlider({
 }
 
 function Family() {
+  const t = useT();
+  const locale = useLanguage();
   const s = usePlan();
   const c = computePlan(s);
   const p = s.parent;
@@ -217,7 +220,7 @@ function Family() {
             </div>
           </div>
           <p className="mt-4 font-display text-3xl font-semibold">{ron(c.parentCovered)}</p>
-          <p className="text-xs text-muted-foreground">deja luați în calcul</p>
+          <p className="text-xs text-muted-foreground">{t("deja luați în calcul")}</p>
         </div>
         <ContributionSlider
           name={s.user.name}
