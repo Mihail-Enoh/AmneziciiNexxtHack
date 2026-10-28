@@ -11,6 +11,14 @@ import { setPlan, usePlan } from "@/lib/store";
 const colors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--danger)", "var(--warning)", "var(--foreground)"];
 const dots = ["bg-chart-1", "bg-chart-2", "bg-chart-3", "bg-chart-4", "bg-chart-5", "bg-danger", "bg-warning", "bg-foreground"];
 const percent = (amount: number, total: number) => new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 1 }).format(total > 0 ? amount / total * 100 : 0);
+// Genitive of the parent's first name: "ale Elenei" / "lui Andrei".
+const possessive = (n: string) => {
+  const nm = n.trim();
+  if (!nm) return "ale persoanei";
+  const lower = nm.toLowerCase();
+  if (lower.endsWith("a") || lower.endsWith("ă")) return `ale ${nm.slice(0, -1)}ei`;
+  return `lui ${nm}`;
+};
 
 export function CostBreakdown() {
   const s = usePlan();
@@ -69,7 +77,7 @@ export function CostBreakdown() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor={`${id}-amount`} className="text-xs">Sumă (lei)</Label>
-                  <Input id={`${id}-amount`} className="tabular" type="number" min={0} max={100000} step={1} value={slice.amount} onChange={(e) => edit(index, { amount: Number(e.target.value) })} />
+                  <Input id={`${id}-amount`} className="tabular" type="number" min={0} max={100000} step={1} value={String(slice.amount)} onChange={(e) => { const raw = e.target.value.trim(); const next = raw === "" ? 0 : Number(raw); const amount = Number.isFinite(next) ? next : 0; const shown = String(amount); if (e.target.value !== shown) e.target.value = shown; edit(index, { amount }); }} />
                 </div>
                 <span className="hidden pb-2 text-right text-xs text-muted-foreground sm:block">{percent(slice.amount, total)}%</span>
                 <Button type="button" size="icon" variant="ghost" className="size-8 self-end" disabled={slices.length <= 1} aria-label={`Șterge categoria ${slice.label}`} title={`Șterge categoria ${slice.label}`} onClick={() => update(slices.filter((_, i) => i !== index))}><Trash2 className="size-4" /></Button>
@@ -77,7 +85,7 @@ export function CostBreakdown() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-start gap-2">
                   <Checkbox id={`${id}-replaced`} checked={slice.replacesOwnExpense} onCheckedChange={(checked) => edit(index, { replacesOwnExpense: checked === true })} />
-                  <Label htmlFor={`${id}-replaced`} className="text-xs leading-relaxed">O plătea oricum din banii ei</Label>
+                  <Label htmlFor={`${id}-replaced`} className="text-xs leading-relaxed">Deja inclusă în cheltuielile lunare actuale</Label>
                 </div>
                 <span className="shrink-0 text-xs text-muted-foreground sm:hidden">{percent(slice.amount, total)}%</span>
               </div>
@@ -89,7 +97,7 @@ export function CostBreakdown() {
         <Button type="button" variant="outline" className="h-auto whitespace-normal text-left" disabled={slices.length >= 8} onClick={() => update([...slices, { id: `category-${Date.now()}`, label: "Altele", amount: 0, replacesOwnExpense: false }])}><Plus className="size-4 shrink-0" />Adaugă o categorie</Button>
         <Button type="button" variant="ghost" className="h-auto whitespace-normal text-left" onClick={reset}><RotateCcw className="size-4 shrink-0" />Revino la valorile demonstrative</Button>
       </div>
-      <p className="text-sm leading-relaxed text-muted-foreground">Din acești bani, {formatNumber(replaced)} lei sunt lucruri pe care {name} le plătea oricum{flagged.length > 0 ? ` (de ex. ${flagged.map((slice) => slice.label).join(", ")})` : ""}. De aceea, din cheltuielile lui/ei de {formatNumber(s.parent.expenses)} lei/lună scădem {formatNumber(replaced)} lei, ca să nu le numărăm de două ori.</p>
+      <p className="text-sm leading-relaxed text-muted-foreground">Din acești bani, {formatNumber(replaced)} lei acoperă lucruri incluse deja în cheltuielile lunare {possessive(name)}{flagged.length > 0 ? ` (de ex. ${flagged.map((slice) => slice.label).join(", ")})` : ""}. De aceea nu le mai adunăm o dată.</p>
     </section>
   );
 }
