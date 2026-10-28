@@ -123,3 +123,13 @@ describe("prompt", () => {
     expect(intakeFromModelText(m[1] ?? "")?.path).toBe("/plan");
   });
 });
+describe("missing items the model already filled", () => {
+  it("drops 'vârsta părintelui' and 'pensia' when age and pension were filled, keeps the rest", async () => {
+    const { alreadyFilled } = await import("./intake");
+    const labels = ["Numele persoanei", "Vârsta părintelui", "Pensie lunară", "Cheltuieli esențiale"];
+    expect(alreadyFilled("vârsta părintelui", labels)).toBe(true);
+    expect(alreadyFilled("pensia", labels)).toBe(true);
+    expect(alreadyFilled("venitul tău", labels)).toBe(false);
+    expect(alreadyFilled("economiile părintelui", labels)).toBe(false);
+  });
+});

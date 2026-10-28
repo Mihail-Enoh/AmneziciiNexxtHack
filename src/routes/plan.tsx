@@ -13,7 +13,7 @@ import {
   InfoTip,
   Metric,
   PageHeader,
-  PrivacyNote, needLines } from "@/components/app/bits";
+  PrivacyNote, gapLines } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { computePlan, formatNumber, fullName, genitive, ron, SCENARIOS, type Intensity } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
@@ -85,11 +85,7 @@ function Dashboard() {
           hint={
             <ExplainButton
               title="Diferența lunară"
-              lines={[
-                ...needLines(s, c),
-                { label: `Contribuția ${genitive(p.name)}`, value: ron(c.parentCovered), op: "−" },
-                { label: "Diferență de acoperit", value: ron(c.familyFundingGap), op: "=" },
-              ]}
+              lines={gapLines(s, c)}
             />
           }
         >
@@ -316,19 +312,7 @@ function Dashboard() {
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
             <ExplainButton
               title="Diferența de acoperit"
-              lines={[
-                ...needLines(s, c),
-                {
-                  label: `Contribuția disponibilă a ${genitive(p.name)}`,
-                  value: ron(c.parentCovered),
-                  op: "−",
-                },
-                {
-                  label: "Diferența estimată pentru familie",
-                  value: ron(c.familyFundingGap),
-                  op: "=",
-                },
-              ]}
+              lines={gapLines(s, c)}
               note={`Necesarul total include costul îngrijirii și orice deficit pentru cheltuielile esențiale rămase. Venit proiectat (${ron(c.parentMonthlyIncome)}) − cheltuieli rămase după înlocuire și creștere (${ron(c.projectedEssentialExpenses)}), plus economii opționale până la epuizare; contribuția este limitată la costul îngrijirii.`}
             />
             <Button asChild variant="care">

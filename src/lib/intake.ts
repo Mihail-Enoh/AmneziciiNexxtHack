@@ -177,7 +177,9 @@ export function applyIntake(raw: RawIntake | null, opts: { name?: string } = {})
   const asked = snap(x.open, Object.keys(PAGE_PATH) as OpenPage[]);
   const open: OpenPage = !haveEssentials ? "start" : asked === "scenarii" && scenario ? "scenarii" : "plan";
 
-  const modelMissing = (x.missing ?? []).map((m) => m.trim().slice(0, 80)).filter(Boolean).slice(0, 3);
+  // The model sometimes lists as missing what it just filled ("vârsta", "pensia"): drop those.
+  const modelMissing = (x.missing ?? []).map((m) => m.trim().slice(0, 80)).filter(Boolean)
+    .filter((m) => !alreadyFilled(m, [...filled, ...assumed].map((f) => f.label))).slice(0, 3);
   for (const m of modelMissing) if (!missing.includes(m)) missing.push(m);
 
   const message = (x.message ?? "").trim().slice(0, 500) ||
@@ -188,6 +190,16 @@ export function applyIntake(raw: RawIntake | null, opts: { name?: string } = {})
     horizon, scenario: scenario ?? "daily", yearsUntil,
   };
   return { patch, open, path: PAGE_PATH[open], message, filled, assumed, missing };
+}
+
+const STOP = ["parint", "persoa", "lunar", "lunare", "tatal", "mama", "mamei", "tatalu"];
+const stems = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  .split(/[^a-z]+/).filter((w) => w.length >= 4).map((w) => w.slice(0, 5)).filter((w) => !STOP.some((x) => x.startsWith(w) || w.startsWith(x.slice(0, 5))));
+/** True when every meaningful word of a "missing" item already appears in a filled label (e.g. "pensia" ↔ "Pensie lunară"). */
+export function alreadyFilled(item: string, labels: string[]): boolean {
+  const words = stems(item);
+  const have = new Set(labels.flatMap(stems));
+  return words.length > 0 && words.every((w) => have.has(w));
 }
 
 /** One call for the endpoint: model text in, result out. Never throws. */

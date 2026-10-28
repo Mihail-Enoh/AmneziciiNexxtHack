@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Calculator, Info, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatNumber, PLAN_ASSUMPTIONS, ron, scenarioById, STATUS_META, type computePlan, type PlanState } from "@/lib/plan";
+import { formatNumber, genitive, PLAN_ASSUMPTIONS, ron, scenarioById, STATUS_META, type computePlan, type PlanState } from "@/lib/plan";
 import { cn } from "@/lib/utils";
 
 /** Smoothly tweens between numeric values. */
@@ -32,16 +32,30 @@ export function AnimatedNumber({ value, suffix = " RON", className }: { value: n
 
 export interface CalcLine { label: string; value: string; op?: "−" | "+" | "=" | "×" | "÷" }
 
-/** Where the monthly need comes from: the care cost of the chosen scenario (+ any essential expenses income does not cover). */
-export function needLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcLine[] {
+/**
+ * The monthly gap, step by step, with the first month's numbers:
+ * care cost − pension/income + the person's own expenses that remain − savings used = gap.
+ */
+export function gapLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcLine[] {
+  const first = c.projection[0];
+  const sc = scenarioById(s.scenario);
   const preset = s.costs[s.scenario] === PLAN_ASSUMPTIONS.costs[s.scenario];
+  const who = s.parent.name.trim();
+  const of = who ? genitive(who) : "persoanei";
+  const replaced = Math.min(sc.expensesReplaced, Math.max(0, s.parent.expenses));
   const lines: CalcLine[] = [
-    { label: `Cost îngrijire · ${scenarioById(s.scenario).label.toLowerCase()}${preset ? " (estimare demonstrativă; o poți schimba în Scenarii)" : " (valoarea ta)"}`, value: ron(c.careMonthlyCost) },
+    { label: `Cost îngrijire · ${sc.label.toLowerCase()}${preset ? " (estimare demonstrativă; o poți schimba în Scenarii)" : " (valoarea ta)"}`, value: ron(c.careMonthlyCost) },
   ];
-  if (c.essentialShortfall > 0) {
-    lines.push({ label: "Cheltuieli esențiale pe care venitul nu le acoperă", value: ron(c.essentialShortfall), op: "+" });
-    lines.push({ label: "Necesar total inițial", value: ron(c.totalMonthlyNeed), op: "=" });
-  }
+  if (!first) return lines;
+  lines.push({ label: `Pensia și veniturile ${of}`, value: ron(first.income), op: "−" });
+  if (first.expenses > 0 || replaced > 0) lines.push({
+    label: replaced > 0
+      ? `Cheltuielile ${of} care rămân: ${ron(s.parent.expenses)}, minus ${ron(replaced)} incluși deja în ${sc.label.toLowerCase()} (${sc.id === "residential" ? "cazare, masă, utilități" : "masa"})`
+      : `Cheltuielile lunare ale ${of}`,
+    value: ron(first.expenses), op: "+",
+  });
+  if (first.savingsUsed > 0) lines.push({ label: `Din economiile ${of}`, value: ron(first.savingsUsed), op: "−" });
+  lines.push({ label: "Diferență de acoperit de familie", value: ron(c.familyFundingGap), op: "=" });
   return lines;
 }
 

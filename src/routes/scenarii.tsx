@@ -18,7 +18,7 @@ import {
   DemoBadge,
   ExplainButton,
   GapBar,
-  PageHeader, needLines } from "@/components/app/bits";
+  PageHeader, gapLines } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -226,11 +226,7 @@ function Scenarios() {
             <div className="mt-4">
               <ExplainButton
                 title="Diferența în acest scenariu"
-                lines={[
-                  ...needLines(s, c),
-                  { label: `Resursele ${genitive(p.name)}`, value: ron(c.parentCovered), op: "−" },
-                  { label: "Diferență", value: ron(c.familyFundingGap), op: "=" },
-                ]}
+                lines={gapLines(s, c)}
               />
             </div>
           </div>
