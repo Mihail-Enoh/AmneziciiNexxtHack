@@ -453,7 +453,7 @@ function Onboarding() {
                     className="grid items-end gap-3 rounded-2xl border p-4 sm:grid-cols-[1fr_1fr_auto]"
                   >
                     <div className="space-y-2">
-                      <Label htmlFor={`n-${m.id}`}>Nume</Label>
+                      <Label htmlFor={`n-${m.id}`}>Prenume</Label>
                       <Input
                         id={`n-${m.id}`}
                         value={m.name}

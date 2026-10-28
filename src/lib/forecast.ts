@@ -7,7 +7,7 @@
 // Everything is in TODAY'S LEI. Planning estimates only: not medical or financial advice.
 // Every assumption lives in FORECAST_ASSUMPTIONS with its source or "Demo".
 import { computePlan, type Intensity, type PlanState } from "./plan";
-import { DOMAIN_WEIGHT, DOMAINS, QUIZ, type Domain, type DomainResult, type QuizAnswers } from "./health";
+import { DOMAIN_WEIGHT, DOMAINS, QUIZ, questionPoints, type Domain, type DomainResult, type QuizAnswers } from "./health";
 
 // ------------------------------------------------------------------ assumptions
 export const FORECAST_ASSUMPTIONS = {
@@ -30,12 +30,8 @@ export const FORECAST_ASSUMPTIONS = {
     /** Long-run inflation used to turn the savings rate into a real (today's lei) rate. */
     inflation: 0.04,
     inflationNote: "Presupunere între inflația din sept. 2026 (6,6%, INS) și ținta BNR (2,5%).",
-    /** Care is labour-intensive: its cost grows faster than prices in general. */
-    careCostRealGrowth: 0.015,
-    careCostNote: "Demo: costul îngrijirii crește cu 1,5%/an peste inflație.",
-    /** Pensions in today's lei: the reference point value stayed at 81 lei in 2026. */
-    pensionRealGrowth: 0,
-    pensionNote: "Valoarea punctului de referință a rămas 81 lei în 2026; presupunem pensii constante în termeni reali.",
+    /** Cost and pension growth come from the plan's own assumptions (Ipoteze), so every number on the page agrees. */
+    growthNote: "Aceleași valori ca în ipotezele planului; le poți schimba din pagina planului.",
     /** Savings for the reserve. */
     savingsRate: 0.07,
     savingsNote: "Dobânda Tezaur din oct. 2026 (3 ani, 7%/an, neimpozabilă). Dobânzile viitoare pot fi diferite.",
@@ -82,9 +78,8 @@ export function monthlySavingFor(target: number, months: number, annualRate: num
 export function riskPoints(domains: Pick<DomainResult, "domain" | "level" | "reasons">[] | null | undefined, answers: QuizAnswers | null | undefined): number {
   const quiz: Record<Domain, number> = { mobility: 0, daily: 0, cognition: 0, chronic: 0, lifestyle: 0, social: 0 };
   for (const q of QUIZ) {
-    const pts: number[] = (answers?.[q.id] ?? []).map((id) => q.options.find((o) => o.id === id)?.points ?? 0);
-    if (!pts.length) continue;
-    const p = q.multi ? Math.min(2, pts.reduce((a, x) => a + x, 0)) : Math.max(...pts);
+    const p = answers ? questionPoints(q, answers) : null;
+    if (p === null) continue;
     const w = FORECAST_ASSUMPTIONS.habits.find((h) => h.id === q.id)?.weight ?? 1;
     quiz[q.domain] = q.domain === "lifestyle" ? quiz[q.domain] + p * w : Math.max(quiz[q.domain], p);
   }
@@ -156,16 +151,22 @@ export interface Forecast {
   saving: { reserveNeeded: number; perMonth: number | null; months: number };
   habits: HabitSuggestion[];
   assumptions: { label: string; value: string; note: string }[];
+  /** Chance per year for the chart, long enough to include the whole interval. */
+  chartYears: OnsetYear[];
+  /** How long care lasts in the plan (months), for the explanations. */
+  careDurationMonths: number;
+  /** True when costs do not grow (amounts are in today's prices). */
+  todaysPrices: boolean;
 }
 
-/** plan.ts in today's lei with care starting in `year` years. */
+/** plan.ts with care starting in `year` years, with the plan's own growth assumptions. */
 function planAt(s: PlanState, intensity: Intensity, year: number, now: Date) {
-  const e = FORECAST_ASSUMPTIONS.economy;
-  return computePlan(
-    { ...s, careStartDate: "", yearsUntil: year, scenario: intensity, costGrowth: e.careCostRealGrowth * 100, incomeGrowth: e.pensionRealGrowth * 100 },
-    intensity, now,
-  );
+  return computePlan({ ...s, careStartDate: "", yearsUntil: year, scenario: intensity }, intensity, now);
 }
+
+/** Without cost growth the amounts are today's prices → use the real savings rate; otherwise the nominal one. */
+const savingsRateFor = (s: PlanState) =>
+  (s.costGrowth || 0) > 0 ? FORECAST_ASSUMPTIONS.economy.savingsRate : realRate(FORECAST_ASSUMPTIONS.economy.savingsRate);
 
 /** Core numbers for a given risk level (used for the real case and for each habit change). */
 function core(s: PlanState, intensity: Intensity, points: number, horizon: number, now: Date) {
@@ -176,12 +177,14 @@ function core(s: PlanState, intensity: Intensity, points: number, horizon: numbe
   const expectedFamilyCost = onset.years.reduce((sum, y) => sum + y.probability * familyCostOf(y.year), 0);
   const medianYear = Math.max(1, Math.round(onset.p50));
   const m = at(medianYear);
-  const reserveNeeded = presentValue(m.projection.map((row) => row.remaining), realRate(FORECAST_ASSUMPTIONS.economy.savingsRate));
+  const rate = savingsRateFor(s);
+  const reserveNeeded = presentValue(m.projection.map((row) => row.remaining), rate);
   const months = medianYear * 12;
-  const perMonth = monthlySavingFor(reserveNeeded, months, realRate(FORECAST_ASSUMPTIONS.economy.savingsRate));
+  const perMonth = monthlySavingFor(reserveNeeded, months, rate);
   return {
     onset, expectedFamilyCost,
     atMedian: { year: medianYear, monthlyGapAtStart: m.familyFundingGap, familyCost: Math.round(familyCostOf(medianYear)) },
+    careDurationMonths: m.careDurationMonths,
     saving: { reserveNeeded: Math.round(reserveNeeded), perMonth: perMonth === null ? null : Math.ceil(perMonth), months },
   };
 }
@@ -195,7 +198,7 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
   const base = core(s, intensity, points, horizon, now);
 
   // Habit suggestions: change one habit to its best answer, keep everything else.
-  const who = s.parent.name.trim() || "părintele tău";
+  const who = s.parent.name.trim() || "persoana";
   const lei = (n: number) => `${Math.round(n).toLocaleString("ro-RO")} lei`;
   const yrs = (n: number) => `${n.toLocaleString("ro-RO")} ${n === 1 ? "an" : "ani"}`;
   const habits: HabitSuggestion[] = [];
@@ -240,16 +243,21 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
     { label: "Când poate fi nevoie de ajutor", value: "curbă de risc pe vârstă (Gompertz) × factori de risc", note: FORECAST_ASSUMPTIONS.onset.note },
     { label: "Intervalul afișat", value: "între percentilele 40 și 60", note: FORECAST_ASSUMPTIONS.onset.bandNote },
     { label: "Efectul obiceiurilor", value: FORECAST_ASSUMPTIONS.habits.map((h) => `${h.title.toLowerCase()} ×${h.weight.toLocaleString("ro-RO")}`).join(", "), note: FORECAST_ASSUMPTIONS.habitsNote },
+    { label: "Creșterea costurilor de îngrijire", value: `${pct((s.costGrowth || 0) / 100)}/an`, note: e.growthNote },
+    { label: "Creșterea pensiei", value: `${pct((s.incomeGrowth || 0) / 100)}/an`, note: e.growthNote },
+    { label: "Durata îngrijirii", value: `${base.careDurationMonths} luni`, note: e.growthNote },
     { label: "Inflație pe termen lung", value: pct(e.inflation), note: e.inflationNote },
-    { label: "Creșterea costului îngrijirii", value: `+${pct(e.careCostRealGrowth)}/an peste inflație`, note: e.careCostNote },
-    { label: "Pensia, în lei de azi", value: pct(e.pensionRealGrowth), note: e.pensionNote },
-    { label: "Dobânda pentru rezervă", value: `${pct(e.savingsRate)} nominal · ${pct(realRate(e.savingsRate))} real`, note: e.savingsNote },
+    { label: "Dobânda pentru rezervă", value: `${pct(e.savingsRate)} nominal · ${pct(realRate(e.savingsRate))} real`, note: `${e.savingsNote} ${(s.costGrowth || 0) > 0 ? "Folosim dobânda nominală, pentru că și costurile cresc." : "Folosim dobânda reală, pentru că sumele sunt în prețurile de azi."}` },
   ];
+  const chartHorizon = Math.min(FORECAST_ASSUMPTIONS.maxYears, Math.max(horizon, Math.ceil(base.onset.high) + 1));
 
   return {
     intensity, riskPoints: points, horizonYears: horizon, onset: base.onset,
     expectedFamilyCost: Math.round(base.expectedFamilyCost), atMedian: base.atMedian, saving: base.saving,
     habits, assumptions,
+    chartYears: onsetCurve(s.parent.age, points, intensity, chartHorizon).years,
+    careDurationMonths: base.careDurationMonths,
+    todaysPrices: !((s.costGrowth || 0) > 0),
   };
 }
 

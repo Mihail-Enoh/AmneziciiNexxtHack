@@ -1,5 +1,5 @@
 // Prototype123 — browser helpers for the health feature (client only). Owner: P3.
-import type { HealthAssessment, QuizAnswers } from "./health";
+import type { HealthAssessment, LabResult, QuizAnswers } from "./health";
 
 export const MAX_FILES = 3;
 export const ACCEPTED_IMAGES = ["image/png", "image/jpeg", "image/webp"];
@@ -38,7 +38,11 @@ export function canvasToDataUrl(canvas: HTMLCanvasElement, maxSide = 1600, quali
 
 // Keep the health flow across pages for this browser tab only (never persisted, never sent anywhere else).
 const KEY = "prototype123-health-v1";
-export interface HealthSession { story: string; answers: QuizAnswers; assessment: HealthAssessment | null }
+export interface HealthSession {
+  story: string; answers: QuizAnswers; assessment: HealthAssessment | null;
+  /** Lab results read so far (also before a result exists) and fingerprints of the documents already read. */
+  labs?: LabResult[]; docHashes?: string[];
+}
 
 export function saveHealthSession(s: HealthSession) {
   try { sessionStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ }

@@ -11,6 +11,32 @@ export function documentError(file: File): string | null {
   if (!ACCEPTED_IMAGES.includes(file.type) && file.type !== 'application/pdf') return 'Alege un document PNG, JPG, WEBP sau PDF.';
   return null;
 }
+async function readBytes(file: File): Promise<Uint8Array<ArrayBuffer>> {
+  if (typeof file.arrayBuffer === 'function') return new Uint8Array(await file.arrayBuffer());
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+/** 64-bit FNV-1a over the bytes (two 32-bit lanes); used only if SHA-256 is unavailable. */
+function fnv(bytes: Uint8Array): string {
+  let a = 0x811c9dc5, b = 0x01000193 ^ bytes.length;
+  for (let i = 0; i < bytes.length; i++) { a = Math.imul(a ^ bytes[i]!, 0x01000193) >>> 0; b = Math.imul(b ^ bytes[i]!, 0x5bd1e995) >>> 0; }
+  return `fnv-${a.toString(16)}${b.toString(16)}-${bytes.length}`;
+}
+/** Same content = same fingerprint, whatever the file name (SHA-256; content hash or name+size as fallbacks). */
+export async function fileFingerprint(file: File): Promise<string> {
+  let bytes: Uint8Array<ArrayBuffer>;
+  try { bytes = await readBytes(file); } catch { return `${file.name}:${file.size}:${file.lastModified}`; }
+  try {
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    return fnv(bytes);
+  }
+}
 export function readError(reason: string): string {
   if (reason === 'no_key') return 'Citirea automată nu este disponibilă momentan. Poți continua fără document.';
   if (reason === 'timeout') return 'Citirea a durat prea mult. Poți încerca din nou.';

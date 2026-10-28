@@ -412,7 +412,7 @@ function Family() {
           {!link ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="iname">Nume</Label>
+                <Label htmlFor="iname">Prenume</Label>
                 <Input
                   id="iname"
                   value={inv.name}

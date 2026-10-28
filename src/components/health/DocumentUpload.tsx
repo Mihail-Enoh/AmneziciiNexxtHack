@@ -6,10 +6,10 @@ import { Progress } from '@/components/ui/progress';
 import { readHealthDocument } from '@/lib/health.functions';
 import { MAX_FILES } from '@/lib/health-files';
 import type { LabResult } from '@/lib/health';
-import { ACCEPT, documentError, documentImages, readError, selectDocuments } from './documents';
+import { ACCEPT, documentError, documentImages, fileFingerprint, readError, selectDocuments } from './documents';
 
-type Entry = { id: number; name: string; status: string; progress: number; error: boolean; file: File };
-export function DocumentUpload({ onLabs, onBusy, consent }: { onLabs: (labs: LabResult[]) => void; onBusy: (busy: boolean) => void; consent: boolean }) {
+type Entry = { id: number; name: string; status: string; progress: number; error: boolean; file: File; hash: string };
+export function DocumentUpload({ onLabs, onBusy, consent, knownHashes = [], onHash }: { onLabs: (labs: LabResult[]) => void; onBusy: (busy: boolean) => void; consent: boolean; knownHashes?: string[]; onHash?: (hash: string) => void }) {
   const read = useServerFn(readHealthDocument);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [busy, setBusy] = useState(false);
@@ -49,10 +49,14 @@ export function DocumentUpload({ onLabs, onBusy, consent }: { onLabs: (labs: Lab
     const accepted = selectDocuments(files, entries.length);
     setNotice(accepted.length < files.length ? `Poți încărca maximum ${MAX_FILES} fișiere.` : '');
     const rows: Entry[] = [];
+    const seen = new Set([...knownHashes, ...entries.map(e => e.hash)]);
     for (const file of accepted) {
       const error = documentError(file);
       if (error) { setNotice(error); continue; }
-      rows.push({ id: nextId.current++, name: file.name, file, status: 'În așteptare', progress: 0, error: false });
+      const hash = await fileFingerprint(file);
+      if (seen.has(hash)) { setNotice(`Documentul „${file.name}” a fost deja încărcat. Nu îl citim de două ori.`); continue; }
+      seen.add(hash); onHash?.(hash);
+      rows.push({ id: nextId.current++, name: file.name, file, hash, status: 'În așteptare', progress: 0, error: false });
     }
     setEntries(old => [...old, ...rows]);
     await run(rows);

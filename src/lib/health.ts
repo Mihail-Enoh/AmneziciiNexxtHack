@@ -26,7 +26,13 @@ export const DOMAIN_WEIGHT: Record<Domain, number> = { mobility: 2, daily: 2, co
 
 // ---------------------------------------------------------------- quiz — short care-planning questionnaire
 export interface QuizOption { id: string; label: string; points: Level }
-export interface QuizQuestion { id: string; domain: Domain; text: string; options: QuizOption[]; multi?: boolean }
+export interface QuizQuestion {
+  id: string; domain: Domain; text: string; options: QuizOption[]; multi?: boolean;
+  /** Multi-choice options that cannot be combined with others (e.g. "Niciuna"). */
+  exclusive?: string[];
+  /** Multi-choice: the user may also type their own answers (each counts 1 point). */
+  allowOther?: boolean;
+}
 
 const o = (id: string, label: string, points: Level): QuizOption => ({ id, label, points });
 
@@ -116,6 +122,8 @@ export const QUIZ: QuizQuestion[] = [
     id: "conditions",
     domain: "chronic",
     multi: true,
+    exclusive: ["none"],
+    allowOther: true,
     text: "Are vreuna dintre aceste afecțiuni diagnosticate? (poți alege mai multe)",
     options: [
       o("diabetes", "Diabet", 1),
@@ -144,13 +152,65 @@ export type QuizAnswers = Record<string, string[]>;
 
 export interface Reason { domain: Domain; level: Level; text: string; source: "quiz" | "analize" | "poveste" }
 
+// ---------------------------------------------------------------- answers: exclusive options + own answers
+/** Own answers typed by the user for a question are stored under this key. */
+export const otherKey = (questionId: string) => `${questionId}__other`;
+export const MAX_OTHER = 5;
+export const MAX_OTHER_LENGTH = 40;
+
+/** Own answers for a question, cleaned. */
+export function customAnswers(q: QuizQuestion, answers: QuizAnswers): string[] {
+  if (!q.allowOther) return [];
+  return (answers[otherKey(q.id)] ?? []).map((t) => t.trim().slice(0, MAX_OTHER_LENGTH)).filter(Boolean).slice(0, MAX_OTHER);
+}
+
+/** Select / unselect an option, respecting exclusive options ("Niciuna" clears the others and vice versa). */
+export function toggleAnswer(q: QuizQuestion, answers: QuizAnswers, optionId: string, on: boolean): QuizAnswers {
+  const current = answers[q.id] ?? [];
+  if (!q.multi) return { ...answers, [q.id]: on ? [optionId] : [] };
+  if (!on) return { ...answers, [q.id]: current.filter((id) => id !== optionId) };
+  const exclusive = q.exclusive ?? [];
+  if (exclusive.includes(optionId)) {
+    // "Niciuna": only this option, and no own answers.
+    const next: QuizAnswers = { ...answers, [q.id]: [optionId] };
+    delete next[otherKey(q.id)];
+    return next;
+  }
+  return { ...answers, [q.id]: [...current.filter((id) => !exclusive.includes(id) && id !== optionId), optionId] };
+}
+
+/** Add an own answer (e.g. a condition not in the list). Removes exclusive options like "Niciuna". */
+export function addCustomAnswer(q: QuizQuestion, answers: QuizAnswers, text: string): QuizAnswers {
+  const t = text.trim().slice(0, MAX_OTHER_LENGTH);
+  const existing = customAnswers(q, answers);
+  if (!q.allowOther || !t || existing.length >= MAX_OTHER || existing.some((x) => x.toLowerCase() === t.toLowerCase())) return answers;
+  const exclusive = q.exclusive ?? [];
+  return { ...answers, [q.id]: (answers[q.id] ?? []).filter((id) => !exclusive.includes(id)), [otherKey(q.id)]: [...existing, t] };
+}
+export function removeCustomAnswer(q: QuizQuestion, answers: QuizAnswers, text: string): QuizAnswers {
+  return { ...answers, [otherKey(q.id)]: customAnswers(q, answers).filter((x) => x !== text) };
+}
+
+/** Points for one question (null = not answered). Multi: sum of points (own answers count 1 each), capped at 2. */
+export function questionPoints(q: QuizQuestion, answers: QuizAnswers): number | null {
+  const picked = (answers[q.id] ?? []).map((id) => q.options.find((x) => x.id === id)).filter((x): x is QuizOption => !!x);
+  const custom = customAnswers(q, answers);
+  if (!picked.length && !custom.length) return null;
+  if (!q.multi) return Math.max(...picked.map((x) => x.points));
+  return Math.min(2, picked.reduce((a, x) => a + x.points, 0) + custom.length);
+}
+
+function answerLabels(q: QuizQuestion, answers: QuizAnswers): string[] {
+  const labels = (answers[q.id] ?? []).map((id) => q.options.find((x) => x.id === id)?.label).filter((x): x is string => !!x);
+  return [...labels, ...customAnswers(q, answers)];
+}
+
 export function scoreQuiz(answers: QuizAnswers): Reason[] {
   const out: Reason[] = [];
   for (const q of QUIZ) {
-    const picked = (answers[q.id] ?? []).map((id) => q.options.find((x) => x.id === id)).filter((x): x is QuizOption => !!x);
-    if (!picked.length) continue;
-    const level = Math.min(2, q.multi ? picked.reduce((a, x) => a + x.points, 0) : Math.max(...picked.map((x) => x.points))) as Level;
-    out.push({ domain: q.domain, level, text: `${q.text} ${picked.map((x) => x.label).join(", ")}`, source: "quiz" });
+    const points = questionPoints(q, answers);
+    if (points === null) continue;
+    out.push({ domain: q.domain, level: points as Level, text: `${q.text} ${answerLabels(q, answers).join(", ")}`, source: "quiz" });
   }
   return out;
 }
@@ -158,14 +218,18 @@ export function scoreQuiz(answers: QuizAnswers): Reason[] {
 /** Quiz answers as readable lines for the AI prompt. */
 export function quizAsText(answers: QuizAnswers): string {
   return QUIZ.flatMap((q) => {
-    const labels = (answers[q.id] ?? []).map((id) => q.options.find((x) => x.id === id)?.label).filter(Boolean);
+    const labels = answerLabels(q, answers);
     return labels.length ? [`- ${q.text} ${labels.join(", ")}`] : [];
   }).join("\n");
 }
 
 // ---------------------------------------------------------------- lab results (read by the vision model)
 export type Flag = "low" | "high" | "normal" | "unknown";
-export interface LabResult { name: string; value: number; unit: string; refLow: number | null; refHigh: number | null; refText: string; flag: Flag }
+export interface LabResult {
+  name: string; value: number; unit: string; refLow: number | null; refHigh: number | null; refText: string; flag: Flag;
+  /** Date printed on the document (DD.MM.YYYY), when known — used to keep the newest value of a repeated test. */
+  date?: string;
+}
 
 /** The flag is computed here from the numbers — never trusted from the model. */
 export function flagOf(value: number, refLow: number | null, refHigh: number | null): Flag {
@@ -210,19 +274,65 @@ export function sanitizeRead(raw: unknown): DocumentRead {
   const docTypes = ["lab_report", "prescription", "discharge_letter", "other"];
   const documentType = typeof r.documentType === "string" && docTypes.includes(r.documentType) ? r.documentType : "other";
   const date = typeof r.date === "string" && /^\d{2}\.\d{2}\.\d{4}$/.test(r.date.trim()) ? r.date.trim() : null;
-  return { documentType, date, labs };
+  return { documentType, date, labs: date ? labs.map((l) => ({ ...l, date })) : labs };
 }
 
 /** Re-flag after the user corrected values in the review table. */
 export const reflag = (labs: LabResult[]): LabResult[] => labs.map((l) => ({ ...l, flag: flagOf(l.value, l.refLow, l.refHigh) }));
 
+/** Same test, however it is written: "Glicemie" = "glicemie " = "GLICEMIE:" (accents, case, punctuation ignored). */
+export const labKey = (name: string) => name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+const dateValue = (d: string | undefined) => {
+  const m = d ? /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(d) : null;
+  return m ? Number(`${m[3]}${m[2]}${m[1]}`) : null;
+};
+
+export interface LabMerge {
+  labs: LabResult[];
+  /** Tests that appeared again with another value: which value was kept. */
+  replaced: { name: string; kept: number; dropped: number }[];
+  /** Identical rows that were skipped. */
+  duplicates: number;
+}
+
+/**
+ * Add newly read results to the existing ones without double-counting a test.
+ * Same test + same value → skipped. Same test + other value → the one from the newer document wins
+ * (when dates are unknown, the newly added one wins). Max 60 rows.
+ */
+export function mergeLabs(existing: LabResult[], incoming: LabResult[]): LabMerge {
+  const labs = [...existing];
+  const replaced: LabMerge["replaced"] = [];
+  let duplicates = 0;
+  for (const lab of incoming) {
+    const key = labKey(lab.name);
+    const i = key ? labs.findIndex((l) => labKey(l.name) === key) : -1;
+    if (i < 0) { if (labs.length < 60) labs.push(lab); continue; }
+    const old = labs[i]!;
+    if (old.value === lab.value) { duplicates++; continue; }
+    const oldDate = dateValue(old.date), newDate = dateValue(lab.date);
+    const incomingWins = oldDate === null || newDate === null || newDate >= oldDate;
+    if (incomingWins) labs[i] = lab;
+    replaced.push({ name: old.name, kept: incomingWins ? lab.value : old.value, dropped: incomingWins ? old.value : lab.value });
+  }
+  return { labs: reflag(labs), replaced, duplicates };
+}
+
+/** One row per test (keeps the last one) — so a test typed twice is never counted twice. */
+export const uniqueLabs = (labs: LabResult[]): LabResult[] => {
+  const byKey = new Map<string, LabResult>();
+  labs.forEach((l, i) => byKey.set(labKey(l.name) || `#${i}`, l));
+  return [...byKey.values()];
+};
+
 export function labsAsText(labs: LabResult[]): string {
   const f: Record<Flag, string> = { low: "SUB interval", high: "PESTE interval", normal: "în interval", unknown: "fără interval" };
-  return labs.map((l) => `- ${l.name}: ${l.value} ${l.unit} (referință ${l.refText || "-"}) → ${f[l.flag]}`).join("\n");
+  return uniqueLabs(labs).map((l) => `- ${l.name}: ${l.value} ${l.unit} (referință ${l.refText || "-"}) → ${f[l.flag]}`).join("\n");
 }
 
 /** Out-of-range lab results raise the "chronic" domain: 1–2 → attention, 3+ → important. */
-export function labReason(labs: LabResult[]): Reason | null {
+export function labReason(all: LabResult[]): Reason | null {
+  const labs = uniqueLabs(all);
   const out = labs.filter((l) => l.flag === "low" || l.flag === "high");
   if (!out.length) return null;
   return { domain: "chronic", level: out.length >= 3 ? 2 : 1, text: `${out.length} din ${labs.length} analize în afara intervalului de referință (${out.slice(0, 4).map((l) => l.name).join(", ")}${out.length > 4 ? "…" : ""})`, source: "analize" };

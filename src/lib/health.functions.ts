@@ -74,8 +74,10 @@ const LabInput = z.object({
   name: z.string().max(80), value: z.number().finite(), unit: z.string().max(30),
   refLow: z.number().finite().nullable(), refHigh: z.number().finite().nullable(),
   refText: z.string().max(40), flag: z.enum(["low", "high", "normal", "unknown"]),
+  date: z.string().regex(/^\d{2}\.\d{2}\.\d{4}$/).optional(),
 });
 const AssessInput = z.object({
+  name: z.string().max(80).default(""),
   age: z.number().int().min(0).max(120),
   story: z.string().max(4000),
   answers: z.record(z.string().max(40), z.array(z.string().max(40)).max(10)),
@@ -86,9 +88,9 @@ const AssessInput = z.object({
 export const assessHealthFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AssessInput.parse(d))
   .handler(async ({ data }): Promise<{ assessment: HealthAssessment; aiFail: Fail | null }> => {
-    const labs: LabResult[] = reflag(data.labs);
+    const labs: LabResult[] = reflag(data.labs.map(({ date, ...l }) => (date ? { ...l, date } : l)));
     const model = process.env["FEATHERLESS_MODEL"]?.trim() || DEFAULT_TEXT_MODEL;
-    const user = interpretMessage({ age: data.age, story: data.story, quizText: quizAsText(data.answers), labsText: labsAsText(labs) });
+    const user = interpretMessage({ name: data.name, age: data.age, story: data.story, quizText: quizAsText(data.answers), labsText: labsAsText(labs) });
     const ai = await oneAtATime(async () => {
       for (let attempt = 0; attempt < 2; attempt++) {
         const r = await chat(model, [{ role: "system", content: HEALTH_INTERPRET_PROMPT }, { role: "user", content: user }], 45_000, 1200);

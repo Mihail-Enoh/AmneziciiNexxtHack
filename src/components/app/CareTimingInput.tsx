@@ -10,6 +10,11 @@ interface CareTimingInputProps {
   presets?: readonly number[];
 }
 
+/** Today as YYYY-MM-DD in Romania (the date input works with this format). */
+export function todayIso(now = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Bucharest", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
 /** Shared by onboarding and the live plan, without saving an unfinished form. */
 export function CareTimingInput({
   careStartDate,
@@ -19,11 +24,30 @@ export function CareTimingInput({
 }: CareTimingInputProps) {
   const id = useId();
   const [customEntry, setCustomEntry] = useState(false);
+  const [dateError, setDateError] = useState("");
   const custom = Boolean(careStartDate) || customEntry;
+  const today = todayIso();
   return (
     <fieldset className="space-y-3">
       <legend className="mb-3 text-sm font-semibold">Când începe îngrijirea?</legend>
       <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          aria-pressed={!custom && yearsUntil === 0}
+          className={cn(
+            "rounded-xl border-2 px-4 py-3 text-sm font-semibold",
+            !custom && yearsUntil === 0
+              ? "border-primary bg-primary-soft text-primary"
+              : "hover:border-primary/40",
+          )}
+          onClick={() => {
+            setCustomEntry(false);
+            setDateError("");
+            onChange({ careStartDate: "", yearsUntil: 0 });
+          }}
+        >
+          Acum
+        </button>
         {presets.map((years) => (
           <button
             key={years}
@@ -37,6 +61,7 @@ export function CareTimingInput({
             )}
             onClick={() => {
               setCustomEntry(false);
+              setDateError("");
               onChange({ careStartDate: "", yearsUntil: years });
             }}
           >
@@ -62,12 +87,21 @@ export function CareTimingInput({
           <Input
             id={`${id}-date`}
             type="date"
+            min={today}
             value={careStartDate}
+            aria-invalid={dateError ? true : undefined}
             onChange={(event) => {
               setCustomEntry(true);
-              onChange({ careStartDate: event.target.value, yearsUntil });
+              const value = event.target.value;
+              if (value && value < today) {
+                setDateError("Alege o dată de azi încolo. Dacă îngrijirea a început deja, alege „Acum”.");
+                return;
+              }
+              setDateError("");
+              onChange({ careStartDate: value, yearsUntil });
             }}
           />
+          {dateError && <p role="alert" className="text-xs font-medium text-destructive">{dateError}</p>}
           {!careStartDate && (
             <p className="text-xs text-muted-foreground">
               Alege o dată pentru a aplica opțiunea personalizată. Până atunci, calculul folosește{" "}
@@ -77,7 +111,7 @@ export function CareTimingInput({
         </div>
       )}
       <p className="text-xs text-muted-foreground">
-        Data se aplică tuturor scenariilor comparate. O dată trecută înseamnă începere acum. Simulăm
+        Data se aplică tuturor scenariilor comparate. Simulăm
         pe luni întregi, rotunjite în sus; nu prezicem evoluția sănătății.
       </p>
     </fieldset>

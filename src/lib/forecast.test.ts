@@ -67,10 +67,34 @@ describe("forecast", () => {
     expect(f.saving.months).toBe(f.atMedian.year * 12);
     expect(f.habits).toEqual([]); // no quiz → no habit suggestions
   });
-  it("matches plan.ts at the most likely year", () => {
+  it("shows the same monthly gap as the plan page (one set of assumptions)", () => {
+    const plan = demoState(); // yearsUntil 10 = the most likely year for Elena
+    const f = forecast(plan, { now: NOW });
+    expect(f.atMedian.year).toBe(10);
+    expect(f.atMedian.monthlyGapAtStart).toBe(computePlan(plan, "daily", NOW).familyFundingGap);
+  });
+  it("follows the plan's cost growth and switches to the nominal savings rate", () => {
+    const flat = forecast(demoState(), { now: NOW });
+    const growing = forecast({ ...demoState(), costGrowth: 3 }, { now: NOW });
+    expect(flat.todaysPrices).toBe(true);
+    expect(growing.todaysPrices).toBe(false);
+    expect(growing.atMedian.monthlyGapAtStart).toBeGreaterThan(flat.atMedian.monthlyGapAtStart);
+  });
+  it("gives the chart enough years to show the whole interval, and the care duration", () => {
     const f = forecast(demoState(), { now: NOW });
-    const p = computePlan({ ...demoState(), yearsUntil: f.atMedian.year, careStartDate: "", costGrowth: 1.5, incomeGrowth: 0 }, "daily", NOW);
-    expect(f.atMedian.monthlyGapAtStart).toBe(p.familyFundingGap);
+    expect(f.chartYears.length).toBeGreaterThanOrEqual(Math.ceil(f.onset.high));
+    expect(f.careDurationMonths).toBe(60);
+  });
+  it("a condition typed by the user counts as risk", () => {
+    const base = riskPoints(null, { conditions: ["none"] });
+    expect(riskPoints(null, { conditions: [], conditions__other: ["Parkinson"] })).toBeGreaterThan(base);
+  });
+  it("says 'persoana' when the name is missing, never 'părintele'", () => {
+    const answers: QuizAnswers = { smoking: ["daily"] };
+    const s = { ...elena74, parent: { ...elena74.parent, name: "" } };
+    const f = forecast(s, { domains: assessHealth({ age: 74, answers, labs: [], ai: null }).domains, answers, now: NOW });
+    expect(f.habits[0]!.detail).toMatch(/dacă persoana /);
+    expect(f.habits[0]!.detail).not.toMatch(/părinte/);
   });
   it("habit suggestions: one per bad habit + all together, with years and % saved", () => {
     const answers: QuizAnswers = { smoking: ["daily"], exercise: ["never"], alcohol: ["rarely"], walking: ["difficulty"] };

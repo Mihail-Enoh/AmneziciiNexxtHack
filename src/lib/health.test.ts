@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  assessHealth, extractJson, flagOf, healthPatch, labReason, QUIZ, quizAsText, reflag, sanitizeInterpretation, sanitizeRead, scoreQuiz,
-  type QuizAnswers,
+  addCustomAnswer, assessHealth, extractJson, flagOf, healthPatch, labKey, labReason, mergeLabs, QUIZ, quizAsText, reflag, removeCustomAnswer,
+  sanitizeInterpretation, sanitizeRead, scoreQuiz, toggleAnswer, type LabResult, type QuizAnswers,
 } from "./health";
 import { HEALTH_INTERPRET_PROMPT, interpretMessage, VISION_READ_PROMPT } from "./health-prompt";
 import { computePlan, demoState, type PlanState } from "./plan";
@@ -147,5 +147,64 @@ describe("prompts", () => {
   it("builds the user message with all four parts", () => {
     const m = interpretMessage({ age: 74, story: "Mama stă singură.", quizText: "- Cum se deplasează? Singură", labsText: "- TSH: 2.1" });
     for (const s of ["74 ani", "Mama stă singură.", "Cum se deplasează? Singură", "TSH: 2.1"]) expect(m).toContain(s);
+  });
+});
+describe("conditions: 'Niciuna' is exclusive and own answers are allowed", () => {
+  const q = QUIZ.find((x) => x.id === "conditions")!;
+  it("'Niciuna' clears the other conditions and own answers", () => {
+    let a: QuizAnswers = toggleAnswer(q, {}, "diabetes", true);
+    a = addCustomAnswer(q, a, "Parkinson");
+    a = toggleAnswer(q, a, "none", true);
+    expect(a["conditions"]).toEqual(["none"]);
+    expect(a["conditions__other"]).toBeUndefined();
+  });
+  it("choosing a condition removes 'Niciuna'", () => {
+    const a = toggleAnswer(q, toggleAnswer(q, {}, "none", true), "heart", true);
+    expect(a["conditions"]).toEqual(["heart"]);
+  });
+  it("own answers: trimmed, no duplicates, max 5, count as points and reach the AI text", () => {
+    let a: QuizAnswers = toggleAnswer(q, {}, "none", true);
+    a = addCustomAnswer(q, a, "  Parkinson ");
+    a = addCustomAnswer(q, a, "parkinson");
+    expect(a["conditions"]).toEqual([]);
+    expect(a["conditions__other"]).toEqual(["Parkinson"]);
+    for (const t of ["A", "B", "C", "D", "E"]) a = addCustomAnswer(q, a, t);
+    expect(a["conditions__other"]).toHaveLength(5);
+    expect(scoreQuiz(a).find((r) => r.domain === "chronic")?.level).toBe(2);
+    expect(quizAsText(a)).toContain("Parkinson");
+    expect(removeCustomAnswer(q, a, "Parkinson")["conditions__other"]).not.toContain("Parkinson");
+  });
+});
+
+describe("repeated lab results are merged, not counted twice", () => {
+  const lab = (name: string, value: number, date?: string): LabResult =>
+    ({ name, value, unit: "mg/dL", refLow: 70, refHigh: 105, refText: "70 – 105", flag: "unknown", ...(date ? { date } : {}) });
+  it("recognises the same test however it is written", () => {
+    expect(labKey("Glicemie")).toBe(labKey(" GLICEMIE: "));
+    expect(labKey("Hemoglobină")).toBe(labKey("hemoglobina"));
+  });
+  it("same value → skipped; different value → newer document wins; older document never replaces", () => {
+    const first = mergeLabs([], [lab("Glicemie", 142, "14.10.2026")]);
+    const same = mergeLabs(first.labs, [lab("glicemie", 142, "14.10.2026")]);
+    expect(same.labs).toHaveLength(1);
+    expect(same.duplicates).toBe(1);
+    const newer = mergeLabs(first.labs, [lab("Glicemie", 120, "20.10.2026")]);
+    expect(newer.labs).toHaveLength(1);
+    expect(newer.labs[0]!.value).toBe(120);
+    expect(newer.replaced).toEqual([{ name: "Glicemie", kept: 120, dropped: 142 }]);
+    const older = mergeLabs(first.labs, [lab("Glicemie", 99, "01.01.2025")]);
+    expect(older.labs[0]!.value).toBe(142);
+    expect(older.replaced[0]).toMatchObject({ kept: 142, dropped: 99 });
+  });
+  it("without dates the newly added value wins; flags are recomputed", () => {
+    const r = mergeLabs([lab("Glicemie", 142)], [lab("Glicemie", 90)]);
+    expect(r.labs[0]).toMatchObject({ value: 90, flag: "normal" });
+  });
+  it("the document date is kept on each result", () => {
+    expect(sanitizeRead(FICTIVE).labs.every((l) => l.date === "14.10.2026")).toBe(true);
+  });
+  it("a test typed twice by hand is counted once in the signals", () => {
+    const labs = reflag([lab("Glicemie", 142), lab("glicemie", 150), lab("TSH", 200)]);
+    expect(labReason(labs)?.text).toMatch(/^2 din 2 analize/);
   });
 });

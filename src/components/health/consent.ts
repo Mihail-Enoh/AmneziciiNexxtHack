@@ -1,5 +1,5 @@
 export const CONSENT_KEY = "prototype123-health-consent";
-export const CONSENT_VERSION = "1";
+export const CONSENT_VERSION = "2";
 export type HealthConsent = { consentVersion: string; acceptedAt: string };
 
 export function saveConsent(now: Date = new Date()): HealthConsent {
