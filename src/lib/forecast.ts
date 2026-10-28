@@ -150,6 +150,10 @@ export interface HabitSuggestion {
   /** Monthly amount to set aside before and after the change. */
   perMonthBefore: number;
   perMonthAfter: number;
+  /** Months later that the family starts paying, and what those months would have cost (months × monthly gap). */
+  delayMonths: number;
+  deferredCost: number;
+  monthlyGap: number;
 }
 export interface Forecast {
   intensity: Intensity;
@@ -229,11 +233,15 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
     const before = base.saving.perMonth ?? 0;
     const after = better.saving.perMonth ?? 0;
     const savingLessPerMonth = Math.max(0, before - after);
+    const delayMonths = Math.max(1, Math.round((better.onset.p50 - base.onset.p50) * 12));
+    const monthlyGap = base.atMedian.monthlyGapAtStart;
+    const deferredCost = Math.round(delayMonths * monthlyGap);
     habits.push({
       id, title, delayYears, costSaved, costSavedPct, savingLessPerMonth, perMonthBefore: before, perMonthAfter: after,
+      delayMonths, deferredCost, monthlyGap,
       detail: `În modelul nostru, dacă ${who} ${action} de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${yrs(delayYears)}. ` +
-        (savingLessPerMonth > 0
-          ? `Familia ar avea mai mult timp să strângă banii: ${lei(after)}/lună în loc de ${lei(before)}/lună.`
+        (monthlyGap > 0
+          ? `Familia ar începe să plătească diferența de ${lei(monthlyGap)}/lună cu ${delayMonths} ${delayMonths === 1 ? "lună" : "luni"} mai târziu: aproximativ ${lei(deferredCost)} amânați.`
           : `Familia ar avea mai mult timp să se pregătească.`),
     });
   };

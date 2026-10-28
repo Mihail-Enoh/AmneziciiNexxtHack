@@ -13,7 +13,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { loadPlanFromStorage } from "../lib/store";
+import { loadPlanFromStorage, setAccount } from "../lib/store";
+import { useAuth } from "@/lib/auth";
 import { AuthProvider } from "@/lib/auth";
 import { PreferenceEffects } from "@/components/app/Preferences";
 import { Toaster } from "@/components/ui/sonner";
@@ -94,6 +95,15 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Guest: people are kept only in this tab. Signed in: kept in the account on this device. */
+function AccountSync() {
+  const { user, loading } = useAuth();
+  useEffect(() => {
+    if (!loading) setAccount(user?.id ?? null);
+  }, [user, loading]);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
@@ -102,7 +112,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider><PreferenceEffects /><Outlet /><Toaster /></AuthProvider>
+      <AuthProvider><AccountSync /><PreferenceEffects /><Outlet /><Toaster /></AuthProvider>
     </QueryClientProvider>
   );
 }

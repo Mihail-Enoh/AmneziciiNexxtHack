@@ -4,11 +4,16 @@ import { blankState } from "./intake";
 
 /**
  * Several people can be planned for. Each person has a full plan; pages keep using usePlan()/setPlan(),
- * which always work on the ACTIVE person. Everything stays in this browser (localStorage).
+ * which always work on the ACTIVE person. Everything stays in this browser.
  *
- * - PROFILES_KEY holds all people.
- * - KEY mirrors the active person's plan (the format used before profiles existed); if it was written
- *   by an older version it wins for the active person, so nothing saved earlier is lost.
+ * Where it is kept depends on the account:
+ * - not signed in: sessionStorage → everything is gone when the tab/browser is closed;
+ * - signed in: localStorage, under the user's id → kept between visits on this device.
+ *   When you sign in, the people added before signing in are moved into your account.
+ *   When you sign out, you start again from the example.
+ *
+ * - PROFILES_KEY holds all people; KEY mirrors the active person's plan (older format).
+ *   Data saved by older versions in localStorage without an account is moved to this tab once, then removed.
  */
 const KEY = "prototype123-plan-v1";
 const PROFILES_KEY = "prototype123-profiles-v1";
@@ -24,11 +29,11 @@ export interface ProfilesView { activeId: string; people: PersonSummary[]; /** T
 
 const initial = (): Profiles => ({ activeId: DEMO_ID, order: [DEMO_ID], plans: { [DEMO_ID]: demoState() } });
 let profiles: Profiles = initial();
+let loaded = false;
 let state: PlanState = profiles.plans[DEMO_ID]!;
 const listeners = new Set<() => void>();
 const serverSnapshot = demoState();
 
-let loaded = false;
 function summarize(p: Profiles): ProfilesView {
   return {
     loaded,
@@ -47,13 +52,49 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
+/** Signed-in user id, or null for a guest. */
+let owner: string | null = null;
+const scoped = (key: string) => (owner ? `${key}:${owner}` : key);
+function box(): Storage | null {
+  try { return owner ? localStorage : sessionStorage; } catch { return null; }
+}
+
 function persist() {
   try {
-    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
-    localStorage.setItem(KEY, JSON.stringify(state));
+    box()?.setItem(scoped(PROFILES_KEY), JSON.stringify(profiles));
+    box()?.setItem(scoped(KEY), JSON.stringify(state));
   } catch {
     /* storage unavailable */
   }
+}
+
+/** Read the saved people for the current owner (null if nothing usable). */
+function readSaved(store: Storage | null, profilesKey: string, planKey: string): Profiles | null {
+  if (!store) return null;
+  let result: Profiles | null = null;
+  const rawProfiles = store.getItem(profilesKey);
+  if (rawProfiles) {
+    const parsed = JSON.parse(rawProfiles) as Partial<Profiles> | null;
+    const plans: Record<string, PlanState> = {};
+    for (const id of Array.isArray(parsed?.order) ? parsed!.order : []) {
+      const plan = typeof id === "string" ? normalizePlan(parsed?.plans?.[id]) : null;
+      if (plan) plans[id] = plan;
+    }
+    const order = Object.keys(plans);
+    if (order.length) {
+      const activeId = typeof parsed?.activeId === "string" && plans[parsed.activeId] ? parsed.activeId : order[0]!;
+      result = { activeId, order, plans };
+    }
+  }
+  const rawActive = store.getItem(planKey);
+  if (rawActive) {
+    const plan = normalizePlan(JSON.parse(rawActive));
+    if (plan) {
+      if (result) result.plans[result.activeId] = plan;
+      else result = { activeId: "p1", order: ["p1"], plans: { p1: plan } }; // saved before profiles existed
+    }
+  }
+  return result;
 }
 
 /** Fill missing fields from the defaults and reject invalid projection inputs (older saved plans). */
@@ -85,37 +126,55 @@ export function normalizePlan(saved: unknown): PlanState | null {
 
 export function loadPlanFromStorage() {
   try {
-    const rawProfiles = localStorage.getItem(PROFILES_KEY);
-    if (rawProfiles) {
-      const parsed = JSON.parse(rawProfiles) as Partial<Profiles> | null;
-      const plans: Record<string, PlanState> = {};
-      for (const id of Array.isArray(parsed?.order) ? parsed!.order : []) {
-        const plan = typeof id === "string" ? normalizePlan(parsed?.plans?.[id]) : null;
-        if (plan) plans[id] = plan;
-      }
-      const order = Object.keys(plans);
-      if (order.length) {
-        const activeId = typeof parsed?.activeId === "string" && plans[parsed.activeId] ? parsed.activeId : order[0]!;
-        profiles = { activeId, order, plans };
-      }
+    let saved = readSaved(box(), scoped(PROFILES_KEY), scoped(KEY));
+    // Older versions kept guest data in localStorage forever: move it to this tab once and remove it.
+    if (!owner) {
+      let legacy: Profiles | null = null;
+      try { legacy = readSaved(localStorage, PROFILES_KEY, KEY); localStorage.removeItem(PROFILES_KEY); localStorage.removeItem(KEY); } catch { /* unavailable */ }
+      if (!saved && legacy) saved = legacy;
     }
-    const rawActive = localStorage.getItem(KEY);
-    if (rawActive) {
-      const plan = normalizePlan(JSON.parse(rawActive));
-      if (plan) {
-        if (rawProfiles) profiles.plans[profiles.activeId] = plan;
-        else {
-          profiles = { activeId: "p1", order: ["p1"], plans: { p1: plan } }; // first visit after the update
-          state = plan;
-          persist();
-        }
-      }
-    }
+    if (saved) profiles = saved;
     state = profiles.plans[profiles.activeId]!;
+    if (saved) persist();
   } catch {
     /* ignore */
   }
   loaded = true;
+  emit();
+}
+
+/**
+ * Called when the account changes (sign in / sign out / page load with a session).
+ * Sign in: the account's people + the people added as a guest in this tab. Sign out: back to the example.
+ */
+export function setAccount(userId: string | null) {
+  if (userId === owner) return;
+  if (!loaded) loadPlanFromStorage();
+  const guest = owner ? null : profiles;
+  const clearGuest = () => { try { sessionStorage.removeItem(PROFILES_KEY); sessionStorage.removeItem(KEY); } catch { /* unavailable */ } };
+  owner = userId;
+  if (userId) {
+    let mine: Profiles | null = null;
+    try { mine = readSaved(localStorage, scoped(PROFILES_KEY), scoped(KEY)); } catch { /* unavailable */ }
+    const merged: Profiles = mine ?? { activeId: "", order: [], plans: {} };
+    for (const id of guest?.order ?? []) {
+      const plan = guest!.plans[id];
+      if (!plan || merged.plans[id]) continue;
+      if (id === DEMO_ID && merged.order.length) continue; // the example is not worth copying
+      merged.plans[id] = plan;
+      merged.order.push(id);
+    }
+    if (!merged.order.length) merged.plans[DEMO_ID] = demoState(), merged.order.push(DEMO_ID);
+    const guestActive = guest && guest.activeId !== DEMO_ID && merged.plans[guest.activeId] ? guest.activeId : null;
+    merged.activeId = guestActive ?? (merged.plans[merged.activeId] ? merged.activeId : merged.order[0]!);
+    profiles = merged;
+    clearGuest();
+  } else {
+    profiles = initial();
+    clearGuest();
+  }
+  state = profiles.plans[profiles.activeId]!;
+  persist();
   emit();
 }
 

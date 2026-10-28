@@ -107,9 +107,9 @@ describe("forecast", () => {
     for (const h of f.habits) {
       expect(h.delayYears).toBeGreaterThan(0);
       expect(h.costSaved).toBeGreaterThan(0);
-      expect(h.savingLessPerMonth).toBeGreaterThan(0);
-      expect(h.perMonthAfter).toBe(h.perMonthBefore - h.savingLessPerMonth);
-      expect(h.detail).toMatch(/lei\/lună în loc de .* lei\/lună/);
+      expect(h.deferredCost).toBe(h.delayMonths * h.monthlyGap); // never "money lost", grows with the delay
+      expect(h.delayMonths).toBe(Math.round(h.delayYears * 12) || 1);
+      expect(h.detail).toMatch(/mai târziu: aproximativ .* lei amânați/);
       expect(h.detail).toMatch(/^În modelul nostru, dacă Elena /);
     }
     const all = f.habits.find((h) => h.id === "all")!;

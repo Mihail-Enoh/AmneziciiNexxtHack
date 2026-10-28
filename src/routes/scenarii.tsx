@@ -18,8 +18,7 @@ import {
   DemoBadge,
   ExplainButton,
   GapBar,
-  PageHeader,
-} from "@/components/app/bits";
+  PageHeader, needLines } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -228,7 +227,7 @@ function Scenarios() {
               <ExplainButton
                 title="Diferența în acest scenariu"
                 lines={[
-                  { label: "Necesar total inițial", value: ron(c.totalMonthlyNeed) },
+                  ...needLines(s, c),
                   { label: `Resursele ${genitive(p.name)}`, value: ron(c.parentCovered), op: "−" },
                   { label: "Diferență", value: ron(c.familyFundingGap), op: "=" },
                 ]}

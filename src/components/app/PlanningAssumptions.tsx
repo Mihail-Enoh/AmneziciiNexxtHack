@@ -3,9 +3,11 @@ import {
   computePlan,
   costReferenceProjections,
   INFLATION_REFERENCE,
+  PLAN_ASSUMPTIONS,
   RESIDENTIAL_REFERENCES,
   RESIDENTIAL_SOURCE,
   ron,
+  scenarioById,
 } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
 import { Input } from "@/components/ui/input";
@@ -68,6 +70,23 @@ export function PlanningAssumptions({
       {editable && (
         <>
           {showTiming && <CareDateInput />}
+          <div className="space-y-2 rounded-xl border p-4">
+            <Label htmlFor="care-cost">Cât costă îngrijirea pe lună azi · {scenarioById(s.scenario).label.toLowerCase()} (RON)</Label>
+            <Input
+              id="care-cost"
+              type="number"
+              min={0}
+              max={100000}
+              step={50}
+              value={s.costs[s.scenario]}
+              onChange={(e) => setPlan({ costs: { ...s.costs, [s.scenario]: Math.max(0, Math.min(100000, Math.round(Number(e.target.value) || 0))) } })}
+            />
+            <p className="text-xs text-muted-foreground">
+              {s.costs[s.scenario] === PLAN_ASSUMPTIONS.costs[s.scenario]
+                ? `Valoare demonstrativă, aceeași pentru toți (${ron(PLAN_ASSUMPTIONS.costs[s.scenario])}/lună). Pune prețul real: o ofertă de la o îngrijitoare, un centru de zi sau un cămin din zona voastră.`
+                : `Valoarea ta. Demonstrativ era ${ron(PLAN_ASSUMPTIONS.costs[s.scenario])}/lună.`}
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {numeric(
               "cost-growth",

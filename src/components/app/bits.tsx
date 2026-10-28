@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Calculator, Info, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatNumber, STATUS_META } from "@/lib/plan";
+import { formatNumber, PLAN_ASSUMPTIONS, ron, scenarioById, STATUS_META, type computePlan, type PlanState } from "@/lib/plan";
 import { cn } from "@/lib/utils";
 
 /** Smoothly tweens between numeric values. */
@@ -31,6 +31,19 @@ export function AnimatedNumber({ value, suffix = " RON", className }: { value: n
 }
 
 export interface CalcLine { label: string; value: string; op?: "−" | "+" | "=" | "×" | "÷" }
+
+/** Where the monthly need comes from: the care cost of the chosen scenario (+ any essential expenses income does not cover). */
+export function needLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcLine[] {
+  const preset = s.costs[s.scenario] === PLAN_ASSUMPTIONS.costs[s.scenario];
+  const lines: CalcLine[] = [
+    { label: `Cost îngrijire · ${scenarioById(s.scenario).label.toLowerCase()}${preset ? " (estimare demonstrativă; o poți schimba în Scenarii)" : " (valoarea ta)"}`, value: ron(c.careMonthlyCost) },
+  ];
+  if (c.essentialShortfall > 0) {
+    lines.push({ label: "Cheltuieli esențiale pe care venitul nu le acoperă", value: ron(c.essentialShortfall), op: "+" });
+    lines.push({ label: "Necesar total inițial", value: ron(c.totalMonthlyNeed), op: "=" });
+  }
+  return lines;
+}
 
 export function ExplainButton({ title, lines, note }: { title: string; lines: CalcLine[]; note?: string }) {
   const t = useT();

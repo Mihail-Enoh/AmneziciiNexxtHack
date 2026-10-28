@@ -13,8 +13,7 @@ import {
   InfoTip,
   Metric,
   PageHeader,
-  PrivacyNote,
-} from "@/components/app/bits";
+  PrivacyNote, needLines } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { computePlan, formatNumber, fullName, genitive, ron, SCENARIOS, type Intensity } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
@@ -87,7 +86,7 @@ function Dashboard() {
             <ExplainButton
               title="Diferența lunară"
               lines={[
-                { label: "Necesar total inițial", value: ron(c.totalMonthlyNeed) },
+                ...needLines(s, c),
                 { label: `Contribuția ${genitive(p.name)}`, value: ron(c.parentCovered), op: "−" },
                 { label: "Diferență de acoperit", value: ron(c.familyFundingGap), op: "=" },
               ]}
@@ -318,7 +317,7 @@ function Dashboard() {
             <ExplainButton
               title="Diferența de acoperit"
               lines={[
-                { label: "Necesar total inițial", value: ron(c.totalMonthlyNeed) },
+                ...needLines(s, c),
                 {
                   label: `Contribuția disponibilă a ${genitive(p.name)}`,
                   value: ron(c.parentCovered),

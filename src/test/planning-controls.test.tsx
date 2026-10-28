@@ -31,6 +31,7 @@ describe("Live planning controls and persistence", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-10-28T12:00:00Z"));
     localStorage.clear();
+    sessionStorage.clear();
     loadDemo();
     container = document.createElement("div");
     document.body.append(container);
@@ -49,6 +50,7 @@ describe("Live planning controls and persistence", () => {
     act(() => root.unmount());
     container.remove();
     localStorage.clear();
+    sessionStorage.clear();
     loadDemo();
     vi.useRealTimers();
   });
@@ -72,7 +74,7 @@ describe("Live planning controls and persistence", () => {
     change('input[type="date"]', "2028-04-28");
     expect(result()).toMatchObject({ date: "2028-04-28", months: 18, reserve: 4500 });
     expect(button("Peste 10 ani")).toHaveAttribute("aria-pressed", "false");
-    expect(JSON.parse(localStorage.getItem("prototype123-plan-v1")!).careStartDate).toBe(
+    expect(JSON.parse(sessionStorage.getItem("prototype123-plan-v1")!).careStartDate).toBe(
       "2028-04-28",
     );
     act(() => setPlan({ scenario: "residential" }));
@@ -121,10 +123,10 @@ describe("Live planning controls and persistence", () => {
         careDurationMonths: 36,
       }),
     );
-    const saved = localStorage.getItem("prototype123-plan-v1")!;
+    const saved = sessionStorage.getItem("prototype123-plan-v1")!;
     act(() => {
       loadDemo();
-      localStorage.setItem("prototype123-plan-v1", saved);
+      sessionStorage.setItem("prototype123-plan-v1", saved);
       loadPlanFromStorage();
     });
     expect(result()).toMatchObject({
@@ -133,7 +135,7 @@ describe("Live planning controls and persistence", () => {
       cost: Math.round(3000 * 1.05 ** 3),
     });
     act(() => {
-      localStorage.setItem(
+      sessionStorage.setItem(
         "prototype123-plan-v1",
         JSON.stringify({ yearsUntil: 5, parent: { pension: 4000 } }),
       );
