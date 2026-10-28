@@ -1,0 +1,41 @@
+import { useSyncExternalStore } from "react";
+import { english } from "./translations";
+
+export type Language = "ro" | "en";
+let language: Language = "ro";
+const listeners = new Set<() => void>();
+export const LANGUAGE_KEY = "prototype123-language";
+export function readLanguage(value: string | null): Language { return value === "en" ? "en" : "ro"; }
+export function initializeLanguage() {
+  try { language = readLanguage(localStorage.getItem(LANGUAGE_KEY)); } catch { language = "ro"; }
+  document.documentElement.lang = language;
+  listeners.forEach(fn => fn());
+}
+export function setLanguage(next: Language) {
+  language = next;
+  try { localStorage.setItem(LANGUAGE_KEY, next); } catch { /* storage unavailable */ }
+  document.documentElement.lang = next;
+  listeners.forEach(fn => fn());
+}
+export function useLanguage() {
+  return useSyncExternalStore(fn => { listeners.add(fn); return () => listeners.delete(fn); }, () => language, () => "ro" as Language);
+}
+export function translate(text: string, locale: Language): string {
+  if (locale === "ro") return text;
+  const trimmed = text.trim();
+  const direct = english[text] ?? english[trimmed];
+  if (direct) return text.startsWith(" ") && !direct.startsWith(" ") ? ` ${direct}` : direct;
+  for (const [source, target] of Object.entries(english)) {
+    if (!source.includes("{0}")) continue;
+    const pieces = source.split(/\{\d+\}/);
+    const expression = "^" + pieces.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("(.*?)") + "$";
+    const match = text.match(new RegExp(expression));
+    if (match) return target.replace(/\{(\d+)\}/g, (_, i) => match[Number(i) + 1] ?? "");
+  }
+  return text;
+}
+export function t(text: string): string { return translate(text, language); }
+export function displayName(name: string) {
+  if (language === "ro") return /a$/i.test(name.trim()) ? name.trim().slice(0, -1) + "ei" : `lui ${name.trim()}`;
+  return name;
+}
