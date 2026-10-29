@@ -126,12 +126,6 @@ function Landing() {
         </div>
         <div className="relative animate-rise [animation-delay:150ms]">
           <img src={heroImg} alt={t("O fiică și mama ei discută la masa din bucătărie")} width={1280} height={1024} className="aspect-[5/4] w-full rounded-[2rem] object-cover shadow-lift" />
-          <div className="card-surface absolute -bottom-6 -left-4 w-64 p-4 shadow-lift md:-left-10">
-            <p className="text-xs font-semibold text-muted-foreground">{t("Diferență de acoperit · Ajutor zilnic")}</p>
-            <p className="mt-1 font-display text-3xl font-semibold text-care">1.700 RON<span className="text-sm font-normal text-muted-foreground">{t(" /lună")}</span></p>
-            <div className="mt-3 flex h-2 overflow-hidden rounded-full"><div className="w-[43%] bg-primary" /><div className="flex-1 bg-care" /></div>
-            <p className="mt-2 text-xs text-muted-foreground">{t("Unul dintre scenariile de îngrijire posibile.")}</p>
-          </div>
         </div>
       </section>
 
