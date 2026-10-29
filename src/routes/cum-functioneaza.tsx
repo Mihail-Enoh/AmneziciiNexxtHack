@@ -9,13 +9,13 @@ import { PLAN_ASSUMPTIONS, ron, SCENARIOS } from "@/lib/plan";
 export const Route = createFileRoute("/cum-functioneaza")({
   head: () => ({
     meta: [
-      { title: "Cum facem estimările? — Prototype123" },
+      { title: "Cum facem estimările? — WeCare" },
       {
         name: "description",
         content:
-          "Ipotezele demonstrative și formulele folosite de Prototype123 pentru scenariile de îngrijire.",
+          "Ipotezele demonstrative și formulele folosite de WeCare pentru scenariile de îngrijire.",
       },
-      { property: "og:title", content: "Cum facem estimările? — Prototype123" },
+      { property: "og:title", content: "Cum facem estimările? — WeCare" },
       {
         property: "og:description",
         content: "Transparență totală: de unde vine fiecare număr din planul familiei.",
@@ -54,7 +54,7 @@ function HowItWorks() {
       <PageHeader eyebrow={t("Transparență")} title={t("Cum facem estimările?")} />
       <div className="card-surface p-6 md:p-8">
         <p className="text-lg leading-relaxed">
-          Prototype123 folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul
+          WeCare folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul
           de mărime al unei posibile nevoi financiare. Costurile reale pot varia semnificativ în
           funcție de locație, tipul serviciilor, evoluția prețurilor și situația personală.
         </p>

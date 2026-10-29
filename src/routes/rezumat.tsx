@@ -21,13 +21,13 @@ import { setPlan, usePlan } from "@/lib/store";
 export const Route = createFileRoute("/rezumat")({
   head: () => ({
     meta: [
-      { title: "Planul familiei — rezumat și pași următori — Prototype123" },
+      { title: "Planul familiei — rezumat și pași următori — WeCare" },
       {
         name: "description",
         content:
           "Rezumatul planului: costul estimat, resursele părintelui, contribuțiile familiei și pașii următori.",
       },
-      { property: "og:title", content: "Planul familiei — Prototype123" },
+      { property: "og:title", content: "Planul familiei — WeCare" },
       {
         property: "og:description",
         content: "Un plan clar, construit împreună, înainte să devină o urgență.",

@@ -29,9 +29,9 @@ const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…",
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prototype123 — Știi cât te-ar costa dacă părinții tăi ar avea nevoie de tine?" },
+      { title: "WeCare — Știi cât te-ar costa dacă părinții tăi ar avea nevoie de tine?" },
       { name: "description", content: "Înțelege impactul financiar al îngrijirii unui părinte și construiește un plan împreună cu familia, înainte să devină o urgență." },
-      { property: "og:title", content: "Prototype123 — Planifică azi. Fii alături mâine." },
+      { property: "og:title", content: "WeCare — Planifică azi. Fii alături mâine." },
       { property: "og:description", content: "Scenarii financiare pentru familiile din România care au părinți în vârstă." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -103,7 +103,7 @@ function Landing() {
           <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-care-soft px-3 py-1.5 text-xs font-bold text-care">
             <Sparkles className="size-3.5" />{t(" Ai grijă de viitor, înainte să devină o urgență. ")}</p>
           <h1 className="text-5xl font-semibold leading-[1.05] md:text-6xl">{t(" Știi cât te-ar costa dacă ")}<em className="text-care not-italic">{t("părinții tăi")}</em>{t(" ar avea nevoie de tine? ")}</h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" Prototype123 te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" WeCare te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button className="w-full sm:w-auto" size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
             <Button asChild variant="care" size="lg" className="w-full sm:w-auto"><Link to="/sanatate"><HeartPulse />Sănătate și obiceiuri</Link></Button>
@@ -126,12 +126,6 @@ function Landing() {
         </div>
         <div className="relative animate-rise [animation-delay:150ms]">
           <img src={heroImg} alt={t("O fiică și mama ei discută la masa din bucătărie")} width={1280} height={1024} className="aspect-[5/4] w-full rounded-[2rem] object-cover shadow-lift" />
-          <div className="card-surface absolute -bottom-6 -left-4 w-64 p-4 shadow-lift md:-left-10">
-            <p className="text-xs font-semibold text-muted-foreground">{t("Diferență de acoperit · Ajutor zilnic")}</p>
-            <p className="mt-1 font-display text-3xl font-semibold text-care">1.700 RON<span className="text-sm font-normal text-muted-foreground">{t(" /lună")}</span></p>
-            <div className="mt-3 flex h-2 overflow-hidden rounded-full"><div className="w-[43%] bg-primary" /><div className="flex-1 bg-care" /></div>
-            <p className="mt-2 text-xs text-muted-foreground">{t("Unul dintre scenariile de îngrijire posibile.")}</p>
-          </div>
         </div>
       </section>
 

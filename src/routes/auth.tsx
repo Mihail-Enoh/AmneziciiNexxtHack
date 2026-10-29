@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Contul tău — Prototype123" }, { name: "description", content: "Autentificare cu email și profilul tău Prototype123." }, { property: "og:title", content: "Contul tău — Prototype123" }, { property: "og:description", content: "Intră în contul tău Prototype123." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({ meta: [{ title: "Contul tău — WeCare" }, { name: "description", content: "Autentificare cu email și profilul tău WeCare." }, { property: "og:title", content: "Contul tău — WeCare" }, { property: "og:description", content: "Intră în contul tău WeCare." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: AuthPage,
 });
 

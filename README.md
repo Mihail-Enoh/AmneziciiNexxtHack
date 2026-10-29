@@ -2,9 +2,9 @@
 
 # Build a polished web application for a Romanian financial-futures hackathon
 
-Build a complete, responsive, high-quality web application prototype called **Prototype123**.
+Build a complete, responsive, high-quality web application prototype called **WeCare**.
 
-Prototype123 is a **family financial planning application for Romanians with aging parents**.
+WeCare is a **family financial planning application for Romanians with aging parents**.
 
 The core problem is:
 
@@ -77,7 +77,7 @@ Use calm language such as:
 
 Product name:
 
-# Prototype123
+# WeCare
 
 Optional descriptor:
 
@@ -181,7 +181,7 @@ Headline:
 
 Subheadline:
 
-**Prototype123 te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență.**
+**WeCare te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență.**
 
 Primary CTA:
 
@@ -782,7 +782,7 @@ This should be a major “aha moment” in the demo.
 
 # SCREEN 10 — FAMILY COORDINATION
 
-This should be one of the features that differentiates Prototype123 from a simple calculator.
+This should be one of the features that differentiates WeCare from a simple calculator.
 
 Heading:
 
@@ -1034,7 +1034,7 @@ Text:
 
 # Cum facem estimările?
 
-**Prototype123 folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul de mărime al unei posibile nevoi financiare. Costurile reale pot varia semnificativ în funcție de locație, tipul serviciilor, evoluția prețurilor și situația personală.**
+**WeCare folosește scenarii orientative pentru a ajuta familiile să înțeleagă ordinul de mărime al unei posibile nevoi financiare. Costurile reale pot varia semnificativ în funcție de locație, tipul serviciilor, evoluția prețurilor și situația personală.**
 
 Include:
 
@@ -1113,7 +1113,7 @@ Never imply that this is an official financial score.
 
 Label:
 
-**Indicator Prototype123**
+**Indicator WeCare**
 
 Tooltip:
 
@@ -1145,7 +1145,7 @@ The graphs should explain a story rather than simply display data.
 
 Desktop navigation:
 
-Prototype123 logo
+WeCare logo
 
 Planul meu
 
@@ -1573,7 +1573,7 @@ Romanians with aging parents.
 
 Families do not know the future financial burden of caring for a parent until the need becomes urgent.
 
-### What does Prototype123 do?
+### What does WeCare do?
 
 It turns possible future care situations into financial scenarios, identifies the funding gap, and helps families prepare together.
 

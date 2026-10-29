@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-export const Route = createFileRoute("/reset-password")({ head: () => ({ meta: [{ title: "Parolă nouă — Prototype123" }, { name: "description", content: "Alege o parolă nouă pentru contul Prototype123." }, { property: "og:title", content: "Parolă nouă — Prototype123" }, { property: "og:description", content: "Recuperează accesul la contul tău." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: ResetPassword });
+export const Route = createFileRoute("/reset-password")({ head: () => ({ meta: [{ title: "Parolă nouă — WeCare" }, { name: "description", content: "Alege o parolă nouă pentru contul WeCare." }, { property: "og:title", content: "Parolă nouă — WeCare" }, { property: "og:description", content: "Recuperează accesul la contul tău." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: ResetPassword });
 function ResetPassword() {
   const [valid, setValid] = useState(false);
   const [password, setPassword] = useState("");

@@ -22,13 +22,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/plan")({
   head: () => ({
     meta: [
-      { title: "Planul familiei tale — Prototype123" },
+      { title: "Planul familiei tale — WeCare" },
       {
         name: "description",
         content:
           "Cronologia posibilelor nevoi de îngrijire, costurile estimate și diferența de acoperit de familie.",
       },
-      { property: "og:title", content: "Planul familiei tale — Prototype123" },
+      { property: "og:title", content: "Planul familiei tale — WeCare" },
       {
         property: "og:description",
         content: "Vezi cât ar putea costa îngrijirea și cât rămâne de acoperit de familie.",
@@ -178,7 +178,7 @@ function Dashboard() {
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Indicator Prototype123 · scenariul „{sel.label}”
+            Indicator WeCare · scenariul „{sel.label}”
           </p>
         </div>
       </section>

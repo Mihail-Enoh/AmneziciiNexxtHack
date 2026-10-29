@@ -18,9 +18,9 @@ export const Route = createFileRoute("/invitatie")({
   validateSearch: (s) => search.parse(s),
   head: () => ({
     meta: [
-      { title: "Invitație în planul familiei — Prototype123" },
+      { title: "Invitație în planul familiei — WeCare" },
       { name: "description", content: "Ai fost invitat(ă) să spui cum ai putea ajuta dacă în viitor ar fi nevoie." },
-      { property: "og:title", content: "Ai fost invitat(ă) în planul familiei — Prototype123" },
+      { property: "og:title", content: "Ai fost invitat(ă) în planul familiei — WeCare" },
       { property: "og:description", content: "Spune ce contribuție ar fi realistă pentru tine, fără să îți dezvălui veniturile." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

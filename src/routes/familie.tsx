@@ -44,13 +44,13 @@ import { setPlan, usePlan } from "@/lib/store";
 export const Route = createFileRoute("/familie")({
   head: () => ({
     meta: [
-      { title: "Cum acoperim diferența? Planul familiei — Prototype123" },
+      { title: "Cum acoperim diferența? Planul familiei — WeCare" },
       {
         name: "description",
         content:
           "Împarte diferența între frați, construiește un fond pentru îngrijire și invită familia în plan.",
       },
-      { property: "og:title", content: "Nu trebuie să planifici singur — Prototype123" },
+      { property: "og:title", content: "Nu trebuie să planifici singur — WeCare" },
       {
         property: "og:description",
         content: "Contribuții, fond pentru îngrijire și coordonarea familiei, într-un singur plan.",
