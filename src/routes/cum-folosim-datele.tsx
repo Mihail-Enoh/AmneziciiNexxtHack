@@ -34,7 +34,7 @@ function DataPage() {
       <div className="mt-10 space-y-8">
         {SECTIONS.map(s => <section key={s.title} className="border-t pt-6"><h2 className="text-xl font-semibold">{s.title}</h2><p className="mt-2 leading-relaxed text-muted-foreground">{s.text}</p></section>)}
       </div>
-      <Link to="/sanatate" className="mt-10 inline-block font-semibold text-primary underline underline-offset-4">Înapoi la Sănătate și obiceiuri</Link>
+      <Link to="/" className="mt-10 inline-block font-semibold text-primary underline underline-offset-4">Înapoi la pagina principală</Link>
     </main>
   </>;
 }

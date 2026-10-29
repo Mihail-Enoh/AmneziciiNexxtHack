@@ -2,15 +2,11 @@ import { CostBreakdown } from "@/components/app/CostBreakdown";
 import { CareTimingInput } from "@/components/app/CareTimingInput";
 import {
   computePlan,
-  costReferenceProjections,
-  INFLATION_REFERENCE,
   RESIDENTIAL_REFERENCES,
   RESIDENTIAL_SOURCE,
   ron,
 } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export function CareDateInput() {
@@ -33,33 +29,6 @@ export function PlanningAssumptions({
 }) {
   const s = usePlan();
   const c = computePlan(s);
-  const numeric = (
-    id: string,
-    label: string,
-    value: number,
-    key: "costGrowth" | "incomeGrowth" | "savingsSpreadMonths" | "careDurationMonths",
-    max: number,
-    min = 0,
-  ) => (
-    <div className="space-y-2" key={id}>
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type="number"
-        min={min}
-        max={max}
-        step={key.includes("Growth") ? 0.1 : 1}
-        value={value}
-        onChange={(e) =>
-          setPlan({
-            [key]: key.endsWith("Months")
-              ? Math.round(Math.max(min, Math.min(max, Number(e.target.value) || min)))
-              : Math.max(min, Math.min(max, Number(e.target.value) || min)),
-          })
-        }
-      />
-    </div>
-  );
   return (
     <section className="card-surface mt-8 space-y-5 p-6">
       <h2 className="text-2xl font-semibold">Ipoteze și proiecții financiare</h2>
@@ -70,88 +39,6 @@ export function PlanningAssumptions({
         <>
           {showTiming && <CareDateInput />}
           <CostBreakdown />
-          <div className="grid gap-4 sm:grid-cols-2">
-            {numeric(
-              "cost-growth",
-              "Creștere anuală costuri și cheltuieli (%)",
-              s.costGrowth,
-              "costGrowth",
-              100,
-            )}
-            {numeric(
-              "income-growth",
-              "Creștere anuală venit părinte (%)",
-              s.incomeGrowth,
-              "incomeGrowth",
-              100,
-            )}
-            {numeric(
-              "savings-months",
-              "Perioada utilizării economiilor (luni)",
-              s.savingsSpreadMonths,
-              "savingsSpreadMonths",
-              600,
-              1,
-            )}
-            {numeric(
-              "care-duration",
-              "Durata îngrijirii analizate (luni)",
-              s.careDurationMonths,
-              "careDurationMonths",
-              600,
-              1,
-            )}
-          </div>
-          <div className="rounded-xl bg-primary-soft p-4 text-sm">
-            <p>Repere de inflație: ținta BNR, nu prognoze pentru servicii de îngrijire.</p>
-            <div className="my-3 flex flex-wrap gap-2">
-              {[INFLATION_REFERENCE.low, INFLATION_REFERENCE.rate, INFLATION_REFERENCE.high].map(
-                (rate) => (
-                  <Button
-                    key={rate}
-                    variant="outline"
-                    onClick={() => setPlan({ costGrowth: rate })}
-                  >
-                    {rate}% / an
-                  </Button>
-                ),
-              )}
-            </div>
-            <div className="mb-3 overflow-auto">
-              <table className="w-full text-left">
-                <caption className="text-left">
-                  Proiecții matematice ale costului de bază ales, fără a reprezenta prognoze
-                  oficiale
-                </caption>
-                <thead>
-                  <tr>
-                    <th>Ani</th>
-                    <th>1,5%/an</th>
-                    <th>2,5%/an</th>
-                    <th>3,5%/an</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {costReferenceProjections(s.costs[s.scenario]).map((row) => (
-                    <tr key={row.years}>
-                      <td>{row.years}</td>
-                      <td>{ron(row.low)}</td>
-                      <td>{ron(row.target)}</td>
-                      <td>{ron(row.high)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <a
-              className="underline"
-              href={INFLATION_REFERENCE.url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {INFLATION_REFERENCE.label}
-            </a>
-          </div>
           {s.scenario === "residential" && (
             <div className="rounded-xl border p-4 text-sm">
               <p className="font-semibold">
@@ -185,11 +72,6 @@ export function PlanningAssumptions({
           )}
         </>
       )}
-      <p className="text-sm">
-        Necesar inițial: {ron(c.careMonthlyCost)} pentru îngrijire + {ron(c.essentialShortfall)}{" "}
-        deficit pentru cheltuielile esențiale rămase = {ron(c.totalMonthlyNeed)}/lună. Suma rămasă
-        nefinanțată pe întreaga perioadă, după fond: {ron(c.totalUnfunded)}.
-      </p>
       <p className="text-sm text-muted-foreground">
         Costurile de bază sunt demonstrative sau introduse de tine. Creștere costuri: {s.costGrowth}
         %/an; venituri: {s.incomeGrowth}%/an. Fără randamente, taxe sau subvenții publice presupuse.
