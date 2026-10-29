@@ -8,7 +8,9 @@
 #
 # Pe Windows, varianta cea mai sigură rămâne WSL (Ubuntu) + setup.sh; acest script e echivalentul pentru PowerShell.
 param([switch]$Check, [switch]$NoAI, [switch]$NoOpen, [switch]$ResetKey, [int]$Port = 8080)
-$ErrorActionPreference = "Stop"
+# "Continue": mesajele de progres pe care bun/node le scriu pe stderr nu trebuie să oprească scriptul
+# (în Windows PowerShell 5 ar fi tratate ca erori). Erorile reale le verificăm explicit cu $LASTEXITCODE.
+$ErrorActionPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"   # descărcări mult mai rapide în PowerShell 5
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -19,7 +21,9 @@ $KeyFile = ".env.featherless.local"
 function Step($t) { Write-Host "`n==> $t" -ForegroundColor White }
 function Ok($t)   { Write-Host "  OK $t" -ForegroundColor Green }
 function Warn($t) { Write-Host "  !  $t" -ForegroundColor Yellow }
-function Die($t)  { Write-Host "  X  $t" -ForegroundColor Red; exit 1 }
+# La "Run with PowerShell" fereastra se închide singură: așteptăm Enter, ca mesajul să poată fi citit.
+function Die($t)  { Write-Host "  X  $t" -ForegroundColor Red; Read-Host "`nApasă Enter ca să închizi fereastra" | Out-Null; exit 1 }
+trap { Write-Host "  X  Eroare neașteptată: $_" -ForegroundColor Red; Read-Host "`nApasă Enter ca să închizi fereastra" | Out-Null; exit 1 }
 
 Set-Location -Path $PSScriptRoot
 if (-not (Test-Path "package.json") -or -not (Test-Path "bun.lock")) { Die "Rulează scriptul din folderul proiectului WeCare." }
@@ -40,8 +44,8 @@ if (-not (Get-Command bun -ErrorAction SilentlyContinue)) {
   $tmp = Join-Path $env:TEMP "wecare-bun"; Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory $tmp | Out-Null
   Write-Host "  Descarc Bun $BunVersion de pe GitHub..."
   try {
-    Invoke-WebRequest "https://github.com/oven-sh/bun/releases/download/bun-v$BunVersion/bun-windows-x64.zip" -OutFile "$tmp\bun.zip" -UseBasicParsing
-    Expand-Archive "$tmp\bun.zip" -DestinationPath $tmp -Force
+    Invoke-WebRequest "https://github.com/oven-sh/bun/releases/download/bun-v$BunVersion/bun-windows-x64.zip" -OutFile "$tmp\bun.zip" -UseBasicParsing -ErrorAction Stop
+    Expand-Archive "$tmp\bun.zip" -DestinationPath $tmp -Force -ErrorAction Stop
     New-Item -ItemType Directory $BunDir -Force | Out-Null
     Copy-Item "$tmp\bun-windows-x64\bun.exe" (Join-Path $BunDir "bun.exe") -Force
   } catch {
@@ -67,12 +71,12 @@ if (-not (Node-Ok)) {
   Write-Host "  Descarc Node.js $NodeVersion..."
   Remove-Item $NodeDir -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory $NodeDir | Out-Null
   try {
-    Invoke-WebRequest "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" -OutFile "$tmp\node.zip" -UseBasicParsing
-    Expand-Archive "$tmp\node.zip" -DestinationPath $tmp -Force
+    Invoke-WebRequest "https://nodejs.org/dist/v$NodeVersion/node-v$NodeVersion-win-x64.zip" -OutFile "$tmp\node.zip" -UseBasicParsing -ErrorAction Stop
+    Expand-Archive "$tmp\node.zip" -DestinationPath $tmp -Force -ErrorAction Stop
     Copy-Item "$tmp\node-v$NodeVersion-win-x64\*" $NodeDir -Recurse -Force
   } catch {
     Warn "nodejs.org nu a răspuns; folosesc același binar din registrul npm."
-    Invoke-WebRequest "https://registry.npmjs.org/node-win-x64/-/node-win-x64-$NodeVersion.tgz" -OutFile "$tmp\node.tgz" -UseBasicParsing
+    Invoke-WebRequest "https://registry.npmjs.org/node-win-x64/-/node-win-x64-$NodeVersion.tgz" -OutFile "$tmp\node.tgz" -UseBasicParsing -ErrorAction Stop
     tar -xzf "$tmp\node.tgz" -C $tmp
     Copy-Item "$tmp\package\bin\node.exe" (Join-Path $NodeDir "node.exe") -Force
   }
@@ -125,12 +129,12 @@ Write-Host "  Aștept serverul (prima pornire ~1 minut)..."
 $ready = $false
 for ($i = 0; $i -lt 180; $i++) {
   if ($job.HasExited) { Die "Serverul s-a oprit la pornire (vezi mesajele de mai sus)." }
-  try { $r = Invoke-WebRequest $Url -UseBasicParsing -TimeoutSec 3; if ($r.StatusCode -eq 200) { $ready = $true; break } } catch { }
+  try { $r = Invoke-WebRequest $Url -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop; if ($r.StatusCode -eq 200) { $ready = $true; break } } catch { }
   Start-Sleep -Seconds 1
 }
 if (-not $ready) { Die "Serverul nu răspunde după 3 minute." }
 if ($r.Content -match "WeCare") { Ok "Pagina principală răspunde și conține WeCare" } else { Warn "Serverul răspunde, dar pagina nu conține WeCare." }
 if (-not $NoOpen) { Start-Process $Url }
 Write-Host "`n  WeCare rulează: $Url" -ForegroundColor Green
-Write-Host "  Oprești cu Ctrl+C (sau închizi fereastra)."
+Write-Host "  Oprești cu Ctrl+C sau închizând această fereastră. NU o închide cât folosești aplicația."
 Wait-Process -Id $job.Id
