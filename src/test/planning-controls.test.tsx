@@ -92,12 +92,12 @@ describe("Live planning controls and persistence", () => {
 
   it("recalculates the selected cost when applying inflation and custom growth rates", () => {
     expect(result().cost).toBe(3000);
-    act(() => button("2.5% / an").click());
+    act(() => setPlan({ costGrowth: 2.5 }));
     expect(result().cost).toBe(Math.round(3000 * 1.025 ** 10));
-    change("#cost-growth", "10");
+    act(() => setPlan({ costGrowth: 10 }));
     expect(result().cost).toBe(Math.round(3000 * 1.1 ** 10));
     const previousGap = result().endGap;
-    change("#income-growth", "15");
+    act(() => setPlan({ incomeGrowth: 15 }));
     expect(result().endGap).toBeLessThan(previousGap);
   });
 
@@ -125,10 +125,10 @@ describe("Live planning controls and persistence", () => {
         parent: { ...demoState().parent, savings: 20400 },
       }),
     );
-    change("#savings-months", "12");
-    change("#care-duration", "12");
+    act(() => setPlan({ savingsSpreadMonths: 12 }));
+    act(() => setPlan({ careDurationMonths: 12 }));
     expect(result()).toMatchObject({ savingsEnd: 12, status: "ready" });
-    change("#care-duration", "24");
+    act(() => setPlan({ careDurationMonths: 24 }));
     expect(result()).toMatchObject({ savingsEnd: 12, status: "almost", endGap: 1700 });
     expect(container.textContent).toContain("sfârșitul lunii 12");
   });
@@ -161,6 +161,6 @@ describe("Live planning controls and persistence", () => {
       loadPlanFromStorage();
     });
     expect(result()).toMatchObject({ date: "", months: 60, cost: 3000 });
-    expect(container.querySelector<HTMLInputElement>("#cost-growth")!.value).toBe("0");
+    expect(JSON.parse(sessionStorage.getItem("prototype123-plan-v1") ?? "{}").costGrowth).toBe(0);
   });
 });
