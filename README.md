@@ -52,11 +52,17 @@ La final apare `WeCare rulează: http://127.0.0.1:8080/`. Oprești aplicația cu
 | `--no-open` | nu deschide browserul |
 | `--reset-key` | cere din nou cheia Featherless |
 
-### Windows (PowerShell, fără WSL)
+### Windows (fără WSL)
+
+Dublu-click pe **`setup.cmd`**. Fișierul pornește `setup.ps1` și ocolește blocarea „is not digitally signed” pe care Windows o pune pe scripturile descărcate de pe internet.
+
+Echivalent, dintr-o fereastră PowerShell deschisă în folderul proiectului:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File setup.ps1
 ```
+
+Nu folosi „Run with PowerShell” din meniul de click dreapta: pe multe calculatoare se oprește cu „not digitally signed”.
 
 Acceptă aceleași opțiuni: `-Check`, `-NoAI`, `-Port 3000`, `-NoOpen`, `-ResetKey`. Pe Windows, varianta testată cel mai bine rămâne WSL (Ubuntu) cu `setup.sh`.
 
@@ -239,7 +245,7 @@ Browser (React 19 + TanStack Router)
 ## Structura proiectului
 
 ```
-setup.sh, setup.ps1           instalare și pornire pe o mașină goală
+setup.sh, setup.ps1, setup.cmd  instalare și pornire pe o mașină goală (setup.cmd = dublu-click pe Windows)
 src/
   routes/                     paginile (o rută pe fișier; __root.tsx = învelișul aplicației)
   components/
