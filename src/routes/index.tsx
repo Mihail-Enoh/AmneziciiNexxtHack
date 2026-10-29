@@ -1,6 +1,6 @@
 import { t, useT } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, Loader2, Compass, LineChart, ListChecks, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Check, Loader2, Compass, HeartPulse, LineChart, ListChecks, Lock, ShieldCheck, Sparkles, UserCheck, Users } from "lucide-react";
 import heroImg from "@/assets/hero-family.jpg";
 import { PublicHeader } from "@/components/app/AppShell";
 import { PrivacyNote } from "@/components/app/bits";
@@ -44,6 +44,14 @@ const STEPS = [
   { icon: Compass, title: "1. Înțelege", text: "Estimăm cum s-ar putea schimba nevoile financiare ale părintelui tău." },
   { icon: LineChart, title: "2. Simulează", text: "Compari diferite scenarii de îngrijire și vezi impactul asupra familiei." },
   { icon: Users, title: "3. Pregătește-te", text: "Construiești un plan financiar împreună cu membrii familiei." },
+];
+
+const QUIZ_STEPS = ["Persoana", "Venituri și cheltuieli", "Familia", "Când începe"];
+
+const TRUST = [
+  { icon: Lock, text: "Datele rămân în browserul tău" },
+  { icon: UserCheck, text: "Nu e nevoie de cont" },
+  { icon: ShieldCheck, text: "Scenarii pentru planificare, nu diagnostic" },
 ];
 
 function Landing() {
@@ -98,63 +106,81 @@ function Landing() {
     <div className="min-h-screen">
       <PublicHeader />
 
-      <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-12 pt-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:pt-16">
-        <div className="animate-rise">
-          <h1 className="text-5xl font-semibold leading-[1.08] md:text-6xl">
-            {t("Ei au avut grijă de tine.")}
-            <br />
-            <em className="text-care not-italic">{t("Acum e rândul tău.")}</em>
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            {t("Află din timp cât ar putea costa îngrijirea unui părinte și construiește un plan împreună cu familia.")}
-          </p>
+      <section className="mx-auto max-w-6xl px-4 pb-10 pt-8 lg:pt-14">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
+          <div className="animate-rise lg:col-span-7">
+            <h1 className="text-4xl font-semibold leading-[1.1] sm:text-5xl lg:text-5xl xl:text-6xl">
+              <span className="lg:whitespace-nowrap">{t("Ei au avut grijă de tine.")}</span>
+              <br />
+              <em className="text-care not-italic lg:whitespace-nowrap">{t("Acum e rândul tău.")}</em>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+              {t("Află din timp cât ar putea costa îngrijirea unui părinte și construiește un plan împreună cu familia.")}
+            </p>
 
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            <div className="card-surface flex flex-col p-5">
-              <span className="grid size-10 place-items-center rounded-2xl bg-care-soft text-care"><Sparkles className="size-5" /></span>
-              <h2 className="mt-3 text-lg font-semibold">{t("Spune-ne povestea")}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{t("Scrii câteva rânduri, noi completăm planul.")}</p>
-              <div className="mt-4 flex flex-1 flex-col">
-                <label htmlFor="person" className="text-sm font-semibold">Numele persoanei de care vrei să ai grijă</label>
-                <input id="person" value={person} maxLength={80} required autoComplete="off" onChange={(e) => setPerson(e.target.value)}
-                  placeholder="Ex.: Maria Ionescu"
-                  className="mt-2 mb-4 h-11 w-full rounded-xl border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-                <label htmlFor="story" className="text-sm font-semibold">Povestește-ne situația ta</label>
-                <textarea id="story" value={story} maxLength={600} rows={4} onChange={(e) => setStory(e.target.value)}
-                  placeholder="Ex.: Tata are 70 de ani, stă la Cluj, are pensie 2.500 lei. Eu și sora mea am putea ajuta…"
-                  className="mt-2 w-full flex-1 resize-y rounded-xl border bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <button type="button" onClick={() => { setStory(EXAMPLE_STORY); if (!person.trim()) setPerson("Maria Ionescu"); }} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Folosește o poveste exemplu</button>
-                  <Button className="w-full sm:w-auto" onClick={submit} disabled={!story.trim() || !person.trim()} title={!person.trim() ? "Scrie numele persoanei" : undefined}>Construiește planul <ArrowRight /></Button>
+            <div className="card-surface mt-8 p-5">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-care-soft text-care"><Sparkles className="size-5" /></span>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold leading-tight">{t("Spune-ne povestea")}</h2>
+                  <p className="text-sm text-muted-foreground">{t("Scrii câteva rânduri, noi completăm planul.")}</p>
                 </div>
               </div>
-            </div>
-
-            <div className="card-surface flex flex-col p-5">
-              <span className="grid size-10 place-items-center rounded-2xl bg-primary-soft text-primary"><ListChecks className="size-5" /></span>
-              <h2 className="mt-3 text-lg font-semibold">{t("Pas cu pas")}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{t("Completezi singur, în 4 pași scurți.")}</p>
-              <div className="mt-4 flex flex-1 items-end">
-                <Button className="w-full" size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
+              <label htmlFor="person" className="mt-5 block text-sm font-semibold">Numele persoanei de care vrei să ai grijă</label>
+              <input id="person" value={person} maxLength={80} required autoComplete="off" onChange={(e) => setPerson(e.target.value)}
+                placeholder="Ex.: Maria Ionescu"
+                className="mt-2 h-11 w-full rounded-xl border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              <label htmlFor="story" className="mt-4 block text-sm font-semibold">Povestește-ne situația ta</label>
+              <textarea id="story" value={story} maxLength={600} rows={4} onChange={(e) => setStory(e.target.value)}
+                placeholder="Ex.: Tata are 70 de ani, stă la Cluj, are pensie 2.500 lei. Eu și sora mea am putea ajuta…"
+                className="mt-2 w-full resize-y rounded-xl border bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <button type="button" onClick={() => { setStory(EXAMPLE_STORY); if (!person.trim()) setPerson("Maria Ionescu"); }} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Folosește o poveste exemplu</button>
+                <Button className="w-full sm:w-auto" onClick={submit} disabled={!story.trim() || !person.trim()} title={!person.trim() ? "Scrie numele persoanei" : undefined}>Construiește planul <ArrowRight /></Button>
               </div>
             </div>
           </div>
 
-          <p className="mt-6 text-sm text-muted-foreground">
-            {t("Ai deja un plan?")}{" "}
-            <Link to="/sanatate" className="font-semibold text-primary underline-offset-4 hover:underline">
-              {t("Completează Sănătate și obiceiuri")} →
+          <div className="flex animate-rise flex-col gap-4 [animation-delay:150ms] lg:col-span-5">
+            <img src={heroImg} alt={t("O fiică și mama ei discută la masa din bucătărie")} width={1280} height={1024} className="aspect-[4/3] w-full rounded-[2rem] object-cover shadow-lift max-lg:order-last max-lg:mx-auto max-lg:max-w-md" />
+
+            <div className="card-surface p-5">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary"><ListChecks className="size-5" /></span>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold leading-tight">{t("Pas cu pas")}</h2>
+                  <p className="text-sm text-muted-foreground">{t("Completezi singur, în 4 pași scurți.")}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {QUIZ_STEPS.map((label, i) => (
+                  <span key={label} className="flex items-center gap-2 rounded-xl bg-muted px-3 py-2 text-xs font-semibold">
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">{i + 1}</span>
+                    {t(label)}
+                  </span>
+                ))}
+              </div>
+              <Button className="mt-4 w-full" size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
+            </div>
+
+            <Link to="/sanatate" className="card-surface flex items-center gap-3 p-4 transition-colors hover:bg-card/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-care-soft text-care"><HeartPulse className="size-5" /></span>
+              <span className="min-w-0 flex-1 text-sm font-semibold">{t("Ai deja un plan? Completează Sănătate și obiceiuri")}</span>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
             </Link>
-          </p>
-
-          <p className="mt-8 text-center lg:text-left">
-            <a href="#cum" className="text-sm font-semibold text-primary underline-offset-4 hover:underline">{t("Vezi cum funcționează ↓")}</a>
-          </p>
+          </div>
         </div>
 
-        <div className="animate-rise [animation-delay:150ms] max-lg:order-last max-lg:mx-auto max-lg:max-w-md">
-          <img src={heroImg} alt={t("O fiică și mama ei discută la masa din bucătărie")} width={1280} height={1024} className="aspect-[5/4] w-full rounded-[2rem] object-cover shadow-lift" />
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 text-xs text-muted-foreground sm:flex-row sm:gap-8">
+          {TRUST.map((item) => (
+            <span key={item.text} className="flex items-center gap-2">
+              <item.icon className="size-4 shrink-0 text-primary" />{t(item.text)}
+            </span>
+          ))}
         </div>
+        <p className="mt-6 text-center">
+          <a href="#cum" className="text-sm font-semibold text-primary underline-offset-4 hover:underline">{t("Vezi cum funcționează ↓")}</a>
+        </p>
       </section>
 
       <section id="cum" className="border-y bg-card/60 py-16">
