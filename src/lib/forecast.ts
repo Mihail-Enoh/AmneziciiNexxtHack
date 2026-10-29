@@ -268,17 +268,13 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
     }
   }
 
-  const e = FORECAST_ASSUMPTIONS.economy;
+  const yrs1 = (n: number) => `${n.toLocaleString("ro-RO")} ${n === 1 ? "an" : "ani"}`;
   const pct = (n: number) => `${(Math.round(n * 1000) / 10).toLocaleString("ro-RO")}%`;
+  // Kept short on purpose: only what a family needs to read the numbers. Technical details stay in the code comments.
   const assumptions = [
-    { label: "Când poate fi nevoie de ajutor", value: "curbă de risc pe vârstă (Gompertz) × factori de risc", note: FORECAST_ASSUMPTIONS.onset.note },
-    { label: "Intervalul afișat", value: "între percentilele 40 și 60", note: FORECAST_ASSUMPTIONS.onset.bandNote },
-    { label: "Efectul obiceiurilor (risc anual, maxim)", value: FORECAST_ASSUMPTIONS.habits.map((h) => `${h.label} ×${Math.max(...Object.values(h.hr)).toLocaleString("ro-RO")}`).join(", "), note: FORECAST_ASSUMPTIONS.habitsNote },
-    { label: "Creșterea costurilor de îngrijire", value: `${pct((s.costGrowth || 0) / 100)}/an`, note: e.growthNote },
-    { label: "Creșterea pensiei", value: `${pct((s.incomeGrowth || 0) / 100)}/an`, note: e.growthNote },
-    { label: "Durata îngrijirii", value: `${base.careDurationMonths} luni`, note: e.growthNote },
-    { label: "Inflație pe termen lung", value: pct(e.inflation), note: e.inflationNote },
-    { label: "Dobânda pentru rezervă", value: `${pct(e.savingsRate)} nominal · ${pct(realRate(e.savingsRate))} real`, note: `${e.savingsNote} ${(s.costGrowth || 0) > 0 ? "Folosim dobânda nominală, pentru că și costurile cresc." : "Folosim dobânda reală, pentru că sumele sunt în prețurile de azi."}` },
+    { label: "Când poate fi nevoie de ajutor", value: `cel mai probabil peste ${yrs1(base.onset.p50)}`, note: "Riscul crește cu vârsta. Răspunsurile din chestionar îl pot face mai mare sau mai mic. Intervalul arătat cuprinde cele mai probabile situații; anul real poate fi și în afara lui." },
+    { label: "Efectul obiceiurilor", value: FORECAST_ASSUMPTIONS.habits.map((h) => `${h.label} ×${Math.max(...Object.values(h.hr)).toLocaleString("ro-RO")}`).join(", "), note: `Cu cât crește riscul anual. ${FORECAST_ASSUMPTIONS.habitsNote}` },
+    { label: "Durata îngrijirii", value: `${base.careDurationMonths} luni`, note: (s.costGrowth || 0) > 0 ? `Costurile cresc cu ${pct((s.costGrowth || 0) / 100)} pe an.` : "Sumele sunt în prețurile de azi." },
   ];
   const chartHorizon = Math.min(FORECAST_ASSUMPTIONS.maxYears, Math.max(horizon, Math.ceil(base.onset.high) + 1));
 

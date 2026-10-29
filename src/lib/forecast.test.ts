@@ -152,6 +152,8 @@ describe("forecast", () => {
   });
   it("lists its assumptions in Romanian", () => {
     const f = forecast(demoState(), { now: NOW });
-    expect(f.assumptions.map((x) => x.label)).toContain("Intervalul afișat");
+    expect(f.assumptions.map((x) => x.label)).toEqual(["Când poate fi nevoie de ajutor", "Efectul obiceiurilor", "Durata îngrijirii"]);
+    const text = JSON.stringify(f.assumptions);
+    expect(text).not.toMatch(/Tezaur|percentil|Gompertz|nominal|INS/); // kept simple for families
   });
 });

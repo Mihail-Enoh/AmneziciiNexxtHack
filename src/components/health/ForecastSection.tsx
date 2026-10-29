@@ -78,7 +78,7 @@ export function ForecastSection({ plan, health }: { plan: PlanState; health?: Fo
       ? 'Începeți acum: nu mai este timp să strângeți toată partea familiei înainte.'
       : f.saving.reserveNeeded <= 0
         ? `Pensia, veniturile și economiile lui ${who} acoperă costul estimat. Familia nu are nevoie de bani puși deoparte pentru acest scenariu.`
-        : `Ca să aveți din timp partea familiei (aprox. ${lei(f.saving.reserveNeeded)} la începutul îngrijirii; banii rămân la dobândă cât se cheltuiesc), puneți deoparte aproximativ ${lei(f.saving.perMonth)}/lună în următorii ${years(Math.round(f.saving.months / 1.2) / 10)}.`}</p>
+        : `Ca să aveți din timp partea familiei (aprox. ${lei(f.saving.reserveNeeded)}), puneți deoparte aproximativ ${lei(f.saving.perMonth)}/lună în următorii ${years(Math.round(f.saving.months / 1.2) / 10)}.`}</p>
 
     <h3 className="mt-7 text-lg font-semibold">Obiceiuri care pot amâna nevoia de îngrijire</h3>
     {f.habits.length ? <>

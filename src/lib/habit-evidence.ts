@@ -22,7 +22,7 @@
 //  - Smoking. Klijs, Mackenbach, Kunst (2011), BMC Public Health 11:378: current smokers OR 1.58 for
 //    disability (1.48 with a stricter cut-off). https://doi.org/10.1186/1471-2458-11-378
 //    Zaninotto et al. (2020), Sci Rep 10:6955: smoking = biggest loss of disability-free years (ELSA, HRS).
-//    Quitting late removes only part of the risk → reversible 0.5.
+//    Quitting late removes only part of the risk → see reversible below.
 //  - Alcohol — weak evidence for disability at moderate amounts. Lang et al. (2007), J Am Geriatr Soc
 //    55(1):49–57 (HRS + ELSA, 65+): drinking more than 1–2 drinks/day → ADL OR 1.0 (no extra risk);
 //    light/moderate drinkers even had LOWER disability than abstainers (NHEFS, OR 0.75).
