@@ -46,6 +46,8 @@ export interface HealthSession {
   labs?: LabResult[]; docHashes?: string[];
   /** Full name of the person the answers are about; a session for someone else is never shown. */
   person?: string;
+  /** Quiz questions answered by the AI from what the user wrote (shown with a small label). */
+  fromStory?: string[];
 }
 
 export function saveHealthSession(s: HealthSession) {
@@ -60,6 +62,12 @@ export function readHealthSession(person?: string): HealthSession | null {
     return s;
   } catch { return null; }
 }
+/** After the first text on the home page: start the new person's health quiz with the answers it stated. */
+export function seedHealthAnswers(person: string, answers: QuizAnswers) {
+  const ids = Object.keys(answers);
+  if (ids.length) saveHealthSession({ story: "", answers, assessment: null, person, fromStory: ids });
+}
+
 export function clearHealthSession() {
   try { sessionStorage.removeItem(key()); } catch { /* ignore */ }
 }

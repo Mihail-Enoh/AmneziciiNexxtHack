@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { clearConsent, hasConsent, saveConsent } from './consent';
 import { useServerFn } from '@tanstack/react-start';
-import { ArrowLeft, ArrowRight, HeartPulse, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, HeartPulse, Loader2, ShieldCheck, Sparkles } from 'lucide-react';
+import { prefillQuizFn } from '@/lib/quiz-prefill.functions';
+import { markAsUser, mergePrefill } from '@/lib/quiz-prefill';
 import { AppShell } from '@/components/app/AppShell';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,28 +52,49 @@ export function HealthFlow() {
   const [docHashes, setDocHashes] = useState<string[]>([]);
   const [labNotice, setLabNotice] = useState('');
   const [uploadKey, setUploadKey] = useState(0);
+  const prefill = useServerFn(prefillQuizFn);
+  const [fromStory, setFromStory] = useState<string[]>([]);
+  const [readStory, setReadStory] = useState('');
+  const [reading, setReading] = useState(false);
   const who = plan.parent.name.trim();
   const ofWho = who ? genitive(who) : 'persoanei';
   const person = fullName(plan.parent, '');
   const lock = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
+    if (!profiles.loaded) return; // the page remounts once the saved people are loaded
     const saved = readHealthSession(person);
     if (saved) {
       setStory(saved.story.slice(0, 4000)); setAnswers(saved.answers); setAssessment(saved.assessment);
       setLabs(reflag(saved.labs ?? saved.assessment?.labs ?? []));
       setDocHashes(saved.docHashes ?? []);
+      setFromStory(saved.fromStory ?? []); setReadStory(saved.story.slice(0, 4000));
       setAiFail(saved.assessment && !saved.assessment.aiUsed ? 'unavailable' : null);
     }
     setConsent(hasConsent());
     setReady(true);
   }, []);
-  useEffect(() => { if (ready) saveHealthSession({ story, answers, assessment, labs, docHashes, person }); }, [ready, story, answers, assessment, labs, docHashes, person]);
+  useEffect(() => { if (ready) saveHealthSession({ story, answers, assessment, labs, docHashes, person, fromStory }); }, [ready, story, answers, assessment, labs, docHashes, person, fromStory]);
   const go = (value: number) => { setStep(value); setError(''); requestAnimationFrame(() => { heading.current?.focus(); heading.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }); };
   const invalidate = () => { setAssessment(null); setResultAge(null); };
   const changeLabs = (rows: LabResult[]) => { setLabs(reflag(rows)); invalidate(); };
   const addLabs = (rows: LabResult[]) => { setLabs(old => { const m = mergeLabs(old, rows); setLabNotice(mergeMessage(m)); return m.labs; }); invalidate(); };
   const restartDocuments = () => { setLabs([]); setDocHashes([]); setLabNotice(''); setUploadKey(k => k + 1); invalidate(); };
+  /** Step 1 → 2: the AI ticks the quiz answers the story states clearly (never the ones picked by hand). */
+  const continueFromStory = async () => {
+    const text = story.trim();
+    if (text && text !== readStory) {
+      setReading(true);
+      try {
+        const r = await prefill({ data: { story: text.slice(0, 4000) } });
+        const m = mergePrefill(answers, fromStory, r.answers);
+        if (m.added) { setAnswers(m.answers); setFromStory(m.fromAi); invalidate(); }
+        setReadStory(text);
+      } catch { /* the quiz simply stays as it is */ }
+      finally { setReading(false); }
+    }
+    go(1);
+  };
   const submit = async () => {
     if (lock.current) return;
     if (duplicateLabNames(labs).length) return; // the review shows what to fix
@@ -90,12 +113,12 @@ export function HealthFlow() {
     <h2 ref={heading} tabIndex={-1} className="mb-5 scroll-mt-24 text-2xl font-semibold focus:outline-none">{step === 0 ? `Povestește despre sănătatea și obiceiurile ${ofWho}` : step === 1 ? 'Cum arată o zi obișnuită?' : step === 2 ? 'Înainte de documente' : step === 3 ? 'Documente, doar dacă dorești' : step === 4 ? 'Verifică analizele' : 'Scenarii de îngrijire pentru planificare'}</h2>
     {step === 0 && profiles.people.length > 1 && <div className="mb-5 rounded-xl border bg-card p-4"><label htmlFor="health-person" className="mb-2 block text-sm font-semibold">Despre cine completezi?</label><select id="health-person" className="h-11 w-full rounded-lg border bg-background px-3 text-base" value={profiles.activeId} onChange={e => switchProfile(e.target.value)}>{profiles.people.map(p => <option key={p.id} value={p.id}>{p.name}{p.age > 0 ? `, ${p.age}` : ''}{p.isDemo ? ' (exemplu)' : ''}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">Răspunsurile și documentele se păstrează separat pentru fiecare persoană.</p></div>}
     {step === 0 && <div><label htmlFor="health-story" className="sr-only">{`Povestește despre sănătatea și obiceiurile ${ofWho}`}</label><Textarea id="health-story" className="min-h-56 bg-card text-base leading-relaxed" maxLength={4000} value={story} onChange={e => { setStory(e.target.value); invalidate(); }} placeholder={`Scrie despre ${who || 'persoana de care ai grijă'}: ce boli are, ce tratament ia, cât se mișcă, dacă fumează sau bea, cu ce are nevoie de ajutor. De exemplu: ${who || 'mama'} se plimbă zilnic, ia pastile pentru tensiune și are nevoie de ajutor la cumpărături…`} /><div className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground"><span>Scrie doar ce te simți confortabil să împărtășești. Poți lăsa acest pas necompletat.</span><span>{story.length} / 4000</span></div></div>}
-    {step === 1 && <div className="space-y-7"><p className="text-sm text-muted-foreground">Poți lăsa fără răspuns orice întrebare.</p>{QUIZ.map((q, index) => <fieldset key={q.id} className="border-b pb-6"><legend className="mb-3 w-full"><span className="mb-1 block text-xs font-semibold text-primary">{index + 1} · {DOMAIN_LABEL[q.domain]}</span><span className="font-semibold">{q.text}</span></legend><div className="grid gap-2 sm:grid-cols-2">{q.options.map(option => { const selected = (answers[q.id] ?? []).includes(option.id); return q.multi ? <label key={option.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm ${selected ? 'border-primary bg-primary-soft' : 'bg-card'}`}><Checkbox checked={selected} onCheckedChange={checked => { setAnswers(old => toggleAnswer(q, old, option.id, checked === true)); invalidate(); }} />{option.label}</label> : <Button key={option.id} type="button" variant="outline" aria-pressed={selected} className={`min-h-12 justify-start p-3 text-left ${selected ? 'border-primary bg-primary-soft text-primary' : 'bg-card'}`} onClick={() => { setAnswers(old => ({ ...old, [q.id]: selected ? [] : [option.id] })); invalidate(); }}><span aria-hidden className={`size-4 shrink-0 rounded-full border ${selected ? 'border-4 border-primary' : 'border-input'}`} />{option.label}</Button>; })}</div>{q.allowOther && <OtherAnswers q={q} answers={answers} onChange={next => { setAnswers(next); invalidate(); }} />}</fieldset>)}</div>}
+    {step === 1 && <div className="space-y-7">{fromStory.length ? <p className="flex items-center gap-2 rounded-lg bg-care-soft p-3 text-sm"><Sparkles className="size-4 shrink-0 text-care" />Am completat {fromStory.length === 1 ? 'un răspuns' : `${fromStory.length} răspunsuri`} din ce ne-ai spus. Verifică-le înainte să continui.</p> : <p className="text-sm text-muted-foreground">Poți lăsa fără răspuns orice întrebare.</p>}{QUIZ.map((q, index) => <fieldset key={q.id} className="border-b pb-6"><legend className="mb-3 w-full"><span className="mb-1 block text-xs font-semibold text-primary">{index + 1} · {DOMAIN_LABEL[q.domain]}</span><span className="font-semibold">{q.text}</span>{fromStory.includes(q.id) && <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-care-soft px-2 py-0.5 align-middle text-xs font-semibold text-care"><Sparkles className="size-3" />din ce ne-ai spus</span>}</legend><div className="grid gap-2 sm:grid-cols-2">{q.options.map(option => { const selected = (answers[q.id] ?? []).includes(option.id); return q.multi ? <label key={option.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm ${selected ? 'border-primary bg-primary-soft' : 'bg-card'}`}><Checkbox checked={selected} onCheckedChange={checked => { setAnswers(old => toggleAnswer(q, old, option.id, checked === true)); setFromStory(f => markAsUser(f, q.id)); invalidate(); }} />{option.label}</label> : <Button key={option.id} type="button" variant="outline" aria-pressed={selected} className={`min-h-12 justify-start p-3 text-left ${selected ? 'border-primary bg-primary-soft text-primary' : 'bg-card'}`} onClick={() => { setAnswers(old => ({ ...old, [q.id]: selected ? [] : [option.id] })); setFromStory(f => markAsUser(f, q.id)); invalidate(); }}><span aria-hidden className={`size-4 shrink-0 rounded-full border ${selected ? 'border-4 border-primary' : 'border-input'}`} />{option.label}</Button>; })}</div>{q.allowOther && <OtherAnswers q={q} answers={answers} onChange={next => { setAnswers(next); setFromStory(f => markAsUser(f, q.id)); invalidate(); }} />}</fieldset>)}</div>}
     {step === 2 && <div className="space-y-4"><p className="text-sm leading-relaxed text-muted-foreground">Acest pas este opțional. Dacă vrei să adaugi analize, avem nevoie mai întâi de confirmarea ta.</p><label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-card p-5 leading-relaxed"><Checkbox checked={consent} onCheckedChange={v => { const on = v === true; setConsent(on); if (on) saveConsent(); else clearConsent(); }} className="mt-1" /><span>Înțeleg că documentele medicale conțin date despre sănătate. Am acordul explicit al persoanei ale cărei documente le încarc{who ? ` (${who})` : ''}, sau folosesc documente demonstrative.</span></label><p className="text-sm"><Link to="/cum-folosim-datele" className="font-semibold text-primary underline underline-offset-4">Cum folosim datele</Link></p></div>}
     <div hidden={step !== 3} className="space-y-5">{!!labs.length && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4 text-sm"><p>Ai deja <strong>{labs.length} {labs.length === 1 ? 'analiză citită' : 'analize citite'}</strong> pentru {who || 'această persoană'}. Documentele noi se adaugă la ele; o analiză care apare din nou nu se dublează.</p><Button type="button" variant="outline" size="sm" disabled={uploadBusy} onClick={restartDocuments}>Începe din nou</Button></div>}<DocumentUpload key={uploadKey} onLabs={addLabs} onBusy={setUploadBusy} consent={consent} knownHashes={docHashes} onHash={h => setDocHashes(old => old.includes(h) ? old : [...old, h])} />{labNotice && <p role="status" className="rounded-lg border bg-warning-soft p-4 text-sm">{labNotice}</p>}</div>
     {step === 4 && <form id="health-labs" onSubmit={e => { e.preventDefault(); void submit(); }}><LabReview labs={labs} onChange={changeLabs} /></form>}
     {step === LAST && (busy ? <div role="status" className="py-16 text-center"><Loader2 className="mx-auto mb-4 size-9 animate-spin text-primary" /><p className="text-xl font-semibold">Pregătim imaginea de ansamblu…</p><p className="mt-2 text-sm text-muted-foreground">Luăm în considerare răspunsurile și analizele disponibile.</p></div> : error ? <div role="alert" className="space-y-4 border-y py-8"><p>{error}</p><Button onClick={() => void submit()}>Încearcă din nou</Button></div> : assessment ? <HealthResult assessment={assessment} aiFail={aiFail} forecast={<ForecastSection plan={plan} health={{ domains: assessment.domains, answers }} />} onApply={() => { setPlan(current => { const f = forecast(current, { domains: assessment.domains, answers }); return { ...healthPatch(current, assessment), ...forecastPatch(f) }; }); void navigate({ to: '/plan' }); }} /> : null)}
-    {step < LAST && <div className="mt-8 flex items-center justify-between gap-3 border-t py-5">{step > 0 ? <Button type="button" variant="ghost" disabled={busy || uploadBusy} onClick={() => go(step - 1)}><ArrowLeft />Înapoi</Button> : <span />}<Button key={step} size="lg" disabled={!ready || busy || uploadBusy || (step === 4 && duplicateLabNames(labs).length > 0)} {...(step === 4 ? { type: 'submit', form: 'health-labs' } : { type: 'button', onClick: () => go(step + 1) })}>{step === 4 ? 'Vezi scenariile' : step === 3 ? labs.length ? 'Verifică analizele' : 'Continuă' : 'Continuă'}<ArrowRight /></Button></div>}
+    {step < LAST && <div className="mt-8 flex items-center justify-between gap-3 border-t py-5">{step > 0 ? <Button type="button" variant="ghost" disabled={busy || uploadBusy} onClick={() => go(step - 1)}><ArrowLeft />Înapoi</Button> : <span />}<Button key={step} size="lg" disabled={!ready || busy || uploadBusy || reading || (step === 4 && duplicateLabNames(labs).length > 0)} {...(step === 4 ? { type: 'submit', form: 'health-labs' } : { type: 'button', onClick: () => { if (step === 0) void continueFromStory(); else go(step + 1); } })}>{reading ? <><Loader2 className="animate-spin" />Citim povestea…</> : step === 4 ? 'Vezi scenariile' : step === 3 ? labs.length ? 'Verifică analizele' : 'Continuă' : 'Continuă'}<ArrowRight /></Button></div>}
     {step === LAST && !busy && <Button variant="ghost" className="mt-5" onClick={() => go(4)}><ArrowLeft />Revino la analize</Button>}
     <p className="mt-6 flex items-start gap-2 border-t pt-5 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="size-4 shrink-0 text-primary" />{NOTE}</p>
   </div></AppShell>;

@@ -196,6 +196,19 @@ Nu e un diagnostic și nu prezice viitorul unei persoane anume. Prezintă scenar
 
 ---
 
+## Model de afaceri: oferte de la parteneri
+
+WeCare e gratuit pentru familii. Pe pagina **Planul final** apar două oferte potrivite planului: îngrijire pentru scenariul ales (de exemplu o îngrijitoare zilnică) și un abonament medical pentru seniori.
+
+- **Cine plătește ce:** familia plătește partenerului un preț redus, iar partenerul plătește WeCare un comision. Ofertele nu schimbă cifrele planului.
+- **Partenerii din aplicație sunt exemple fictive.** Prețurile, reducerea și comisioanele se schimbă în `src/lib/offers.ts` (`OFFER_RULES`).
+- **Plata:** Stripe Checkout, **doar în modul test** (`src/lib/checkout.functions.ts`). Secretul `STRIPE_SECRET_KEY` trebuie să înceapă cu `sk_test_`. Card de test: `4242 4242 4242 4242`, orice dată din viitor, orice CVC. Fără cheie, butonul arată un mesaj că plata online nu e disponibilă.
+- **Opțional, Stripe Connect:** cu `STRIPE_PARTNER_ACCOUNT` (`acct_…`), banii ajung direct în contul partenerului, iar WeCare își păstrează comisionul ca *application fee*.
+
+## Chestionarul completat din ce scrii
+
+Textul de pe prima pagină și povestea din **Sănătate și obiceiuri** completează singure întrebările din chestionar pe care textul le spune clar (`src/lib/quiz-prefill.ts`). AI-ul alege doar dintre variantele chestionarului, codul verifică fiecare răspuns, iar întrebările nesigure rămân goale. Răspunsurile completate așa au eticheta „din ce ne-ai spus”; ce bifezi de mână nu este suprascris.
+
 ## Date personale și confidențialitate
 
 - **Fără cont:** planurile sunt ținute doar în tab-ul curent (`sessionStorage`) și dispar când îl închizi.

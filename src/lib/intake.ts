@@ -5,6 +5,8 @@
 // ignored (not fatal), and the destination page comes from an allowlist.
 import { z } from "zod";
 import { demoState, ron, scenarioById, splitName, type FamilyMember, type Independence, type Intensity, type PlanState } from "./plan";
+import { sanitizeQuizPrefill } from "./quiz-prefill";
+import type { QuizAnswers } from "./health";
 
 // Same lists as the onboarding form in routes/start.tsx. Keep them in sync (or import from here there).
 export const CITIES = ["București", "Cluj-Napoca", "Iași", "Timișoara", "Brașov", "Constanța", "Alt oraș", "Zonă rurală"] as const;
@@ -60,6 +62,7 @@ export const IntakeSchema = z.object({
   scenario: loose,
   yearsUntil: num(1, 25),
   monthlySaving: num(0, 20_000),
+  health: z.unknown().optional().catch(undefined),
 });
 export type RawIntake = z.infer<typeof IntakeSchema>;
 
@@ -85,6 +88,8 @@ export interface IntakeResult {
   filled: Chip[];   // what the user told us
   assumed: Chip[];  // what we filled in ourselves — the UI must show these as "estimate, change it"
   missing: string[];
+  /** Health quiz answers the text states clearly (pre-filled on the health page). */
+  quiz: QuizAnswers;
 }
 
 /** Empty plan: unlike demoState() nothing from the "Elena" demo leaks into a real user's plan. */
@@ -185,11 +190,15 @@ export function applyIntake(raw: RawIntake | null, opts: { name?: string } = {})
   const message = (x.message ?? "").trim().slice(0, 500) ||
     (haveEssentials ? "Am pornit de la ce mi-ai spus. Verifică datele de mai jos și schimbă-le dacă nu sunt corecte." : "Mai am nevoie de câteva detalii ca să construiesc planul.");
 
+  const quiz = sanitizeQuizPrefill(x.health);
+  const quizCount = Object.keys(quiz).length;
+  if (quizCount) filled.push({ label: "Sănătate și obiceiuri", value: `${quizCount} ${quizCount === 1 ? "răspuns completat" : "răspunsuri completate"} în chestionar` });
+
   const patch: Partial<PlanState> = {
     onboarded: haveEssentials, parent, user, members, userContribution, monthlySaving,
     horizon, scenario: scenario ?? "daily", yearsUntil,
   };
-  return { patch, open, path: PAGE_PATH[open], message, filled, assumed, missing };
+  return { patch, open, path: PAGE_PATH[open], message, filled, assumed, missing, quiz };
 }
 
 const STOP = ["parint", "persoa", "lunar", "lunare", "tatal", "mama", "mamei", "tatalu"];

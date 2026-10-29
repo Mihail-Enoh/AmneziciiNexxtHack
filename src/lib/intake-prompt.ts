@@ -1,6 +1,7 @@
 // Prototype123 — system prompt for the AI intake. Owner: P3.
 // Edit the TEXT freely (it costs nothing); keep the JSON keys in sync with intake.ts.
 import { ASSETS, CITIES, FINANCIAL, HOUSING, LIVING, ROLES } from "./intake";
+import { QUIZ_PREFILL_RULES, quizOptionsForPrompt } from "./quiz-prefill";
 
 const list = (a: readonly string[]) => a.map((x) => `"${x}"`).join(", ");
 
@@ -27,7 +28,8 @@ CHEI
   "horizon": 5 | 10 | 15,
   "scenario": "occasional" | "frequent" | "daily" | "residential",
   "yearsUntil": număr,
-  "monthlySaving": număr
+  "monthlySaving": număr,
+  "health": { "idÎntrebare": "idVariantă" }
 }
 
 VALORI PERMISE
@@ -42,6 +44,11 @@ VALORI PERMISE
 - parent.expenses = cheltuieli esențiale lunare ale părintelui (utilități, mâncare, medicamente). user.savings = cât economisește utilizatorul lunar. userContribution = cât ar putea da lunar pentru părinte. monthlySaving = cât ar pune lunar deoparte pentru un fond de îngrijire.
 - "open": "plan" în mod normal; "start" doar dacă lipsesc vârsta sau venitul părintelui.
 
+SĂNĂTATE ("health") — doar dacă utilizatorul spune ceva despre sănătatea sau obiceiurile părintelui; altfel omite cheia.
+${QUIZ_PREFILL_RULES}
+Întrebări și variante permise:
+${quizOptionsForPrompt()}
+
 EXEMPLU
-Utilizator: "Mama are 72 de ani, stă singură la Iași într-un apartament al ei, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi iau eu cumpărăturile. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500."
-Răspuns: {"message":"Am înțeles: mama ta are 72 de ani, locuiește singură la Iași și are nevoie ocazional de ajutor. Verifică datele din plan și completează ce lipsește.","open":"plan","parent":{"age":72,"city":"Iași","living":"Locuiește singur(ă)","housing":"Proprietar","independence":"occasional","pension":1800,"savings":15000},"user":{"income":7000},"userContribution":500,"members":[{"name":"Radu","role":"Frate","contribution":300,"financial":"da"}]}`;
+Utilizator: "Mama are 72 de ani, stă singură la Iași într-un apartament al ei, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi iau eu cumpărăturile. Merge cu bastonul și nu fumează. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500."
+Răspuns: {"message":"Am înțeles: mama ta are 72 de ani, locuiește singură la Iași și are nevoie ocazional de ajutor. Verifică datele din plan și completează ce lipsește.","open":"plan","parent":{"age":72,"city":"Iași","living":"Locuiește singur(ă)","housing":"Proprietar","independence":"occasional","pension":1800,"savings":15000},"user":{"income":7000},"userContribution":500,"members":[{"name":"Radu","role":"Frate","contribution":300,"financial":"da"}],"health":{"walking":"difficulty","smoking":"no"}}`;

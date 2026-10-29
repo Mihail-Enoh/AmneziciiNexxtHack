@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { computePlan, fullName, genitive, ron, scenarioById, type PlanState } from "@/lib/plan";
 import { setPlan, usePlan } from "@/lib/store";
+import { PartnerOffers } from "@/components/app/PartnerOffers";
 
 export const Route = createFileRoute("/rezumat")({
   head: () => ({
@@ -223,6 +224,7 @@ function Summary() {
         )}
       </section>
 
+      <PartnerOffers plan={s} />
       <section className="mt-8 card-surface p-6 md:p-8">
         <h2 className="text-2xl font-semibold">{t("Următorii pași")}</h2>
         <ol className="mt-4 space-y-2">

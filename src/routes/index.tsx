@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { runIntake } from "@/lib/intake.functions";
 import { saveIntakeNote } from "@/lib/intake-session";
+import { seedHealthAnswers } from "@/lib/health-files";
+import { fullName } from "@/lib/plan";
 import { blankState, blankWithName } from "@/lib/intake";
 
 const EXAMPLE_STORY = "Mama are 72 de ani, stă singură la Iași, are pensie 1.800 lei și 15.000 de economii. Încă se descurcă, dar îi fac eu cumpărăturile. Eu câștig 7.000 net și fratele meu Radu ar putea da 300 lei pe lună. Eu aș putea da 500.";
@@ -77,6 +79,7 @@ function Landing() {
     if (res.ok) {
       const r = res.result;
       addProfile({ ...blankState(), ...r.patch });
+      if (r.patch.parent && r.quiz) seedHealthAnswers(fullName(r.patch.parent, ""), r.quiz);
       saveIntakeNote({ message: r.message, filled: r.filled, assumed: r.assumed, missing: r.missing });
       navigate({ to: r.path as "/plan" });
     } else {
