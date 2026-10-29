@@ -56,8 +56,9 @@ function Scenarios() {
   const c = computePlan(s);
   const p = s.parent;
   const income = c.parentMonthlyIncome;
-  const target = c.futureCareReserve;
-  const later = c.comparisonSavingLater;
+  const early = c.earlySaving;
+  const target = early.target;
+  const later = early.later;
   const years = c.yearsUntilScenario;
   const updateCost = (value: number) => {
     const total = Math.max(0, Math.round(value));
@@ -73,10 +74,10 @@ function Scenarios() {
     });
     setPlan({ costs: { ...s.costs, [s.scenario]: total }, costBreakdown: { ...s.costBreakdown, [s.scenario]: next } });
   };
-  const chart = c.reserveGrowth.map((row) => ({
+  const chart = early.growth.map((row) => ({
     an: `${row.years} ani`,
-    "Începi azi": row.reserve,
-    "Începi peste 5 ani": row.delayedReserve,
+    "Începi azi": row.now,
+    "Începi peste 5 ani": row.later,
   }));
 
   return (
@@ -309,18 +310,20 @@ function Scenarios() {
       <section className="mt-14">
         <h2 className="text-4xl font-semibold">Mai devreme înseamnă mai ușor</h2>
         <p className="mt-2 text-muted-foreground">
-          Pentru același fond de {ron(target)} până la momentul scenariului.
+          {target > 0
+            ? `Ca să strângeți din timp partea familiei, ${ron(target)} (diferențele lunare pe toată durata îngrijirii), până începe îngrijirea.`
+            : `Pensia și economiile ${genitive(p.name)} acoperă costul în acest scenariu; familia nu are de strâns bani.`}
         </p>
         <div className="mt-6 grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
           <div className="card-surface border-primary/30 p-6 ring-2 ring-primary/20">
             <Sprout className="size-6 text-primary" />
             <h3 className="mt-3 text-2xl font-semibold">Începi astăzi</h3>
             <p className="mt-4 font-display text-5xl font-semibold text-primary">
-              {formatNumber(s.monthlySaving)}
+              {early.now === null ? "—" : formatNumber(early.now)}
               <span className="text-lg font-normal text-muted-foreground"> RON/lună</span>
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {years} ani · fond {ron(target)} · acoperă ~{c.monthsOfGapCovered} luni din diferență
+              {early.now === null ? "Îngrijirea începe acum: nu mai e timp de strâns dinainte." : `${c.monthsUntilScenario} luni · strângi ${ron(target)}`}
             </p>
           </div>
           <div className="grid place-items-center font-display text-xl italic text-muted-foreground">
@@ -336,7 +339,7 @@ function Scenarios() {
                   <span className="text-lg font-normal text-muted-foreground"> RON/lună</span>
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {c.monthsUntilScenario - 60} luni · pentru același fond de {ron(target)}
+                  {c.monthsUntilScenario - 60} luni · pentru aceiași {ron(target)}
                 </p>
               </>
             ) : (

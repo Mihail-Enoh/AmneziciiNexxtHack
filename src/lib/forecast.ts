@@ -147,10 +147,18 @@ export interface HabitSuggestion {
   /** Drop in the expected family cost over the horizon. */
   costSaved: number;
   costSavedPct: number;
-  /** Months later that the family starts paying, and what those months would have cost (months × monthly gap). */
+  /** Delay in whole units: weeks when the total delay is short (< ~4 months), months otherwise. */
+  delay: number;
+  unit: "week" | "month";
+  /** e.g. "3 săptămâni", "1 lună". */
+  delayLabel: string;
+  /** Delay in months (fractional), for comparisons. */
   delayMonths: number;
+  /** What the family does not pay during the delay: delay × costPerUnit. */
   deferredCost: number;
+  /** Monthly gap, and the same gap for one unit (a week or a month). */
   monthlyGap: number;
+  costPerUnit: number;
 }
 export interface Forecast {
   intensity: Intensity;
@@ -229,41 +237,49 @@ export function forecast(s: PlanState, opts: ForecastOptions = {}): Forecast {
     if (bad.length) {
       // 1) The model's answer for changing ALL of them together (effects compound, so this is not a plain sum).
       const all = core(s, intensity, points, habitLogHazard(opts.answers, bad.map((x) => x.h.id)), horizon, now);
-      const totalMonths = Math.max(0, Math.round((all.onset.median - base.onset.median) * 12));
+      // Short delays are counted in weeks, so small differences between habits stay visible (not all "1 lună").
+      const totalDays = Math.max(0, (all.onset.median - base.onset.median) * 365.25);
+      const unit: "week" | "month" = totalDays < 120 ? "week" : "month";
+      const unitDays = unit === "week" ? 7 : 365.25 / 12;
+      const totalUnits = Math.round(totalDays / unitDays);
       const totalCost = Math.max(0, base.expectedFamilyCost - all.expectedFamilyCost);
-      // 2) Split that total between habits in proportion to their weight, so the cards always add up exactly.
+      // Split the total between habits in proportion to their weight, so the cards always add up exactly.
       const sumW = bad.reduce((a, x) => a + x.weight, 0);
-      const raw = bad.map((x) => (totalMonths * x.weight) / sumW);
-      const months = raw.map(Math.floor);
+      const raw = bad.map((x) => (totalUnits * x.weight) / sumW);
+      const units = raw.map(Math.floor);
       const order = raw.map((r, i) => [r - Math.floor(r), i] as const).sort((a, b) => b[0] - a[0]);
-      const left = totalMonths - months.reduce((a, m) => a + m, 0); // computed once: the loop changes `months`
-      for (let k = 0; k < left; k++) months[order[k]![1]]! += 1;
+      const left = totalUnits - units.reduce((a, u) => a + u, 0); // computed once: the loop changes `units`
+      for (let k = 0; k < left; k++) units[order[k]![1]]! += 1;
       const monthlyGap = base.atMedian.monthlyGapAtStart;
-      const luni = (m: number) => `${m} ${m === 1 ? "lună" : "luni"}`;
-      const paid = (m: number) => monthlyGap > 0
-        ? `Familia ar începe să plătească diferența de ${lei(monthlyGap)}/lună cu ${luni(m)} mai târziu: aproximativ ${lei(m * monthlyGap)} amânați.`
+      const costPerUnit = Math.round(unit === "week" ? (monthlyGap * 7) / (365.25 / 12) : monthlyGap);
+      const label = (u: number) => unit === "week" ? `${u} ${u === 1 ? "săptămână" : "săptămâni"}` : `${u} ${u === 1 ? "lună" : "luni"}`;
+      const per = unit === "week" ? "săptămână" : "lună";
+      const paid = (u: number) => monthlyGap > 0
+        ? `Familia ar începe să plătească diferența de ${lei(monthlyGap)}/lună cu ${label(u)} mai târziu: aproximativ ${lei(u * costPerUnit)} amânați.`
         : "Familia ar avea mai mult timp să se pregătească.";
-      const card = (id: string, title: string, m: number, weightShare: number, detail: string): HabitSuggestion => {
+      const card = (id: string, title: string, u: number, weightShare: number, detail: string): HabitSuggestion => {
         const costSaved = Math.round(totalCost * weightShare);
+        const delayMonths = (u * unitDays) / (365.25 / 12);
         return {
-          id, title, detail, delayMonths: m, delayYears: Math.round((m / 12) * 10) / 10, monthlyGap, deferredCost: Math.round(m * monthlyGap),
+          id, title, detail, delay: u, unit, delayLabel: label(u), delayMonths, delayYears: Math.round((delayMonths / 12) * 10) / 10,
+          monthlyGap, costPerUnit, deferredCost: u * costPerUnit,
           costSaved, costSavedPct: base.expectedFamilyCost > 0 ? Math.round((costSaved / base.expectedFamilyCost) * 100) : 0,
         };
       };
       if (bad.length === 1) {
         const { h } = bad[0]!;
-        if (totalMonths > 0) habits.push(card(h.id, h.title, totalMonths, 1,
-          `În modelul nostru, dacă ${who} ${h.action} de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${luni(totalMonths)}. ${paid(totalMonths)}`));
+        if (totalUnits > 0) habits.push(card(h.id, h.title, totalUnits, 1,
+          `În modelul nostru, dacă ${who} ${h.action} de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${label(totalUnits)}. ${paid(totalUnits)}`));
       } else {
         bad.forEach((x, i) => {
-          const m = months[i]!;
-          if (m > 0) habits.push(card(x.h.id, x.h.title, m, x.weight / sumW,
-            `Dacă ${who} schimbă toate aceste obiceiuri, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${luni(totalMonths)}. ` +
-            `Din acestea, ${luni(m)} vin din ${x.h.because}. ${monthlyGap > 0 ? `Partea ei din plățile amânate: ${luni(m)} × ${lei(monthlyGap)} = ${lei(m * monthlyGap)}.` : ""}`.trim()));
+          const u = units[i]!;
+          if (u > 0) habits.push(card(x.h.id, x.h.title, u, x.weight / sumW,
+            `Dacă ${who} schimbă toate aceste obiceiuri, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${label(totalUnits)}. ` +
+            `Din acestea, ${label(u)} vin din ${x.h.because}. ${monthlyGap > 0 ? `Partea ei din plățile amânate: ${label(u)} × ${lei(costPerUnit)}/${per} = ${lei(u * costPerUnit)}.` : ""}`.trim()));
         });
         habits.sort((a, b) => b.delayMonths - a.delayMonths);
-        if (totalMonths > 0) habits.push(card("all", "Toate schimbările de mai sus", totalMonths, 1,
-          `În modelul nostru, dacă ${who} face toate aceste schimbări de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${luni(totalMonths)}. ${paid(totalMonths)}`));
+        if (totalUnits > 0) habits.push(card("all", "Toate schimbările de mai sus", totalUnits, 1,
+          `În modelul nostru, dacă ${who} face toate aceste schimbări de acum, nevoia de ajutor zilnic s-ar amâna cu aproximativ ${label(totalUnits)}. ${paid(totalUnits)}`));
       }
     }
   }

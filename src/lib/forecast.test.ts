@@ -107,14 +107,14 @@ describe("forecast", () => {
     const all = f.habits.find((h) => h.id === "all")!;
     const parts = f.habits.filter((h) => h.id !== "all");
     expect(f.habits.at(-1)!.id).toBe("all");
-    expect(parts.reduce((x, h) => x + h.delayMonths, 0)).toBe(all.delayMonths);
+    expect(parts.reduce((x, h) => x + h.delay, 0)).toBe(all.delay);
     expect(parts.reduce((x, h) => x + h.deferredCost, 0)).toBe(all.deferredCost);
     for (const h of f.habits) {
-      expect(h.delayMonths).toBeGreaterThan(0);
-      expect(h.deferredCost).toBe(h.delayMonths * h.monthlyGap);
+      expect(h.delay).toBeGreaterThan(0);
+      expect(h.deferredCost).toBe(h.delay * h.costPerUnit);
     }
     expect(all.detail).toMatch(/^În modelul nostru, dacă Elena face toate/);
-    expect(parts[0]!.detail).toMatch(/Din acestea, \d+ luni vin din/);
+    expect(parts[0]!.detail).toMatch(/Din acestea, \d+ (luni|lună|săptămâni|săptămână) vin din/);
   });
   it("every habit in FORECAST_ASSUMPTIONS exists in the quiz", () => {
     for (const h of FORECAST_ASSUMPTIONS.habits) expect(QUIZ.some((q) => q.id === h.id)).toBe(true);
@@ -155,5 +155,19 @@ describe("forecast", () => {
     expect(f.assumptions.map((x) => x.label)).toEqual(["Când poate fi nevoie de ajutor", "Efectul obiceiurilor", "Durata îngrijirii"]);
     const text = JSON.stringify(f.assumptions);
     expect(text).not.toMatch(/Tezaur|percentil|Gompertz|nominal|INS/); // kept simple for families
+  });
+  it("short delays are counted in weeks, so habits with different weights do not look the same", () => {
+    const old: PlanState = { ...demoState(), parent: { ...demoState().parent, age: 80 } };
+    const answers: QuizAnswers = { smoking: ["daily"], social: ["rarely"], walking: ["helped"], washing: ["helped"] };
+    const f = forecast(old, { domains: assessHealth({ age: 80, answers, labs: [], ai: null }).domains, answers, now: NOW });
+    const all = f.habits.find((h) => h.id === "all");
+    expect(all?.unit).toBe("week");
+    if (all && all.unit === "week") {
+      const by = Object.fromEntries(f.habits.map((h) => [h.id, h]));
+      expect(by["smoking"]!.delay).toBeGreaterThan(by["social"]?.delay ?? 0);
+      expect(all.delayLabel).toMatch(/săptămân/);
+      expect(all.costPerUnit).toBe(Math.round((all.monthlyGap * 7) / (365.25 / 12))); // a week costs ~1/4.3 of a month
+    }
+    expect(f.habits.filter((h) => h.id !== "all").reduce((x, h) => x + h.deferredCost, 0)).toBe(all?.deferredCost ?? 0);
   });
 });

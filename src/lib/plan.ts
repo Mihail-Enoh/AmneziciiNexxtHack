@@ -467,6 +467,22 @@ export function computePlan(s: PlanState, intensity: Intensity = s.scenario, now
         delayedReserve: delayedSaving === null ? 0 : Math.max(0, month - 60) * delayedSaving,
       };
     }),
+    // "Mai devreme înseamnă mai ușor": what it takes to put aside the family's whole share (sum of monthly gaps)
+    // before care starts — starting today vs. starting in 5 years. Independent of what the user saves now.
+    earlySaving: (() => {
+      const target = Math.round(projection.reduce((sum, row) => sum + row.gap, 0));
+      const now = requiredMonthlySaving(target, monthsUntilScenario, 0);
+      const later = requiredMonthlySaving(target, monthsUntilScenario, 60);
+      const growth = Array.from({ length: Math.ceil(monthsUntilScenario / 12) + 1 }, (_, index) => {
+        const month = Math.min(index * 12, monthsUntilScenario);
+        return {
+          years: Math.round((month / 12) * 10) / 10,
+          now: Math.min(target, (now ?? 0) * month),
+          later: later === null ? 0 : Math.min(target, Math.max(0, month - 60) * later),
+        };
+      });
+      return { target, now, later, growth };
+    })(),
     careDurationMonths: duration,
     endRemainingGap: Math.round(projection[duration - 1]!.remaining),
   };

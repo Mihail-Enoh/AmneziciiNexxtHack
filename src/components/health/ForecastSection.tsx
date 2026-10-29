@@ -84,8 +84,8 @@ export function ForecastSection({ plan, health }: { plan: PlanState; health?: Fo
     {f.habits.length ? <>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{f.habits.map(h => <article key={h.id} className="rounded-lg border bg-card p-4">
         <h4 className="font-semibold">{h.title}</h4>
-        {h.deferredCost > 0 && <><p className="mt-2 font-display text-3xl font-semibold text-primary tabular">{lei(h.deferredCost)}</p><p className="text-xs text-muted-foreground">plăți amânate: {h.delayMonths} {h.delayMonths === 1 ? 'lună' : 'luni'} × {lei(h.monthlyGap)}</p></>}
-        <p className="mt-2 inline-block rounded-md bg-success-soft px-2 py-1 text-sm font-semibold text-success">+{h.delayMonths} {h.delayMonths === 1 ? 'lună' : 'luni'}{h.delayMonths >= 12 ? ` (${years(h.delayYears)})` : ''} până la nevoia de ajutor</p>
+        {h.deferredCost > 0 && <><p className="mt-2 font-display text-3xl font-semibold text-primary tabular">{lei(h.deferredCost)}</p><p className="text-xs text-muted-foreground">plăți amânate: {h.delayLabel} × {lei(h.costPerUnit)}/{h.unit === 'week' ? 'săptămână' : 'lună'}</p></>}
+        <p className="mt-2 inline-block rounded-md bg-success-soft px-2 py-1 text-sm font-semibold text-success">+{h.delayLabel}{h.unit === 'month' && h.delay >= 12 ? ` (${years(h.delayYears)})` : ''} până la nevoia de ajutor</p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{h.detail}</p>
       </article>)}</div>
       {f.habits.length > 2 && <p className="mt-3 text-sm text-muted-foreground">Fiecare card arată partea acelui obicei din amânarea totală; adunate, dau exact ultimul card.</p>}
