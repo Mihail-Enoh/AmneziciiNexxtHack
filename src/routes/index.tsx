@@ -1,8 +1,8 @@
-import { t, useT, displayName } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, HeartPulse, Loader2, Compass, LineChart, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Check, Loader2, Compass, LineChart, ListChecks, ShieldCheck, Sparkles, Users } from "lucide-react";
 import heroImg from "@/assets/hero-family.jpg";
-import { Logo, PublicHeader } from "@/components/app/AppShell";
+import { PublicHeader } from "@/components/app/AppShell";
 import { PrivacyNote } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { addProfile } from "@/lib/store";
@@ -98,33 +98,61 @@ function Landing() {
     <div className="min-h-screen">
       <PublicHeader />
 
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-8 md:grid-cols-[1.1fr_1fr] md:pt-16">
+      <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-12 pt-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:pt-16">
         <div className="animate-rise">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-care-soft px-3 py-1.5 text-xs font-bold text-care">
-            <Sparkles className="size-3.5" />{t(" Ai grijă de viitor, înainte să devină o urgență. ")}</p>
-          <h1 className="text-5xl font-semibold leading-[1.05] md:text-6xl">{t(" Știi cât te-ar costa dacă ")}<em className="text-care not-italic">{t("părinții tăi")}</em>{t(" ar avea nevoie de tine? ")}</h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" WeCare te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button className="w-full sm:w-auto" size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
-            <Button asChild variant="care" size="lg" className="w-full sm:w-auto"><Link to="/sanatate"><HeartPulse />Sănătate și obiceiuri</Link></Button>
-          </div>
-          <div className="card-surface mt-6 max-w-xl p-4">
-            <label htmlFor="person" className="text-sm font-semibold">Numele persoanei de care vrei să ai grijă</label>
-            <input id="person" value={person} maxLength={80} required autoComplete="off" onChange={(e) => setPerson(e.target.value)}
-              placeholder="Ex.: Maria Ionescu"
-              className="mt-2 mb-4 h-11 w-full rounded-xl border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-            <label htmlFor="story" className="text-sm font-semibold">Povestește-ne situația ta</label>
-            <textarea id="story" value={story} maxLength={600} rows={4} onChange={(e) => setStory(e.target.value)}
-              placeholder="Ex.: Tata are 70 de ani, stă la Cluj, are pensie 2.500 lei. Eu și sora mea am putea ajuta…"
-              className="mt-2 w-full resize-y rounded-xl border bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-              <button type="button" onClick={() => { setStory(EXAMPLE_STORY); if (!person.trim()) setPerson("Maria Ionescu"); }} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Folosește o poveste exemplu</button>
-              <Button onClick={submit} disabled={!story.trim() || !person.trim()} title={!person.trim() ? "Scrie numele persoanei" : undefined}>Construiește planul <ArrowRight /></Button>
+          <h1 className="text-5xl font-semibold leading-[1.08] md:text-6xl">
+            {t("Ei au avut grijă de tine.")}
+            <br />
+            <em className="text-care not-italic">{t("Acum e rândul tău.")}</em>
+          </h1>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            {t("Află din timp cât ar putea costa îngrijirea unui părinte și construiește un plan împreună cu familia.")}
+          </p>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            <div className="card-surface flex flex-col p-5">
+              <span className="grid size-10 place-items-center rounded-2xl bg-care-soft text-care"><Sparkles className="size-5" /></span>
+              <h2 className="mt-3 text-lg font-semibold">{t("Spune-ne povestea")}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t("Scrii câteva rânduri, noi completăm planul.")}</p>
+              <div className="mt-4 flex flex-1 flex-col">
+                <label htmlFor="person" className="text-sm font-semibold">Numele persoanei de care vrei să ai grijă</label>
+                <input id="person" value={person} maxLength={80} required autoComplete="off" onChange={(e) => setPerson(e.target.value)}
+                  placeholder="Ex.: Maria Ionescu"
+                  className="mt-2 mb-4 h-11 w-full rounded-xl border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                <label htmlFor="story" className="text-sm font-semibold">Povestește-ne situația ta</label>
+                <textarea id="story" value={story} maxLength={600} rows={4} onChange={(e) => setStory(e.target.value)}
+                  placeholder="Ex.: Tata are 70 de ani, stă la Cluj, are pensie 2.500 lei. Eu și sora mea am putea ajuta…"
+                  className="mt-2 w-full flex-1 resize-y rounded-xl border bg-background p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <button type="button" onClick={() => { setStory(EXAMPLE_STORY); if (!person.trim()) setPerson("Maria Ionescu"); }} className="text-xs font-semibold text-primary underline-offset-4 hover:underline">Folosește o poveste exemplu</button>
+                  <Button className="w-full sm:w-auto" onClick={submit} disabled={!story.trim() || !person.trim()} title={!person.trim() ? "Scrie numele persoanei" : undefined}>Construiește planul <ArrowRight /></Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="card-surface flex flex-col p-5">
+              <span className="grid size-10 place-items-center rounded-2xl bg-primary-soft text-primary"><ListChecks className="size-5" /></span>
+              <h2 className="mt-3 text-lg font-semibold">{t("Pas cu pas")}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t("Completezi singur, în 4 pași scurți.")}</p>
+              <div className="mt-4 flex flex-1 items-end">
+                <Button className="w-full" size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
+              </div>
             </div>
           </div>
-          <a href="#cum" className="mt-4 inline-block text-sm font-semibold text-primary underline-offset-4 hover:underline">{t("Vezi cum funcționează ↓")}</a>
+
+          <p className="mt-6 text-sm text-muted-foreground">
+            {t("Ai deja un plan?")}{" "}
+            <Link to="/sanatate" className="font-semibold text-primary underline-offset-4 hover:underline">
+              {t("Completează Sănătate și obiceiuri")} →
+            </Link>
+          </p>
+
+          <p className="mt-8 text-center lg:text-left">
+            <a href="#cum" className="text-sm font-semibold text-primary underline-offset-4 hover:underline">{t("Vezi cum funcționează ↓")}</a>
+          </p>
         </div>
-        <div className="relative animate-rise [animation-delay:150ms]">
+
+        <div className="animate-rise [animation-delay:150ms] max-lg:order-last max-lg:mx-auto max-lg:max-w-md">
           <img src={heroImg} alt={t("O fiică și mama ei discută la masa din bucătărie")} width={1280} height={1024} className="aspect-[5/4] w-full rounded-[2rem] object-cover shadow-lift" />
         </div>
       </section>
