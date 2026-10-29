@@ -31,7 +31,14 @@ export function AnimatedNumber({ value, suffix = " RON", className }: { value: n
   return <span className={cn("tabular", className)}>{formatNumber(display)}{suffix}</span>;
 }
 
-export interface CalcLine { label: string; value: string; op?: "−" | "+" | "=" | "×" | "÷" }
+export interface CalcLine { label: string; value: string; op?: "−" | "+" | "=" | "×" | "÷"; /** Part of the label shown in bold. */ strong?: string }
+
+/** A label with its `strong` part in bold. */
+function LineLabel({ line }: { line: CalcLine }) {
+  const at = line.strong ? line.label.indexOf(line.strong) : -1;
+  if (!line.strong || at < 0) return <>{line.label}</>;
+  return <>{line.label.slice(0, at)}<strong className="font-bold">{line.strong}</strong>{line.label.slice(at + line.strong.length)}</>;
+}
 
 /**
  * The monthly gap, step by step, with the first month's numbers:
@@ -43,19 +50,24 @@ export function gapLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcL
   const who = s.parent.name.trim();
   const of = who ? genitive(who) : "persoanei";
   const replaced = Math.min(replacedExpensesOf(s, s.scenario), Math.max(0, s.parent.expenses));
-  const lines: CalcLine[] = [
-    { label: `Cost îngrijire · ${sc.label.toLowerCase()}`, value: ron(c.careMonthlyCost) },
-  ];
+  const care = Math.round(c.careMonthlyCost);
+  const lines: CalcLine[] = [{ label: `Îngrijire · ${sc.label.toLowerCase()}, pe lună`, strong: sc.label.toLowerCase(), value: ron(care) }];
   if (!first) return lines;
+  // Traiul obișnuit al persoanei continuă și în timpul îngrijirii; ce include deja îngrijirea (de ex. masa) nu se numără de două ori.
+  const living = Math.round(first.expenses);
+  if (living > 0 || replaced > 0) {
+    const included = breakdownOf(s, s.scenario).filter((slice) => slice.replacesOwnExpense).map((slice) => slice.label.toLocaleLowerCase("ro-RO")).join(", ");
+    lines.push({
+      label: replaced > 0
+        ? `Traiul ${of}: ${ron(s.parent.expenses)} pe lună, fără ${included || "ce include deja îngrijirea"} (${ron(replaced)}), inclus${included.includes(",") ? "e" : "ă"} deja în îngrijire`
+        : `Traiul ${of} (facturi, mâncare, medicamente), pe lună`,
+      value: ron(living), op: "+",
+    });
+    lines.push({ label: "Total necesar pe lună", value: ron(care + living), op: "=" });
+  }
   lines.push({ label: `Pensia și veniturile ${of}`, value: ron(first.income), op: "−" });
-  if (first.expenses > 0 || replaced > 0) lines.push({
-    label: replaced > 0
-      ? `Cheltuielile ${of} care rămân: ${ron(s.parent.expenses)}, minus ${ron(replaced)} incluși deja în ${sc.label.toLowerCase()} (${breakdownOf(s, s.scenario).filter((slice) => slice.replacesOwnExpense).map((slice) => slice.label.toLocaleLowerCase("ro-RO")).join(", ")})`
-      : `Cheltuielile lunare ale ${of}`,
-    value: ron(first.expenses), op: "+",
-  });
   if (first.savingsUsed > 0) lines.push({ label: `Din economiile ${of}`, value: ron(first.savingsUsed), op: "−" });
-  lines.push({ label: "Diferență de acoperit de familie", value: ron(c.familyFundingGap), op: "=" });
+  lines.push({ label: "Diferența de acoperit de familie, pe lună", value: ron(c.familyFundingGap), op: "=" });
   return lines;
 }
 
@@ -73,7 +85,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
         <dl className="mt-2 divide-y rounded-2xl border bg-muted/40">
           {lines.map((l, i) => (
             <div key={i} className={cn("flex items-center justify-between gap-4 px-4 py-3", l.op === "=" && "bg-primary-soft font-bold")}>
-              <dt className="text-sm">{t(l.label)}</dt>
+              <dt className="text-sm"><LineLabel line={l} /></dt>
               <dd className="tabular text-sm font-semibold">{l.op && l.op !== "=" ? `${l.op} ` : l.op === "=" ? "= " : ""}{l.value}</dd>
             </div>
           ))}
