@@ -86,7 +86,7 @@ export function HealthFlow() {
     if (text && text !== readStory) {
       setReading(true);
       try {
-        const r = await prefill({ data: { story: text.slice(0, 4000) } });
+        const r = await prefill({ data: { story: text.slice(0, 4000), name: who } });
         const m = mergePrefill(answers, fromStory, r.answers);
         if (m.added) { setAnswers(m.answers); setFromStory(m.fromAi); invalidate(); }
         setReadStory(text);

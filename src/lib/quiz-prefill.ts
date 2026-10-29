@@ -11,7 +11,9 @@ export function quizOptionsForPrompt(): string {
 }
 
 /** Shared rules, used by the health-story prompt and by the home-page intake prompt. */
-export const QUIZ_PREFILL_RULES = `- Completezi o întrebare DOAR dacă textul o spune clar. Dacă nu e sigur, OMITE întrebarea: e mai bine goală decât ghicită.
+export const QUIZ_PREFILL_RULES = `- Răspunsurile sunt DOAR despre persoana îngrijită (părintele; numele ei e dat la început, dacă îl știm). Ignoră complet ce se spune despre ALȚI oameni: soț sau soție, frați, copii, nepoți, vecini, menajeră, îngrijitoare, cel care scrie. Dacă nu e clar despre cine e vorba, omite întrebarea.
+- Exemplu capcană: „Ion fumează zilnic. Soția lui bea zilnic și are hipertensiune.” → smoking "daily"; NU completezi alcohol și NU completezi conditions (sunt despre soție).
+- Completezi o întrebare DOAR dacă textul o spune clar. Dacă nu e sigur, OMITE întrebarea: e mai bine goală decât ghicită.
 - Folosești doar id-urile de mai jos. Pentru "conditions" dai o listă; "none" doar dacă textul spune că nu are nicio boală.
 - Exemple: "nu fumează" → smoking "no"; "fumează zilnic", "un pachet pe zi" → smoking "daily"; "nu bea" → alcohol "rarely"; "bea în fiecare zi" → alcohol "daily"; "nu mai face mișcare" → exercise "never"; "se plimbă zilnic" → exercise "daily"; "merge cu bastonul" → walking "difficulty"; "se descurcă singură cu masa și îmbrăcatul" → selfcare "yes"; "uneori uită să-și ia pastilele" → medsAlone "forgets"; "iese rar din casă" → social "rarely"; "pastile pentru tensiune" → conditions ["bp"]; "diabet" → conditions ["diabetes"].
 - "Uită să-și ia pastilele" NU înseamnă probleme de memorie: completezi "memory" doar dacă textul vorbește despre memorie.`;
