@@ -29,9 +29,9 @@ const LOADING = ["Construim scenariile…", "Estimăm resursele disponibile…",
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prototype123 — Știi cât te-ar costa dacă părinții tăi ar avea nevoie de tine?" },
+      { title: "WeCare — Știi cât te-ar costa dacă părinții tăi ar avea nevoie de tine?" },
       { name: "description", content: "Înțelege impactul financiar al îngrijirii unui părinte și construiește un plan împreună cu familia, înainte să devină o urgență." },
-      { property: "og:title", content: "Prototype123 — Planifică azi. Fii alături mâine." },
+      { property: "og:title", content: "WeCare — Planifică azi. Fii alături mâine." },
       { property: "og:description", content: "Scenarii financiare pentru familiile din România care au părinți în vârstă." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -103,7 +103,7 @@ function Landing() {
           <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-care-soft px-3 py-1.5 text-xs font-bold text-care">
             <Sparkles className="size-3.5" />{t(" Ai grijă de viitor, înainte să devină o urgență. ")}</p>
           <h1 className="text-5xl font-semibold leading-[1.05] md:text-6xl">{t(" Știi cât te-ar costa dacă ")}<em className="text-care not-italic">{t("părinții tăi")}</em>{t(" ar avea nevoie de tine? ")}</h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" Prototype123 te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">{t(" WeCare te ajută să înțelegi impactul financiar al îngrijirii unui părinte și să construiești un plan împreună cu familia, înainte ca situația să devină o urgență. ")}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button className="w-full sm:w-auto" size="lg" onClick={() => { addProfile(); navigate({ to: "/start" }); }}>{t("Construiește planul familiei ")}<ArrowRight /></Button>
             <Button asChild variant="care" size="lg" className="w-full sm:w-auto"><Link to="/sanatate"><HeartPulse />Sănătate și obiceiuri</Link></Button>

@@ -26,13 +26,13 @@ import { clearIntakeNote } from "@/lib/intake-session";
 export const Route = createFileRoute("/start")({
   head: () => ({
     meta: [
-      { title: "Construiește planul familiei — Prototype123" },
+      { title: "Construiește planul familiei — WeCare" },
       {
         name: "description",
         content:
           "Câteva întrebări simple despre părintele tău și familia ta, pentru un prim plan financiar.",
       },
-      { property: "og:title", content: "Construiește planul familiei — Prototype123" },
+      { property: "og:title", content: "Construiește planul familiei — WeCare" },
       {
         property: "og:description",
         content:

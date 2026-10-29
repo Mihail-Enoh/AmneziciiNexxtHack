@@ -30,7 +30,7 @@ export function SettingsMenu({ expanded = false }: { expanded?: boolean }) {
   };
   return <Dialog open={open} onOpenChange={value => { setOpen(value); if (value) setValues(Object.fromEntries(["contrast", "large-text", "reduce-motion"].map(k => [k, document.documentElement.classList.contains(k)]))); }}>
     <DialogTrigger asChild><Button variant="ghost" size={expanded ? "default" : "icon"} className={expanded ? "w-full justify-start rounded-lg px-3" : "rounded-lg"} aria-label={"Setări"} title={"Setări"}><Settings />{expanded && "Setări"}</Button></DialogTrigger>
-    <DialogContent><DialogHeader><DialogTitle>{"Pe gustul tău"}</DialogTitle><DialogDescription>{"Setări"} · Prototype123</DialogDescription></DialogHeader>
+    <DialogContent><DialogHeader><DialogTitle>{"Pe gustul tău"}</DialogTitle><DialogDescription>{"Setări"} · WeCare</DialogDescription></DialogHeader>
       {[{ key: "contrast", icon: Sun, label: "Contrast mai puternic" }, { key: "large-text", icon: Type, label: "Text mai mare" }, { key: "reduce-motion", icon: Waves, label: "Mai puține animații" }].map(item => <label key={item.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b py-4 last:border-0"><span className="flex min-w-0 items-center gap-3 font-medium"><item.icon className="size-5 shrink-0 text-primary" />{item.label}</span><Switch checked={values[item.key] ?? false} onCheckedChange={v => change(item.key, v)} aria-label={item.label} /></label>)}
       <Button variant="outline" className="mt-2 w-full text-destructive" onClick={clearAllData}><Trash2 />Șterge toate datele</Button>
     </DialogContent>

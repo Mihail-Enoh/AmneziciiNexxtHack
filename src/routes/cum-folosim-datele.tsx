@@ -5,9 +5,9 @@ import { PublicHeader } from "@/components/app/AppShell";
 export const Route = createFileRoute("/cum-folosim-datele")({
   head: () => ({
     meta: [
-      { title: "Cum folosim datele — Prototype123" },
-      { name: "description", content: "Ce date colectăm, unde rămân rezultatele și cum sunt procesate textele și imaginile în Prototype123." },
-      { property: "og:title", content: "Cum folosim datele — Prototype123" },
+      { title: "Cum folosim datele — WeCare" },
+      { name: "description", content: "Ce date colectăm, unde rămân rezultatele și cum sunt procesate textele și imaginile în WeCare." },
+      { property: "og:title", content: "Cum folosim datele — WeCare" },
       { property: "og:description", content: "Fișierele nu sunt salvate, iar rezultatele rămân doar în fila ta de browser." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -21,7 +21,7 @@ const SECTIONS = [
   { title: "Fișierele nu sunt salvate", text: "Documentele încărcate sunt citite în memorie și nu sunt salvate nicăieri — nici pe serverele noastre, nici în browser. Când închizi pagina, ele dispar." },
   { title: "Rezultatele rămân în această filă", text: "Povestea, răspunsurile și scenariile de îngrijire sunt păstrate doar în această filă de browser, pe durata sesiunii. Planul financiar și setările rămân în acest browser. Le poți șterge oricând din Setări → „Șterge toate datele”." },
   { title: "Procesare prin furnizorul nostru de AI", text: "Pentru a înțelege textul și a citi valorile din imagini, textul și imaginile sunt trimise pentru procesare furnizorului nostru de inteligență artificială, Featherless. Îți recomandăm să acoperi numele, CNP-ul și adresa înainte de a fotografia un document." },
-  { title: "Nu este o evaluare medicală", text: "Prototype123 construiește scenarii de îngrijire pentru planificarea financiară a familiei. Nu oferă evaluări medicale și nu înlocuiește medicul. Discută orice întrebare despre sănătate cu un specialist." },
+  { title: "Nu este o evaluare medicală", text: "WeCare construiește scenarii de îngrijire pentru planificarea financiară a familiei. Nu oferă evaluări medicale și nu înlocuiește medicul. Discută orice întrebare despre sănătate cu un specialist." },
 ];
 
 function DataPage() {

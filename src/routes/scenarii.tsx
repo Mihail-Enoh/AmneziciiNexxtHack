@@ -31,13 +31,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/scenarii")({
   head: () => ({
     meta: [
-      { title: "Ce se întâmplă dacă...? Simulator de scenarii — Prototype123" },
+      { title: "Ce se întâmplă dacă...? Simulator de scenarii — WeCare" },
       {
         name: "description",
         content:
           "Modifică momentul, intensitatea și costul îngrijirii și vezi instant cum se schimbă diferența pentru familie.",
       },
-      { property: "og:title", content: "Simulator de scenarii de îngrijire — Prototype123" },
+      { property: "og:title", content: "Simulator de scenarii de îngrijire — WeCare" },
       {
         property: "og:description",
         content:
