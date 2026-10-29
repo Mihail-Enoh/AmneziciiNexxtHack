@@ -108,7 +108,7 @@ describe("Live planning controls and persistence", () => {
     expect(saved.costs.daily).toBe(2800);
     expect(saved.costBreakdown.daily.map((slice: { amount: number }) => slice.amount)).toEqual([2000, 500, 150, 150]);
     expect(result().cost).toBe(2800);
-    act(() => button("Revino la valorile demonstrative").click());
+    act(() => button("Revino la valorile inițiale").click());
     const reset = JSON.parse(sessionStorage.getItem("prototype123-plan-v1") ?? "{}");
     expect(reset.costs.daily).toBe(3000);
     expect(reset.costBreakdown.daily).toBeUndefined();

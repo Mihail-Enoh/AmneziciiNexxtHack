@@ -13,7 +13,7 @@ export const Route = createFileRoute("/cum-functioneaza")({
       {
         name: "description",
         content:
-          "Ipotezele demonstrative și formulele folosite de WeCare pentru scenariile de îngrijire.",
+          "Ipotezele și formulele folosite de WeCare pentru scenariile de îngrijire.",
       },
       { property: "og:title", content: "Cum facem estimările? — WeCare" },
       {
@@ -64,7 +64,7 @@ function HowItWorks() {
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="card-surface p-6">
-          <h2 className="text-2xl font-semibold">{t("Ipoteze demonstrative")}</h2>
+          <h2 className="text-2xl font-semibold">{t("Costuri de referință")}</h2>
           <table className="mt-4 w-full text-sm">
             <thead>
               <tr className="text-left text-muted-foreground">
@@ -84,7 +84,7 @@ function HowItWorks() {
             </tbody>
           </table>
           <p className="mt-4 text-xs text-muted-foreground">
-            Valori demonstrative editabile. Simulatorul include repere istorice cu surse, rate de
+            Simulatorul include repere istorice cu surse, rate de
             creștere personalizate și utilizarea finită a economiilor. Nu presupunem eligibilitatea
             pentru beneficii publice.
           </p>

@@ -512,16 +512,10 @@ function Onboarding() {
                       <Trash2 />
                     </Button>
                     <p className="text-xs text-muted-foreground sm:col-span-3">
-                      Contribuție estimată: {ron(m.contribution)}/lună. O poți modifica sau confirma
-                      ulterior în planul familiei.
+                      Contribuție estimată: {ron(m.contribution)}/lună.
                     </p>
                   </div>
                 ))}
-                {d.members.length === 0 && (
-                  <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
-                    Poți construi planul singur sau poți adăuga ulterior alți membri ai familiei.
-                  </p>
-                )}
                 <Button variant="outline" onClick={addMember}>
                   <Plus /> Adaugă un membru al familiei
                 </Button>

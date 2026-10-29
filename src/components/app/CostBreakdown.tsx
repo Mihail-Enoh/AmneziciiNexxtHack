@@ -51,7 +51,6 @@ export function CostBreakdown() {
         <h3 id="cost-breakdown-title" className="max-w-xl text-xl font-semibold">Din ce e format costul lunar · {scenarioById(s.scenario).label}</h3>
         <p className="tabular text-2xl font-semibold text-primary" aria-live="polite">{formatNumber(total)} <span className="text-sm font-normal">lei/lună</span></p>
       </div>
-      {isDefault && <p className="inline-block rounded-md border border-warning/30 bg-warning-soft px-3 py-2 text-xs font-medium">Valori demonstrative. Pune prețurile reale (oferte de la îngrijitoare, centru de zi, cămin).</p>}
       <div className="grid min-w-0 gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
         <div className="relative mx-auto h-60 w-full max-w-72" role="img" aria-label={`Cost lunar: ${formatNumber(total)} lei. ${slices.map((slice) => `${slice.label}: ${formatNumber(slice.amount)} lei (${percent(slice.amount, total)}%)`).join("; ")}`}>
           {total > 0 ? <ResponsiveContainer width="100%" height="100%">
@@ -95,7 +94,7 @@ export function CostBreakdown() {
       </div>
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" className="h-auto whitespace-normal text-left" disabled={slices.length >= 8} onClick={() => update([...slices, { id: `category-${Date.now()}`, label: "Altele", amount: 0, replacesOwnExpense: false }])}><Plus className="size-4 shrink-0" />Adaugă o categorie</Button>
-        <Button type="button" variant="ghost" className="h-auto whitespace-normal text-left" onClick={reset}><RotateCcw className="size-4 shrink-0" />Revino la valorile demonstrative</Button>
+        <Button type="button" variant="ghost" className="h-auto whitespace-normal text-left" onClick={reset}><RotateCcw className="size-4 shrink-0" />Revino la valorile inițiale</Button>
       </div>
       <p className="text-sm leading-relaxed text-muted-foreground">Din acești bani, {formatNumber(replaced)} lei acoperă lucruri incluse deja în cheltuielile lunare {possessive(name)}{flagged.length > 0 ? ` (de ex. ${flagged.map((slice) => slice.label).join(", ")})` : ""}. De aceea nu le mai adunăm o dată.</p>
     </section>

@@ -43,7 +43,7 @@ export function ForecastSection({ plan, health }: { plan: PlanState; health?: Fo
   ];
   return <section className="mt-8 card-surface p-5 sm:p-6" aria-labelledby="forecast-title">
     <h2 id="forecast-title" className="text-2xl font-semibold">Ce ar putea însemna financiar</h2>
-    <p className="mt-1 text-xs text-muted-foreground">{f.todaysPrices ? 'Sumele sunt în prețurile de azi.' : `Sumele includ creșterea costurilor de ${pct(plan.costGrowth)}%/an din ipotezele planului.`}</p>
+    <p className="mt-1 text-xs text-muted-foreground">{f.todaysPrices ? 'Sumele sunt în prețurile de azi.' : `Sumele includ creșterea costurilor de ${pct(plan.costGrowth)}%/an.`}</p>
 
     <h3 className="mt-6 text-lg font-semibold">Când ar putea fi nevoie de ajutor zilnic</h3>
     <p className="mt-1 text-sm">Cel mai probabil peste <strong>{years(p50)}</strong> (între {yrs(low)} și {yrs(high)} ani). Șansa să fie nevoie în următorii {f.horizonYears} ani: <strong>{chance}%</strong>.</p>

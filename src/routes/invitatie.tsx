@@ -64,7 +64,7 @@ function Invite() {
             <div className="text-center">
               <span className="mx-auto grid size-14 place-items-center rounded-full bg-success-soft text-success"><Check className="size-7" /></span>
               <h1 className="mt-4 text-3xl font-semibold">{t("Mulțumim!")}</h1>
-              <p className="mt-2 text-muted-foreground">{from}{t(" va vedea răspunsul tău în planul familiei. Îl poți schimba oricând.")}</p>
+              <p className="mt-2 text-muted-foreground">{from}{t(" va vedea răspunsul tău în planul familiei.")}</p>
               <Button asChild className="mt-6"><Link to="/familie">{t("Vezi planul familiei")}</Link></Button>
             </div>
           ) : (

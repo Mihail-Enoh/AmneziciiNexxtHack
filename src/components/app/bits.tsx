@@ -40,12 +40,11 @@ export interface CalcLine { label: string; value: string; op?: "−" | "+" | "="
 export function gapLines(s: PlanState, c: ReturnType<typeof computePlan>): CalcLine[] {
   const first = c.projection[0];
   const sc = scenarioById(s.scenario);
-  const preset = s.costs[s.scenario] === PLAN_ASSUMPTIONS.costs[s.scenario];
   const who = s.parent.name.trim();
   const of = who ? genitive(who) : "persoanei";
   const replaced = Math.min(replacedExpensesOf(s, s.scenario), Math.max(0, s.parent.expenses));
   const lines: CalcLine[] = [
-    { label: `Cost îngrijire · ${sc.label.toLowerCase()}${preset ? " (estimare demonstrativă; o poți schimba în Scenarii)" : " (valoarea ta)"}`, value: ron(c.careMonthlyCost) },
+    { label: `Cost îngrijire · ${sc.label.toLowerCase()}`, value: ron(c.careMonthlyCost) },
   ];
   if (!first) return lines;
   lines.push({ label: `Pensia și veniturile ${of}`, value: ron(first.income), op: "−" });
@@ -69,7 +68,7 @@ export function ExplainButton({ title, lines, note }: { title: string; lines: Ca
       <DialogContent className="rounded-3xl">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">{t(title)}</DialogTitle>
-          <DialogDescription>{t("Fiecare număr provine din valorile introduse de tine și din ipotezele demonstrative.")}</DialogDescription>
+          <DialogDescription>{t("Cum am ajuns la această sumă.")}</DialogDescription>
         </DialogHeader>
         <dl className="mt-2 divide-y rounded-2xl border bg-muted/40">
           {lines.map((l, i) => (
@@ -103,7 +102,7 @@ export function InfoTip({ children, label = "Informații" }: { children: ReactNo
 export function DemoBadge() {
   const t = useT();
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-1 text-xs font-semibold text-foreground">{t(" Estimare demonstrativă ")}<InfoTip>{t("Costurile reale variază în funcție de oraș, tipul serviciilor, disponibilitate și situația familiei.")}</InfoTip>
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-1 text-xs font-semibold text-foreground">{t(" Estimare ")}<InfoTip>{t("Costurile reale variază în funcție de oraș, tipul serviciilor, disponibilitate și situația familiei.")}</InfoTip>
     </span>
   );
 }
@@ -112,7 +111,7 @@ export function PrivacyNote({ className }: { className?: string }) {
   const t = useT();
   return (
     <p className={cn("flex items-start gap-2 text-xs leading-relaxed text-muted-foreground", className)}>
-      <Lock className="size-3.5 shrink-0" aria-hidden />{t(" Datele tale financiare rămân private. Acest prototip salvează informațiile doar local în browser. ")}</p>
+      <Lock className="size-3.5 shrink-0" aria-hidden />{t(" Datele tale financiare rămân private și sunt salvate doar în browserul tău. ")}</p>
   );
 }
 

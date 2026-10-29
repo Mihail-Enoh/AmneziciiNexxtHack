@@ -15,7 +15,7 @@ export function IntakeBanner() {
         <div className="min-w-0 flex-1 space-y-3">
           <p className="font-medium">{note.message}</p>
           {note.filled.length > 0 && <ChipRow title="Ai spus tu" chips={note.filled} tone="bg-primary-soft text-primary" />}
-          {note.assumed.length > 0 && <ChipRow title="Estimat de noi — poți schimba" chips={note.assumed} tone="bg-care-soft text-care" />}
+          {note.assumed.length > 0 && <ChipRow title="Estimat de noi" chips={note.assumed} tone="bg-care-soft text-care" />}
           {note.missing.length > 0 && <p className="text-sm text-muted-foreground"><span className="font-semibold">Lipsește: </span>{note.missing.join(", ")}</p>}
         </div>
         <Button variant="ghost" size="icon" className="shrink-0" aria-label="Închide" onClick={close}><X /></Button>

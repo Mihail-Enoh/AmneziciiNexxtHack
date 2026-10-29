@@ -244,11 +244,6 @@ function Family() {
           />
         ))}
       </div>
-      {s.members.length === 0 && (
-        <p className="mt-4 rounded-xl bg-muted p-4 text-sm text-muted-foreground">
-          Poți construi planul singur sau poți adăuga ulterior alți membri ai familiei.
-        </p>
-      )}
 
       {/* Prepare early */}
       <section className="mt-14 grid gap-6 lg:grid-cols-2">

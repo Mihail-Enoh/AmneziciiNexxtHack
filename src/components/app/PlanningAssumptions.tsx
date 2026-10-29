@@ -46,8 +46,7 @@ export function PlanningAssumptions({
               </p>
               <p className="mt-2">
                 Standarde anuale propuse, convertite în cost lunar. Nu sunt tarife private, costuri
-                actuale garantate sau contribuții datorate de familie. Aplicarea copiază valoarea
-                istorică drept bază de simulare; actualizeaz-o cu o ofertă înainte de utilizare.
+                actuale garantate sau contribuții datorate de familie.
               </p>
               <div className="my-3 flex flex-wrap gap-2">
                 {RESIDENTIAL_REFERENCES.map((r) => (
@@ -72,14 +71,6 @@ export function PlanningAssumptions({
           )}
         </>
       )}
-      <p className="text-sm text-muted-foreground">
-        Costurile de bază sunt demonstrative sau introduse de tine. Creștere costuri: {s.costGrowth}
-        %/an; venituri: {s.incomeGrowth}%/an. Fără randamente, taxe sau subvenții publice presupuse.
-        Contribuțiile familiei și economisirea lunară rămân fixe. Economiile existente nu cresc
-        înainte de începerea îngrijirii. Localitatea, locuința, bunurile și independența sunt
-        informații de context; nu modifică automat costurile. Venitul și economisirea personală nu
-        stabilesc automat contribuția familiei: tu alegi contribuția și fondul.
-      </p>
       <div className="grid gap-4 sm:grid-cols-3" aria-live="polite">
         <div>
           <p className="text-sm text-muted-foreground">Cost la începutul îngrijirii</p>

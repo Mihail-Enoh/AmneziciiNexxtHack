@@ -196,7 +196,7 @@ function Landing() {
             ))}
           </div>
           <div className="mt-10 flex flex-col gap-3 rounded-2xl bg-primary-soft p-5 md:flex-row md:items-center md:justify-between">
-            <p className="flex items-start gap-3 text-sm font-medium"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />{t("Nu oferim evaluări medicale și nu prezicem viitorul. Construim scenarii de îngrijire pe care le poți modifica.")}</p>
+            <p className="flex items-start gap-3 text-sm font-medium"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />{t("Nu oferim evaluări medicale și nu prezicem viitorul. Construim scenarii de îngrijire.")}</p>
           </div>
         </div>
       </section>
